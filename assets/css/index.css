@@ -2909,17 +2909,60 @@ body.single .top>.gui .item.guiEmbedName {
     background: #292b2f;
 }
 
-.guiEmbedAdd {
+.guiEmbedAdd, .guiActionRowAdd {
     font-size: .8rem;
     display: inline-flex;
     position: absolute;
     bottom: 5px;
-    left: 50%;
+    left: 30%;
     transform: translateX(-50%);
     align-items: center;
     z-index: 2;
 }
+.guiActionRowAdd {
+    left: 70%;
+}
 
-.guiEmbedAdd .icon {
+.guiEmbedAdd .icon, .guiActionRowAdd .icon {
     margin-right: 7px;
+}
+
+.components {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.actionrow {
+	display: flex;
+}
+.actionrow button {
+	border-radius: 5px;
+	margin: 4px 8px 4px 0;
+	padding: 8px 16px;
+	font-size: 14px;
+	border: none;
+	color: #FFF;
+}
+.actionrow button:hover {
+	cursor: pointer;
+}
+.actionrow button.b-primary {
+	background-color: #5865F2;
+}
+.actionrow button.b-secondary, .actionrow button.b-url {
+	background-color: #9A9A9A;
+}
+.actionrow button.b-success {
+	background-color: #248045;
+}
+.actionrow button.b-danger {
+	background-color: #DA373C;
+}
+.actionrow button.b-url a {
+	color: #FFF;
+}
+
+.actionrow .select {
+    background-color: #1E1F22;
+	width: 400px;
 }

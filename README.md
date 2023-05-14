@@ -2,11 +2,11 @@
 
 Visualize embed or message content from JSON input or provided GUI editor.
 
-This can be used for discord bot embed commands. It can also be intergreted into your Discord bot's website.  
+This can be used for discord bot embed commands. It can also be intergreted into your Discord bot's website.
 
-Aside the JSON editor, it also includes a GUI editor which converts to JSON for simplicity.  
+Aside the JSON editor, it also includes a GUI editor which converts to JSON for simplicity.
 
-![GUI image](https://raw.githubusercontent.com/Glitchii/embedbuilder/main/assets/media/gui.png) ![JSON image](https://raw.githubusercontent.com/Glitchii/embedbuilder/main/assets/media/gui.png)  
+![GUI image](https://raw.githubusercontent.com/Glitchii/embedbuilder/main/assets/media/gui.png) ![JSON image](https://raw.githubusercontent.com/Glitchii/embedbuilder/main/assets/media/gui.png)
 
 
 # Supported URL Parameters
@@ -20,7 +20,7 @@ Example URL: https://glitchii.github.io/embedbuilder/?editor=json
 ## Data param (/?data=...)
 A data param is used to specify the dafault json data to be used when the website loads. **Note** that value of the data param should be URL encoded first, then base64 encoded last because some characters like emojis can't be Base64 encoded alone. Calling the `jsonToBase64()` or `jsonToBase64(json, true)` function does that for you and returns the encoded JSON data.
 
-Example URL:  
+Example URL:
 https://glitchii.github.io/embedbuilder/?data=JTdCJTIyZW1iZWQlMjIlM0ElN0IlMjJ0aXRsZSUyMiUzQSUyMkxvcmVtJTIwaXBzdW0lMjIlMkMlMjJkZXNjcmlwdGlvbiUyMiUzQSUyMkRvbG9yJTIwc2l0JTIwYW1ldC4uLiUyMiUyQyUyMmNvbG9yJTIyJTNBMzkxMjklN0QlN0Q=
 
 ## Other parameters
@@ -50,7 +50,7 @@ nomultiembedsoption     Remove multi-embeds option from the menu.
                         Together with the 'single' option, this allows
                         the developer to force the user to either use only a single or multi-embeds.
 sourceOption            Display link to source code in menu. (Off by deafult unless enabled or top domain host is glitchii.github.io)
-data=                   URL + Base64 encoded string of json data to be used on the embed instead of the default. 
+data=                   URL + Base64 encoded string of json data to be used on the embed instead of the default.
 ```
 <small>Case matters, all parameters should be lowercase.</small>
 ### Example URL with all* the above parameters:
@@ -66,7 +66,7 @@ If you want to keep up to date and all you want is to have an embed builder in y
 
 
 <br><br>
-You can look into the [project boards](https://github.com/Glitchii/embedbuilder/projects/3) to see what is being worked on or If you want to contribute.  
+You can look into the [project boards](https://github.com/Glitchii/embedbuilder/projects/3) to see what is being worked on or If you want to contribute.
 <br>
-<small> Example integration: https://troybot.xyz/embed</small>  
+<small> Example integration: https://troybot.xyz/embed</small>
 [To Do](https://github.com/Glitchii/embedbuilder/projects/3) | [Discussions](https://github.com/Glitchii/embedbuilder/discussions/1)

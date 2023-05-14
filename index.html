@@ -225,7 +225,7 @@
                         <div class="edit">
                             <textarea class="editContent" placeholder="Message content" maxlength="2000" autocomplete="off"></textarea>
                         </div>
-                        <div class="item guiEmbedName ">
+                        <div class="item guiEmbedName">
                             <span class="text">Embed 1</span>
                             <span class="icon">
                                 <svg version="1.1" x="0" y="0" viewBox="0 0 24 24" width="16" height="16">
@@ -460,6 +460,12 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="guiEmbed guiActionRow">
+                            <div class="item title inlineField">
+                                <p class="ttle">Label</p>
+                                <input class="editTitle" type="text" placeholder="Label" autocomplete="off" maxlength="100">
+                            </div>
+                        </div>
                         <div class="guiEmbedAdd pointer">
                             <div class="icon">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -468,6 +474,14 @@
                             </div>
                             <div class="text">Add embed</div>
                         </div>
+                        <div class="guiEmbedAdd guiActionRowAdd pointer">
+                            <div class="icon">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"></path>
+                                </svg>
+                            </div>
+                            <div class="text">Add action row</div>
+                        </div>
                     </div>
                     <div class="editorHolder"></div>
                 </div>
@@ -475,10 +489,10 @@
                     <div class="colors high">
                         <div class="hex">
                             <div>
-                               <span>
+                                <span>
                                     <span>#</span>
                                     <input placeholder="Hex code" autocomplete="off">
-                               </span>                        
+                                </span>
                             </div>
                          </div>
                         <div class="col colLeft">
@@ -567,7 +581,7 @@
                             <span class="botTag">
                                 <svg aria-label="Verified bot" class="botTagVerified" aria-hidden="false" width="16" height="16" viewBox="0 0 16 15.2">
                                     <path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z" fill="currentColor"></path>
-                                 </svg>                                 
+                                 </svg>
                                 <span class="botText">BOT</span>
                             </span>
                             <span class="timeText"></span>
@@ -606,6 +620,9 @@
                                 <div class="embedFooter embedMargin"></div>
                             </div>
                         </div>
+                    </div>
+                    <div class="components">
+                        <div class="actionrow markup"></div>
                     </div>
                     <div class="emptyTxt">Nothing here</div>
                 </div>

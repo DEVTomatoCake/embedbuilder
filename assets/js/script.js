@@ -98,7 +98,7 @@ const toRGB = (hex, reversed, integer) => {
     return [parseInt(hex[0], 16), parseInt(hex[1], 16), parseInt(hex[2], 16), 1];
 };
 
-const reverse = (reversed, callback) => {
+const reverse = reversed => {
     const side = document.querySelector(reversed ? '.side2' : '.side1');
     if (side.nextElementSibling) side.parentElement.insertBefore(side.nextElementSibling, side);
     else side.parentElement.insertBefore(side, side.parentElement.firstElementChild);
@@ -111,7 +111,7 @@ const urlOptions = ({ remove, set }) => {
     const url = new URL(location.href);
     if (remove) url.searchParams.delete(remove);
     if (set) url.searchParams.set(set[0], set[1]);
-    
+
     try {
         history.replaceState(null, null, url.href.replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x === '=' ? '' : '&'));
     } catch (e) {
@@ -333,6 +333,7 @@ addEventListener('DOMContentLoaded', () => {
         guiParent = document.querySelector('.top'),
         embedContent = document.querySelector('.messageContent'),
         embedCont = document.querySelector('.msgEmbed>.container'),
+        actionRowCont = document.querySelector('.components'),
         gui = guiParent.querySelector('.gui:first-of-type');
 
     editor = CodeMirror(elt => editorHolder.parentNode.replaceChild(elt, editorHolder), {
@@ -485,7 +486,7 @@ addEventListener('DOMContentLoaded', () => {
                 if (fields[i].inline && fields[i + 1]?.inline &&
                     // it's the first field in the embed or -
                     ((i === 0 && fields[i + 2] && !fields[i + 2].inline) || ((
-                        // it's not the first field in the embed but the previous field is not inline or - 
+                        // it's not the first field in the embed but the previous field is not inline or -
                         i > 0 && !fields[i - 1].inline ||
                         // it has 3 or more fields behind it and 3 of those are inline except the 4th one back if it exists -
                         i >= 3 && fields[i - 1].inline && fields[i - 2].inline && fields[i - 3].inline && (fields[i - 4] ? !fields[i - 4].inline : !fields[i - 4])
@@ -555,9 +556,11 @@ addEventListener('DOMContentLoaded', () => {
     const hide = el => el.style.removeProperty('display'),
         imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty('content') : elm.style.content = `url(${src})`;
 
-    const [guiFragment, fieldFragment, embedFragment, guiEmbedAddFragment] = Array.from({ length: 4 }, () => document.createDocumentFragment());
+    const [guiFragment, fieldFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 6 }, () => document.createDocumentFragment());
     embedFragment.appendChild(document.querySelector('.embed.markup').cloneNode(true));
+    actionRowFragment.appendChild(document.querySelector('.actionrow.markup').cloneNode(true));
     guiEmbedAddFragment.appendChild(document.querySelector('.guiEmbedAdd').cloneNode(true));
+    guiActionRowAddFragment.appendChild(document.querySelector('.guiActionRowAdd').cloneNode(true));
     fieldFragment.appendChild(document.querySelector('.edit>.fields>.field').cloneNode(true));
 
     document.querySelector('.embed.markup').remove();
@@ -1075,7 +1078,6 @@ addEventListener('DOMContentLoaded', () => {
 
                 const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true));
                 const embedGrid = embedElement.querySelector('.embedGrid');
-                const msgEmbed = embedElement.querySelector('.msgEmbed');
                 const embedTitle = embedElement.querySelector('.embedTitle');
                 const embedDescription = embedElement.querySelector('.embedDescription');
                 const embedAuthor = embedElement.querySelector('.embedAuthor');
@@ -1128,8 +1130,48 @@ addEventListener('DOMContentLoaded', () => {
 
                 if (embedElement.innerText.trim() || embedElement.querySelector('.embedGrid > [style*=display] img'))
                     embedElement.classList.remove('emptyEmbed');
-                else
-                    embedElement.classList.add('emptyEmbed');
+                else embedElement.classList.add('emptyEmbed');
+            }
+
+			actionRowCont.innerHTML = '';
+            if (jsonObject.components) for (const actionRow of jsonObject.components) {
+                const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true));
+
+                for (const component of actionRow.components) {
+					const buttonElement = document.createElement("button");
+					if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select");
+
+					const buttonStyles = {
+						1: "primary",
+						2: "secondary",
+						3: "success",
+						4: "danger",
+						5: "url"
+					}
+                    if (component.style) buttonElement.classList.add("b-" + buttonStyles[component.style]);
+                    if (component.disabled) buttonElement.classList.add('disabled');
+                    if (component.url) {
+						const urlElement = document.createElement("a");
+						urlElement.href = url(component.url);
+						urlElement.target = "_blank";
+						urlElement.innerText = component.label;
+						buttonElement.appendChild(urlElement);
+					}
+                    if (component.custom_id) buttonElement.dataset.customId = component.custom_id;
+                    if (component.label) {
+						const label = document.createElement("span");
+						label.innerText = component.label;
+						buttonElement.appendChild(label);
+					}
+                    if (component.emoji) {
+						const emojiElement = document.createElement("span");
+                        if (component.emoji.id) emojiElement.src = url(component.emoji.id);
+                        else emojiElement.innerText = component.emoji.name;
+						buttonElement.appendChild(emojiElement);
+                    }
+
+					actionRowElement.appendChild(buttonElement);
+                }
             }
 
             // Make sure that the embed has no text or any visible images such as custom emojis before hiding.
@@ -1479,6 +1521,7 @@ Object.defineProperty(window, 'json', {
         jsonObject = {
             ...(content && { content }),
             embeds: embeds.map(cleanEmbed),
+			components: val.components
         };
 
         buildEmbed();
@@ -1488,11 +1531,11 @@ Object.defineProperty(window, 'json', {
 
 // Props used to validate embed properties.
 window.embedObjectsProps ??= {
-    author: ["name", "url", "icon_url",],
-    thumbnail: ["url", "proxy_url", "height", "width",],
-    image: ["url", "proxy_url", "height", "width",],
-    fields: { items: ["name", "value", "inline",], },
-    footer: ["text", "icon_url",],
+    author: ["name", "url", "icon_url"],
+    thumbnail: ["url", "proxy_url", "height", "width"],
+    image: ["url", "proxy_url", "height", "width"],
+    fields: { items: ["name", "value", "inline"] },
+    footer: ["text", "icon_url"]
 }
 
 function cleanEmbed(obj, recursing = false) {
