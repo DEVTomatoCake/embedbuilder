@@ -542,7 +542,6 @@ body.no-user .msgEmbed {
 }
 
 .imageWrapper img {
-    /* position: absolute; */
     width: 100%;
     height: 100%;
 }
@@ -650,31 +649,6 @@ body.no-user .msgEmbed {
     max-width: 100%;
 }
 
-/* .embedImage, .embedThumbnail {
-    display: block;
-    object-fit: fill;
-}
-
-.embedImage, .embedThumbnail {
-    display: block;
-    border-radius: 4px;
-}
-
-.embedThumbnail {
-    width: 80px;
-    height: 80px;
-}
-
-.embedThumbnail {
-    grid-area: 1 / 2 / 8 / 2;
-    margin-left: 16px;
-    margin-top: 8px;
-    flex-shrink: 0;
-    justify-self: end;
-    width: 80px;
-    height: 80px;
-} */
-
 .embedImage img,
 .embedThumbnail img {
     display: block;
@@ -688,10 +662,8 @@ body.no-user .msgEmbed {
     margin-top: 8px;
     flex-shrink: 0;
     justify-self: end;
-    /* <> */
     width: 80px;
     height: 80px;
-    /* <> */
 }
 
 .embedFooter {
@@ -1404,10 +1376,8 @@ body:not(.gui) .chooser>.back {
 .pallets {
     width: 100%;
     display: grid;
-    /* grid-template-columns: repeat(8, 1fr); */
     grid-template-columns: repeat(6, minmax(25px, 1fr));
     gap: 5px 0px;
-    /* opacity: .7; */
     transition: .5s;
 }
 
@@ -1573,7 +1543,7 @@ textarea {
     display: none;
 }
 
-.top>.gui .item:not(.inlineField):not(.guiEmbedName).active {
+.top>.gui .item:not(.inlineField):not(.guiEmbedName):not(.guiActionRowName).active {
     margin-bottom: 0;
     background: #212226;
     border-bottom-left-radius: 0;
@@ -1678,7 +1648,6 @@ textarea {
 
 .footerDate input#timestamp {
     all: unset;
-    /* transform: translateX(10px); */
 }
 
 .footerDate:is(:hover, :focus-within)>p,
@@ -2204,17 +2173,12 @@ body {
     all: unset;
     cursor: pointer;
     color: #939396fc;
-    /* color: #767d91; */
 }
 
 .item.section .inner.more a:hover {
     color: #b7c6d3;
     color: #919bb7;
 }
-
-/* .item.section .inner.more {
-    display: none;
-} */
 
 .item.toggle .item.toggle .item.toggle .item.toggle .top-btn.menu>.box .item>input {
     pointer-events: none;
@@ -2234,8 +2198,7 @@ body {
 }
 
 body.autoUpdateURL .top-btn.menu>.box .item.auto>.icon::after,
-body.no-user .top-btn.menu>.box .item.noUser>.icon::after,
-body:not(.single) .top-btn.menu>.box .item.multi>.icon::after,
+body .top-btn.menu>.box .item.multi>.icon::after,
 body.reversed .top-btn.menu>.box .item.reverse>.icon::after {
     display: block;
 }
@@ -2540,10 +2503,6 @@ h5.title {
 .done .channels .selectOptions .hook {
     min-width: 220px;
     max-width: 250px;
-    /* cursor: pointer; */
-    /* display: flex; */
-    /* margin-top: 5px; */
-    /* margin-bottom: 5px; */
     margin: 5px 10px 5px 10px;
     padding: 0;
 }
@@ -2559,9 +2518,7 @@ body.toHook .done .channels .selectOptions .hook {
 }
 
 .done .channels .selectOptions .hook input {
-    /* background: #26292d; */
     padding: 10px 22px 10px 11px;
-    /* border-radius: 4px; */
     border-bottom: 1px solid #44464a;
     border-top-right-radius: 4px;
     border-top-left-radius: 4px;
@@ -2821,7 +2778,7 @@ body.toHook .done .channels .selectOptions .hook {
     }
 }
 
-.top>.gui .item.guiEmbedName {
+.top>.gui .item.guiEmbedName, .top>.gui .item.guiActionRowName {
     background: none;
     height: auto;
     font-size: 13px;
@@ -2833,7 +2790,7 @@ body.toHook .done .channels .selectOptions .hook {
     z-index: 1;
 }
 
-.top>.gui .item.guiEmbedName::before {
+.top>.gui .item.guiEmbedName::before, .top>.gui .item.guiActionRowName::before {
     content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' viewBox='0 0 24 24' height='30'%3E%3Cpath clip-rule='evenodd' fill='%23fff' d='M16.59 8.59004L12 13.17L7.41 8.59004L6 10L12 16L18 10L16.59 8.59004Z'%3E%3C/path%3E%3C/svg%3E");
     position: absolute;
     /* transform: scale(.8) translate(-40px, -13px); */
@@ -2845,22 +2802,21 @@ body.toHook .done .channels .selectOptions .hook {
 
 /* Move icon a bit up for gecko based browsers */
 @supports (-moz-appearance: none) {
-    .top>.gui .item.guiEmbedName::before {
+    .top>.gui .item.guiEmbedName::before, .top>.gui .item.guiActionRowName::before {
         transform: scale(.7) translate(-40px, -16.5px) rotate(-90deg);
     }
 }
 
-.top>.gui .item.guiEmbedName.active::before {
+.top>.gui .item.guiEmbedName.active::before, .top>.gui .item.guiActionRowName.active::before {
     transform: scale(.7) translate(-40px, -15.5px);
 }
 
-body:not(.single) .top>.gui .item.guiEmbedName:not(.active)+.guiEmbed,
-body.single .guiEmbedAdd,
-body.single .top>.gui .item.guiEmbedName {
+body .top>.gui .item.guiEmbedName:not(.active)+.guiEmbed,
+body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
     display: none;
 }
 
-.top>.gui .item.guiEmbedName .text span {
+.top>.gui .item.guiEmbedName .text span, .top>.gui .item.guiActionRowName .text span {
     opacity: .5;
 }
 
@@ -2874,19 +2830,17 @@ body.single .top>.gui .item.guiEmbedName {
     }
 }
 
-.top>.gui .item.guiEmbedName.empty .text::after {
+.top>.gui .item.guiEmbedName.empty .text::after, .top>.gui .item.guiActionRowName.empty .text::after {
     content: var(--text, "no content");
     opacity: 0;
     margin-left: 7px;
     font-style: italic;
-    animation: guiEmbedNameEmptyAn 3s ease
-        /*forwards*/
-    ;
+    animation: guiEmbedNameEmptyAn 3s ease;
     position: absolute;
     transform: translateY(-1px);
 }
 
-.top>.gui .item.guiEmbedName .icon {
+.top>.gui .item.guiEmbedName .icon, .top>.gui .item.guiActionRowName .icon {
     position: absolute;
     right: 19px;
     top: 7px;
@@ -2894,12 +2848,12 @@ body.single .top>.gui .item.guiEmbedName {
     opacity: .1;
 }
 
-.top>.gui .item.guiEmbedName:not(:hover) .icon {
+.top>.gui .item.guiEmbedName:not(:hover) .icon, .top>.gui .item.guiActionRowName:not(:hover) .icon {
     opacity: 0;
     pointer-events: none;
 }
 
-.top>.gui .item.guiEmbedName .icon:hover {
+.top>.gui .item.guiEmbedName .icon:hover, .top>.gui .item.guiActionRowName .icon:hover {
     opacity: 1;
 }
 

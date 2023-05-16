@@ -11,19 +11,15 @@ options = {
 	username: "TomatenKuchen",
 	avatar: "https://tomatenkuchen.eu/assets/images/background_192.webp",
 	verified: true,
-	noUser: false,
 	data: null,
 	guiTabs: ["description"],
 	useJsonEditor: false,
 	reverseColumns: false,
 	allowPlaceholders: false,
 	autoUpdateURL: false,
-	autoParams: false,
 	hideEditor: false,
 	hidePreview: false,
 	hideMenu: false,
-	single: false,
-	noMultiEmbedsOption: false,
 	sourceOption: true // Display link to source code in menu.
 }
 

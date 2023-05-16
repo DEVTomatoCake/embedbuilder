@@ -2,11 +2,11 @@
  * Discord Embed Builder
  * Contribute or report issues at
  * https://github.com/Glitchii/embedbuilder
+ * https://github.com/DEVTomatoCake/embedbuilder
  */
 
 window.options ??= {};
 window.inIframe ??= top !== self;
-mainHost = "glitchii.github.io";
 
 let params = new URLSearchParams(location.search),
     hasParam = param => params.get(param) !== null,
@@ -17,26 +17,27 @@ let params = new URLSearchParams(location.search),
     useJsonEditor = params.get('editor') === 'json' || options.useJsonEditor,
     verified = hasParam('verified') || options.verified,
     reverseColumns = hasParam('reverse') || options.reverseColumns,
-    noUser = localStorage.getItem('noUser') || hasParam('nouser') || options.noUser,
     onlyEmbed = hasParam('embed') || options.onlyEmbed,
     allowPlaceholders = hasParam('placeholders') || options.allowPlaceholders,
     autoUpdateURL = localStorage.getItem('autoUpdateURL') || options.autoUpdateURL,
-    noMultiEmbedsOption = localStorage.getItem('noMultiEmbedsOption') || hasParam('nomultiembedsoption') || options.noMultiEmbedsOption,
-    single = noMultiEmbedsOption ? options.single ?? true : (localStorage.getItem('single') || hasParam('single') || options.single) ?? false,
-    multiEmbeds = !single,
-    autoParams = localStorage.getItem('autoParams') || hasParam('autoparams') || options.autoParams,
+    multiEmbeds = true,
     hideEditor = localStorage.getItem('hideeditor') || hasParam('hideeditor') || options.hideEditor,
     hidePreview = localStorage.getItem('hidepreview') || hasParam('hidepreview') || options.hidePreview,
     hideMenu = localStorage.getItem('hideMenu') || hasParam('hidemenu') || options.hideMenu,
     sourceOption = localStorage.getItem('sourceOption') || hasParam('sourceoption') || options.sourceOption,
-    // sourceInMenu = localStorage.getItem('sourceInMenu') || hasParam('sourceInMenu') || options.sourceInMenu || top.location.host === mainHost,
     validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0;
 
 const guiEmbedIndex = guiEl => {
-    const guiEmbed = guiEl?.closest('.guiEmbed');
+    const guiEmbed = guiEl?.closest('.guiEmbed')
     const gui = guiEmbed?.closest('.gui')
 
     return !gui ? -1 : Array.from(gui.querySelectorAll('.guiEmbed')).indexOf(guiEmbed)
+}
+const guiComponentIndex = guiRo => {
+    const guiActionRow = guiRo?.closest('.guiEmbed')
+    const gui = guiActionRow?.closest('.gui')
+
+    return !gui ? -1 : Array.from(gui.querySelectorAll('.guiActionRow')).indexOf(guiActionRow)
 }
 
 const toggleStored = item => {
@@ -102,9 +103,6 @@ const reverse = reversed => {
     const side = document.querySelector(reversed ? '.side2' : '.side1');
     if (side.nextElementSibling) side.parentElement.insertBefore(side.nextElementSibling, side);
     else side.parentElement.insertBefore(side, side.parentElement.firstElementChild);
-
-    const isReversed = document.body.classList.toggle('reversed');
-    if (autoParams) isReversed ? urlOptions({ set: ['reverse', ''] }) : urlOptions({ remove: 'reverse' });
 };
 
 const urlOptions = ({ remove, set }) => {
@@ -276,12 +274,8 @@ delete jsonObject.embed;
 addEventListener('DOMContentLoaded', () => {
     if (reverseColumns || localStorage.getItem('reverseColumns'))
         reverse();
-    if (autoParams)
-        document.querySelector('.item.auto-params > input').checked = true;
     if (hideMenu)
         document.querySelector('.top-btn.menu')?.classList.add('hidden');
-    if (noMultiEmbedsOption)
-        document.querySelector('.box .item.multi')?.remove();
     if (inIframe)
         // Remove menu options that don't work in iframe.
         for (const e of document.querySelectorAll('.no-frame'))
@@ -290,12 +284,6 @@ addEventListener('DOMContentLoaded', () => {
     if (autoUpdateURL) {
         document.body.classList.add('autoUpdateURL');
         document.querySelector('.item.auto > input').checked = true;
-    }
-
-    if (single) {
-        document.body.classList.add('single');
-        if (autoParams)
-            single ? urlOptions({ set: ['single', ''] }) : urlOptions({ remove: 'single' });
     }
 
     if (hideEditor) {
@@ -315,17 +303,9 @@ addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('gui');
     }
 
-    if (noUser) {
-        document.body.classList.add('no-user');
-        if (autoParams)
-            noUser ? urlOptions({ set: ['nouser', ''] }) : urlOptions({ remove: 'nouser' });
-    }
-
-    else {
-        if (username) document.querySelector('.username').textContent = username;
-        if (avatar) document.querySelector('.avatar').src = avatar;
-        if (verified) document.querySelector('.msgEmbed > .contents').classList.add('verified');
-    }
+    if (username) document.querySelector('.username').textContent = username;
+    if (avatar) document.querySelector('.avatar').src = avatar;
+    if (verified) document.querySelector('.msgEmbed > .contents').classList.add('verified');
 
     for (const e of document.querySelectorAll('.clickable > img'))
         e.parentElement.addEventListener('mouseup', el => window.open(el.target.src));
@@ -662,7 +642,9 @@ addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } else if (child.classList?.[1] === 'guiActionRowName') {
+                console.log(object.components.length)
                 for (const [i, component] of (object.components.length ? object.components : [{}]).entries()) {
+                    if (!component) console.warn('component is undefined', i, object.components)
                     const guiActionRowName = gui.appendChild(child.cloneNode(true))
                     console.log(guiActionRowName)
 
@@ -830,7 +812,6 @@ addEventListener('DOMContentLoaded', () => {
                     const componentObj = jsonObject.components[index] ??= {};
 
                     if (field) {
-                        console.log(field)
                         const fieldIndex = Array.from(fields.children).indexOf(field);
                         const jsonField = embedObj.fields[fieldIndex];
                         const embedFields = document.querySelectorAll('.container>.embed')[index]?.querySelector('.embedFields');
@@ -896,7 +877,11 @@ addEventListener('DOMContentLoaded', () => {
 
                             case 'editComponentLabel':
                                 componentObj.label = value;
-                                buildEmbed({ only: 'componentLabel', index: guiEmbedIndex(el.target) });
+                                buildEmbed({ only: 'componentLabel', index: guiComponentIndex(el.target) });
+                                break;
+                            case 'editComponentEmoji':
+                                componentObj.emoji = value;
+                                buildEmbed({ only: 'componentEmoji', index: guiComponentIndex(el.target) });
                                 break;
                         }
 
@@ -1061,6 +1046,7 @@ addEventListener('DOMContentLoaded', () => {
 
             if (only && (!embed || !embedObj)) return buildEmbed();
 
+            console.log(only)
             switch (only) {
                 // If only updating the message content and nothing else, return here.
                 case 'content': return externalParsing({ element: embedContent });
@@ -1191,9 +1177,10 @@ addEventListener('DOMContentLoaded', () => {
 
 			actionRowCont.innerHTML = "";
             if (jsonObject.components) for (const actionRow of jsonObject.components) {
+                if (!actionRow) console.warn(actionRow)
                 const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true));
 
-                for (const component of actionRow.components) {
+                if (actionRow.components) for (const component of actionRow.components) {
 					const buttonElement = document.createElement("button");
 					if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select");
 
@@ -1429,16 +1416,6 @@ addEventListener('DOMContentLoaded', () => {
             reverse(reverseColumns);
             reverseColumns = !reverseColumns;
             toggleStored('reverseColumns');
-        } else if (e.target.closest('.item.noUser')) {
-            if (options.avatar) document.querySelector('img.avatar').src = options.avatar;
-
-            const noUser = document.body.classList.toggle('no-user');
-            if (autoParams) noUser ? urlOptions({ set: ['nouser', ''] }) : urlOptions({ remove: 'nouser' });
-            toggleStored('noUser');
-        } else if (e.target.closest('.item.auto-params')) {
-            if (input.checked) localStorage.setItem('autoParams', true);
-            else localStorage.removeItem('autoParams');
-            autoParams = input.checked;
         } else if (e.target.closest('.toggles>.item')) {
             const win = input.closest('.item').classList[2];
 
@@ -1449,20 +1426,6 @@ addEventListener('DOMContentLoaded', () => {
                 document.body.classList.add(`no-${win}`);
                 localStorage.setItem(`hide${win}`, true);
             }
-        } else if (e.target.closest('.item.multi') && !noMultiEmbedsOption) {
-            multiEmbeds = !document.body.classList.toggle('single');
-            activeFields = document.querySelectorAll('.gui > .item.active');
-
-            if (autoParams) !multiEmbeds ? urlOptions({ set: ['single', ''] }) : urlOptions({ remove: 'single' });
-            if (multiEmbeds) localStorage.setItem('multiEmbeds', true);
-            else {
-                localStorage.removeItem('multiEmbeds');
-                jsonObject.embeds = [jsonObject.embeds?.[0] || {}];
-            }
-
-            buildGui();
-            buildEmbed();
-            editor.setValue(JSON.stringify(json, null, 4));
         }
 
         e.target.closest('.top-btn')?.classList.toggle('active')
