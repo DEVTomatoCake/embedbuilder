@@ -8,12 +8,12 @@
 // URL options can override the options below.
 // Options set through the menu can override both until the page is refreshed.
 options = {
-	username: 'TomatenKuchen',
-	avatar: 'https://tomatenkuchen.eu/assets/images/background_192.webp',
+	username: "TomatenKuchen",
+	avatar: "https://tomatenkuchen.eu/assets/images/background_192.webp",
 	verified: true,
 	noUser: false,
 	data: null,
-	guiTabs: ['author', 'description'],
+	guiTabs: ["description"],
 	useJsonEditor: false,
 	reverseColumns: false,
 	allowPlaceholders: false,
@@ -28,14 +28,6 @@ options = {
 }
 
 // Default JSON object
-
-// json = {
-//     content: "Hello world",
-//     embed: {
-//         title: "A title",
-//         description: "A description",
-//     }
-// }
 json = {
 	content: "Hello world",
 	embeds: [

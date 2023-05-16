@@ -194,8 +194,9 @@ const externalParsing = ({ noEmojis, element } = {}) => {
 };
 
 let embedKeys = ["author", "footer", "color", "thumbnail", "image", "fields", "title", "description", "url", "timestamp"];
-let mainKeys = ["embed", "embeds", "content"];
-let allJsonKeys = [...mainKeys, ...embedKeys];
+let componentKeys = ["label", "style", "emoji", "options", "placeholder", "custom_id", "url", "disabled", "type", "value", "min_values", "max_values"]
+let mainKeys = ["embed", "embeds", "content", "components"];
+let allJsonKeys = [...mainKeys, ...embedKeys, ...componentKeys];
 
 // 'jsonObject' is used internally, do not change it's value. Assign to 'json' instead.
 // 'json' is the object that is used to build the embed. Assigning to it also updates the editor.
@@ -578,6 +579,11 @@ addEventListener('DOMContentLoaded', () => {
                 jsonObject.embeds.push({});
                 buildGui();
             });
+        gui.appendChild(guiActionRowAddFragment.firstChild.cloneNode(true))
+            .addEventListener('click', () => {
+                jsonObject.components.push({});
+                buildGui();
+            });
 
         for (const child of Array.from(guiFragment.childNodes)) {
             if (child.classList?.[1] === 'content')
@@ -655,11 +661,55 @@ addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
+            } else if (child.classList?.[1] === 'guiActionRowName') {
+                for (const [i, component] of (object.components.length ? object.components : [{}]).entries()) {
+                    const guiActionRowName = gui.appendChild(child.cloneNode(true))
+                    console.log(guiActionRowName)
+
+                    guiActionRowName.querySelector('.text').innerHTML = `Action Row ${i + 1}${component.custom_id ? `: <span>${component.custom_id}</span>` : ''}`;
+                    guiActionRowName.querySelector('.icon').addEventListener('click', () => {
+                        object.components.splice(i, 1);
+                        buildGui();
+                        buildEmbed();
+                    });
+
+                    const guiActionRow = gui.appendChild(createElement({ 'div': { className: 'guiActionRow' } }));
+                    const guiActionRowTemplate = child.nextElementSibling;
+
+                    for (const child2 of Array.from(guiActionRowTemplate.children)) {
+                        if (!child2?.classList.contains('edit')) {
+                            const row = guiActionRow.appendChild(child2.cloneNode(true));
+                            const edit = child2.nextElementSibling?.cloneNode(true);
+                            edit?.classList.contains('edit') && guiActionRow.appendChild(edit);
+
+                            switch (child2.classList[1]) {
+                                case 'button':
+                                    edit.querySelector('.editButtonLabel').value = component?.label || '';
+                                    edit.querySelector('.editButtonStyle').value = component?.style || 1;
+                                    edit.querySelector('.editButtonURL').value = component?.url || '';
+                                    edit.querySelector('.editButtonEmoji').value = component?.emoji?.id || '';
+                                    edit.querySelector('.editButtonEmojiName').value = component?.emoji?.name || '';
+                                    edit.querySelector('.editButtonCustomId').value = component?.custom_id || '';
+                                    break;
+                                case 'selectMenu':
+                                    edit.querySelector('.editSelectMenuCustomId').value = component?.custom_id || '';
+                                    edit.querySelector('.editSelectMenuPlaceholder').value = component?.placeholder || '';
+                                    edit.querySelector('.editSelectMenuMinValues').value = component?.min_values || 1;
+                                    edit.querySelector('.editSelectMenuMaxValues').value = component?.max_values || 1;
+                                    edit.querySelector('.editSelectMenuOptions').value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ''}:${o.emoji?.name || ''}`).join('\n') || '';
+                                    break;
+                            }
+                        }
+                    }
+                }
             }
 
             // Expand last embed in GUI
-            const names = gui.querySelectorAll('.guiEmbedName');
-            names[names.length - 1]?.classList.add('active');
+            const embedList = gui.querySelectorAll('.guiEmbedName');
+            embedList[embedList.length - 1]?.classList.add('active');
+
+            const componentList = gui.querySelectorAll('.guiActionRowName');
+            componentList[componentList.length - 1]?.classList.add('active');
         }
 
         for (const e of document.querySelectorAll('.top>.gui .item'))
@@ -777,6 +827,7 @@ addEventListener('DOMContentLoaded', () => {
                     const field = el.target.closest('.field');
                     const fields = field?.closest('.fields');
                     const embedObj = jsonObject.embeds[index] ??= {};
+                    const componentObj = jsonObject.components[index] ??= {};
 
                     if (field) {
                         console.log(field)
@@ -796,6 +847,7 @@ addEventListener('DOMContentLoaded', () => {
                                 jsonObject.content = value;
                                 buildEmbed({ only: 'content' });
                                 break;
+
                             case 'editTitle':
                                 embedObj.title = value;
                                 const guiEmbedName = el.target.closest('.guiEmbed')?.previousElementSibling;
@@ -841,6 +893,11 @@ addEventListener('DOMContentLoaded', () => {
                                 el.target.parentElement.querySelector('svg>text').textContent = (date.getDate() + '').padStart(2, 0);
                                 buildEmbed({ only: 'embedFooterTimestamp', index: guiEmbedIndex(el.target) });
                                 break;
+
+                            case 'editComponentLabel':
+                                componentObj.label = value;
+                                buildEmbed({ only: 'componentLabel', index: guiEmbedIndex(el.target) });
+                                break;
                         }
 
                         // Find and filter out any empty objects ({}) in the embeds array as Discord doesn't like them.
@@ -878,9 +935,8 @@ addEventListener('DOMContentLoaded', () => {
                             return uploadError('File is too large. Maximum size is 32 MB.', browse, 5000);
 
                         formData.append("expiration", expiration); // Expire after 7 days. Discord caches files.
-                        formData.append("key", options.uploadKey || "93385e22b0619db73a5525140b13491c"); // Add your own key through the uploadKey option.
+                        formData.append("key", "247664c78b4606093dc9a510037483e0");
                         formData.append("image", el.target.files[0]);
-                        // formData.append("name", ""); // Uses original file name if no "name" is not specified.
 
                         browse.classList.add('loading');
 
@@ -1133,7 +1189,7 @@ addEventListener('DOMContentLoaded', () => {
                 else embedElement.classList.add('emptyEmbed');
             }
 
-			actionRowCont.innerHTML = '';
+			actionRowCont.innerHTML = "";
             if (jsonObject.components) for (const actionRow of jsonObject.components) {
                 const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true));
 
@@ -1149,7 +1205,7 @@ addEventListener('DOMContentLoaded', () => {
 						5: "url"
 					}
                     if (component.style) buttonElement.classList.add("b-" + buttonStyles[component.style]);
-                    if (component.disabled) buttonElement.classList.add('disabled');
+                    if (component.disabled) buttonElement.classList.add("disabled");
                     if (component.url) {
 						const urlElement = document.createElement("a");
 						urlElement.href = url(component.url);
@@ -1505,6 +1561,9 @@ Object.defineProperty(window, 'json', {
         if (jsonObject.embeds?.length)
             if (multiEmbeds) json.embeds = jsonObject.embeds.map(cleanEmbed);
             else json.embed = cleanEmbed(jsonObject.embeds[0]);
+
+        if (jsonObject.components?.length)
+            json.components = jsonObject.components;
 
         return json;
     },

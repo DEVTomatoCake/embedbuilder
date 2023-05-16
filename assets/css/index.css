@@ -2965,4 +2965,5 @@ body.single .top>.gui .item.guiEmbedName {
 .actionrow .select {
     background-color: #1E1F22;
 	width: 400px;
+	text-align: start;
 }
