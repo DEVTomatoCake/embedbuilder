@@ -2140,25 +2140,6 @@ body {
     margin: 0;
 }
 
-.item.toggle {
-    display: block;
-}
-
-.item.toggle .inner .toggles {
-    display: flex;
-    gap: 2em;
-}
-
-.item.toggle .inner .toggles .item {
-    align-items: center;
-    background: #35363e;
-    padding: 5px 10px;
-}
-
-.item.toggle .inner .toggles .item * {
-    pointer-events: none;
-}
-
 .item.section .inner .title {
     text-align: left;
     margin: 10px 0;
@@ -2178,10 +2159,6 @@ body {
 .item.section .inner.more a:hover {
     color: #b7c6d3;
     color: #919bb7;
-}
-
-.item.toggle .item.toggle .item.toggle .item.toggle .top-btn.menu>.box .item>input {
-    pointer-events: none;
 }
 
 .top-btn.menu>.box .item>.icon::after {

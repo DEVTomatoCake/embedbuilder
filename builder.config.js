@@ -17,15 +17,12 @@ options = {
 	reverseColumns: false,
 	allowPlaceholders: false,
 	autoUpdateURL: false,
-	hideEditor: false,
-	hidePreview: false,
-	hideMenu: false,
 	sourceOption: true // Display link to source code in menu.
 }
 
 // Default JSON object
 json = {
-	content: "Hello world",
+	content: "Hello ~~world~~ TomatenKuchen user :D",
 	embeds: [
 		{
 			title: "A title",
@@ -60,7 +57,7 @@ json = {
 					type: 2,
 					label: "Button Stil 5",
 					style: 5,
-					custom_id: "button5"
+					url: "https://tomatenkuchen.eu"
 				}
 			]
 		},{

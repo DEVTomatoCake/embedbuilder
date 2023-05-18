@@ -21,9 +21,6 @@ let params = new URLSearchParams(location.search),
     allowPlaceholders = hasParam('placeholders') || options.allowPlaceholders,
     autoUpdateURL = localStorage.getItem('autoUpdateURL') || options.autoUpdateURL,
     multiEmbeds = true,
-    hideEditor = localStorage.getItem('hideeditor') || hasParam('hideeditor') || options.hideEditor,
-    hidePreview = localStorage.getItem('hidepreview') || hasParam('hidepreview') || options.hidePreview,
-    hideMenu = localStorage.getItem('hideMenu') || hasParam('hidemenu') || options.hideMenu,
     sourceOption = localStorage.getItem('sourceOption') || hasParam('sourceoption') || options.sourceOption,
     validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0;
 
@@ -31,19 +28,24 @@ const guiEmbedIndex = guiEl => {
     const guiEmbed = guiEl?.closest('.guiEmbed')
     const gui = guiEmbed?.closest('.gui')
 
-    return !gui ? -1 : Array.from(gui.querySelectorAll('.guiEmbed')).indexOf(guiEmbed)
+    return gui ? Array.from(gui.querySelectorAll('.guiEmbed')).indexOf(guiEmbed) : -1
 }
-const guiComponentIndex = guiRo => {
-    const guiActionRow = guiRo?.closest('.guiEmbed')
+const guiActionRowIndex = guiRo => {
+    const guiActionRow = guiRo?.closest('.guiActionRow')
     const gui = guiActionRow?.closest('.gui')
 
-    return !gui ? -1 : Array.from(gui.querySelectorAll('.guiActionRow')).indexOf(guiActionRow)
+    return gui ? Array.from(gui.querySelectorAll('.guiActionRow')).indexOf(guiActionRow) : -1
+}
+const guiComponentIndex = guiRo => {
+    const guiComponent = guiRo?.closest('.guiComponent')
+    const gui = guiComponent?.closest('.gui')
+
+    return gui ? Array.from(gui.querySelectorAll('.guiComponent')).indexOf(guiComponent) : -1
 }
 
 const toggleStored = item => {
     const found = localStorage.getItem(item);
-    if (!found)
-        return localStorage.setItem(item, true);
+    if (!found) return localStorage.setItem(item, true);
 
     localStorage.removeItem(item);
     return found;
@@ -65,13 +67,12 @@ const createElement = object => {
 }
 
 const encodeJson = (jsonCode, withURL = false, redirect = false) => {
-    let data = btoa(encodeURIComponent((JSON.stringify(typeof jsonCode === 'object' ? jsonCode : json))));
+    let data = btoa(encodeURIComponent(JSON.stringify(typeof jsonCode === 'object' ? jsonCode : json)));
     let url = new URL(location.href);
 
     if (withURL) {
         url.searchParams.set('data', data);
-        if (redirect)
-            return top.location.href = url;
+        if (redirect) return top.location.href = url;
 
         data = url.href
             // Replace %3D ('=' url encoded) with '='
@@ -85,11 +86,6 @@ const decodeJson = data => {
     const jsonData = decodeURIComponent(atob(data || dataSpecified));
     return typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
 };
-
-// IMPORTANT: jsonToBase64 and base64ToJson are subject to removal in the future.
-// Use encodeJson and decodeJson instead (they are aliases)
-let jsonToBase64 = encodeJson, base64ToJson = decodeJson;
-
 
 const toRGB = (hex, reversed, integer) => {
     if (reversed) return '#' + hex.match(/\d+/g).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
@@ -118,6 +114,14 @@ const urlOptions = ({ remove, set }) => {
         console.info(e);
     }
 };
+
+const buttonStyles = {
+    1: "primary",
+    2: "secondary",
+    3: "success",
+    4: "danger",
+    5: "url"
+}
 
 const animateGuiEmbedNameAt = (i, text) => {
     const guiEmbedName = document.querySelectorAll('.gui .guiEmbedName')?.[i];
@@ -274,8 +278,6 @@ delete jsonObject.embed;
 addEventListener('DOMContentLoaded', () => {
     if (reverseColumns || localStorage.getItem('reverseColumns'))
         reverse();
-    if (hideMenu)
-        document.querySelector('.top-btn.menu')?.classList.add('hidden');
     if (inIframe)
         // Remove menu options that don't work in iframe.
         for (const e of document.querySelectorAll('.no-frame'))
@@ -284,16 +286,6 @@ addEventListener('DOMContentLoaded', () => {
     if (autoUpdateURL) {
         document.body.classList.add('autoUpdateURL');
         document.querySelector('.item.auto > input').checked = true;
-    }
-
-    if (hideEditor) {
-        document.body.classList.add('no-editor');
-        document.querySelector('.toggle .toggles .editor input').checked = false;
-    }
-
-    if (hidePreview) {
-        document.body.classList.add('no-preview');
-        document.querySelector('.toggle .toggles .preview input').checked = false;
     }
 
     if (onlyEmbed) document.body.classList.add('only-embed');
@@ -642,8 +634,7 @@ addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } else if (child.classList?.[1] === 'guiActionRowName') {
-                console.log(object.components.length)
-                for (const [i, component] of (object.components.length ? object.components : [{}]).entries()) {
+                for (const [i, component] of (object.components && object.components.length ? object.components : [{}]).entries()) {
                     if (!component) console.warn('component is undefined', i, object.components)
                     const guiActionRowName = gui.appendChild(child.cloneNode(true))
                     console.log(guiActionRowName)
@@ -809,7 +800,14 @@ addEventListener('DOMContentLoaded', () => {
                     const field = el.target.closest('.field');
                     const fields = field?.closest('.fields');
                     const embedObj = jsonObject.embeds[index] ??= {};
-                    const componentObj = jsonObject.components[index] ??= {};
+
+                    const rowindex = guiActionRowIndex(el.target);
+                    const componentindex = guiComponentIndex(el.target);
+                    const actionRowObj = rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {};
+                    let componentObj
+                    if (actionRowObj.components) actionRowObj.components.forEach((component, i) => {
+                        if (i == componentindex) componentObj = component;
+                    });
 
                     if (field) {
                         const fieldIndex = Array.from(fields.children).indexOf(field);
@@ -887,8 +885,10 @@ addEventListener('DOMContentLoaded', () => {
 
                         // Find and filter out any empty objects ({}) in the embeds array as Discord doesn't like them.
                         const nonEmptyEmbedObjects = json.embeds?.filter(o => 0 in Object.keys(o));
-                        if (nonEmptyEmbedObjects?.length)
-                            json.embeds = nonEmptyEmbedObjects;
+                        if (nonEmptyEmbedObjects?.length) json.embeds = nonEmptyEmbedObjects;
+
+                        const nonEmptyComponentObjects = json.components?.filter(o => 0 in Object.keys(o));
+                        if (nonEmptyComponentObjects?.length) json.components = nonEmptyComponentObjects;
                     }
 
                     // Display embed elements hidden due to not having content. '.msgEmbed>.container' is embed container.
@@ -1184,13 +1184,6 @@ addEventListener('DOMContentLoaded', () => {
 					const buttonElement = document.createElement("button");
 					if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select");
 
-					const buttonStyles = {
-						1: "primary",
-						2: "secondary",
-						3: "success",
-						4: "danger",
-						5: "url"
-					}
                     if (component.style) buttonElement.classList.add("b-" + buttonStyles[component.style]);
                     if (component.disabled) buttonElement.classList.add("disabled");
                     if (component.url) {
@@ -1201,7 +1194,7 @@ addEventListener('DOMContentLoaded', () => {
 						buttonElement.appendChild(urlElement);
 					}
                     if (component.custom_id) buttonElement.dataset.customId = component.custom_id;
-                    if (component.label) {
+                    if (component.label && !component.url) {
 						const label = document.createElement("span");
 						label.innerText = component.label;
 						buttonElement.appendChild(label);
@@ -1398,7 +1391,8 @@ addEventListener('DOMContentLoaded', () => {
                 document.body.removeChild(input);
             }
 
-            return alert('Copied to clipboard.');
+            setTimeout(() => alert('Copied to clipboard.'), 1);
+            return
         }
 
         if (e.target.closest('.item.download'))

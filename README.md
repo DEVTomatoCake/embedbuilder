@@ -40,9 +40,6 @@ placeholders            Silences some warrnings, e.g. warrnings about missing ur
                         This param is useful when your bot allows having placeholders in place of a URL eg. `{ server.url }`
 placeholders=errors     This also disables automatic insertion of 'http' for urls without a protocol.
                         Except, warnings won't be silenced. The user will still see a warning that a url or timestamp (etc.) is incorrect for 5 seconds.
-hideditor               Hides the editor.
-hidepreview             Hides the preview.
-hidemenu                Hides the three dotted menu.
 sourceOption            Display link to source code in menu. (Off by deafult unless enabled or top domain host is glitchii.github.io)
 data=                   URL + Base64 encoded string of json data to be used on the embed instead of the default.
 ```
