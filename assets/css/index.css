@@ -2000,7 +2000,7 @@ body {
     background: #262121;
 }
 
-.addField {
+.addField, .addComponent {
     animation: addFieldFade .5s ease;
     font-size: 13px;
     display: flex;
@@ -2010,11 +2010,11 @@ body {
     transition: .5s ease;
 }
 
-.addField>* {
+.addField>*, .addComponent>* {
     pointer-events: none;
 }
 
-.addField>svg {
+.addField>svg, .addComponent>svg {
     width: 16px;
     position: relative;
     z-index: 6;
@@ -2025,7 +2025,9 @@ body {
 }
 
 .addField:hover,
-.addField:hover>svg {
+.addField:hover>svg,
+.addComponent:hover,
+.addComponent:hover>svg {
     opacity: 1;
 }
 

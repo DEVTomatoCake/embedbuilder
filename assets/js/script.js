@@ -762,7 +762,7 @@ addEventListener('DOMContentLoaded', () => {
                     if (indexOfGuiEmbed === -1) return error('Could not find the embed to add the field to.');
 
                     const fieldsObj = (jsonObject.embeds[indexOfGuiEmbed] ??= {}).fields ??= [];
-                    if (fieldsObj.length >= 25) return error('Cannot have more than 25 fields');
+                    if (fieldsObj.length >= 25) return error('Cannot have more than 25 fields!');
                     fieldsObj.push({ name: "Field name", value: "Field value", inline: false });
 
                     const newField = guiEmbed?.querySelector('.item.fields+.edit>.fields')?.appendChild(fieldFragment.firstChild.cloneNode(true));
@@ -773,6 +773,30 @@ addEventListener('DOMContentLoaded', () => {
                     newField.scrollIntoView({ behavior: "smooth", block: "center" });
                     if (!smallerScreen.matches) {
                         const firstFieldInput = newField.querySelector('.designerFieldName input');
+
+                        firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length);
+                        firstFieldInput?.focus();
+                    }
+                };
+
+            for (const e of document.querySelectorAll('.addComponent'))
+                e.onclick = () => {
+                    const guiActionRow = e.closest('.guiActionRow');
+                    const indexOfGuiActionRow = Array.from(gui.querySelectorAll('.guiActionRow')).indexOf(guiActionRow);
+                    if (indexOfGuiActionRow === -1) return error('Could not find the row to add the field to.');
+
+                    const componentsObj = (jsonObject.embeds[indexOfGuiActionRow] ??= {}).fields ??= [];
+                    if (componentsObj.length >= 5) return error('Cannot have more than 5 components!');
+                    componentsObj.push({ label: "Button label", type: 1, style: 1, disabled: false});
+
+                    const newComponent = guiActionRow?.querySelector('.item.components+.edit>.components')?.appendChild(fieldFragment.firstChild.cloneNode(true));
+
+                    buildEmbed();
+                    addGuiEventListeners();
+
+                    newComponent.scrollIntoView({ behavior: "smooth", block: "center" });
+                    if (!smallerScreen.matches) {
+                        const firstFieldInput = newComponent.querySelector('.designerFieldName input');
 
                         firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length);
                         firstFieldInput?.focus();
@@ -877,9 +901,21 @@ addEventListener('DOMContentLoaded', () => {
                                 componentObj.label = value;
                                 buildEmbed({ only: 'componentLabel', index: guiComponentIndex(el.target) });
                                 break;
+                            case 'editComponentStyle':
+                                componentObj.style = parseInt(value);
+                                buildEmbed({ only: 'componentStyle', index: guiComponentIndex(el.target) });
+                                break;
                             case 'editComponentEmoji':
                                 componentObj.emoji = value;
                                 buildEmbed({ only: 'componentEmoji', index: guiComponentIndex(el.target) });
+                                break;
+                            case 'editComponentURL':
+                                componentObj.url = value;
+                                buildEmbed({ only: 'componentURL', index: guiComponentIndex(el.target) });
+                                break;
+                            case 'editComponentEmoji':
+                                componentObj.disabled = value;
+                                buildEmbed({ only: 'componentDisabled', index: guiComponentIndex(el.target) });
                                 break;
                         }
 
@@ -1186,14 +1222,14 @@ addEventListener('DOMContentLoaded', () => {
 
                     if (component.style) buttonElement.classList.add("b-" + buttonStyles[component.style]);
                     if (component.disabled) buttonElement.classList.add("disabled");
-                    if (component.url) {
+                    if (component.url && component.style == 5) {
 						const urlElement = document.createElement("a");
 						urlElement.href = url(component.url);
 						urlElement.target = "_blank";
 						urlElement.innerText = component.label;
 						buttonElement.appendChild(urlElement);
 					}
-                    if (component.custom_id) buttonElement.dataset.customId = component.custom_id;
+                    if (component.custom_id && component.style != 5) buttonElement.dataset.customId = component.custom_id;
                     if (component.label && !component.url) {
 						const label = document.createElement("span");
 						label.innerText = component.label;
