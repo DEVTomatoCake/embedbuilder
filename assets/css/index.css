@@ -1600,7 +1600,7 @@ textarea {
     min-width: 100%;
     max-width: 100% !important;
     height: 75px;
-    max-height: 200px;
+    max-height: 230px;
 }
 
 .top>.gui .item.description+.edit,
@@ -1609,7 +1609,7 @@ textarea {
 }
 
 .top>.gui .item.content+.edit textarea {
-    height: 80px;
+    height: 100px;
 }
 
 .browse, .footerDate {
@@ -1794,7 +1794,7 @@ button[type="submit"] {
     margin-top: 10px;
 }
 
-.field .fieldInner {
+.field .fieldInner, .guiComponent .componentInner {
     width: 95%;
     height: 100%;
     border-radius: 4px;
@@ -1823,7 +1823,7 @@ body {
     counter-reset: fieldCount;
 }
 
-.fieldNumber {
+.fieldNumber, .componentNumber {
     position: absolute;
 }
 
@@ -1838,7 +1838,7 @@ body {
     }
 }
 
-.fieldNumber::before {
+.fieldNumber::before, .componentNumber::before {
     animation: fieldNumberFadeInAn .2s ease-in;
     counter-increment: fieldCount;
     content: counter(fieldCount);
@@ -1852,19 +1852,19 @@ body {
 }
 
 @media screen and (max-width: 1600px) {
-    .fieldNumber::before {
+    .fieldNumber::before, .componentNumber::before {
         right: 35px;
     }
 }
 
 @media screen and (max-width: 600px) {
-    .fieldNumber::before {
+    .fieldNumber::before, .componentNumber::before {
         font-size: 15px;
     }
 }
 
 @media screen and (max-width: 500px) {
-    .fieldNumber::before {
+    .fieldNumber::before, .componentNumber::before {
         right: 30px;
     }
 }
@@ -2029,6 +2029,22 @@ body {
 .addComponent:hover,
 .addComponent:hover>svg {
     opacity: 1;
+}
+
+span.h1, span.h2, span.h3 {
+    font-weight: 800;
+}
+span.h1 {
+    font-size: 24px;
+    margin: 8px 0;
+}
+span.h2 {
+    font-size: 20px;
+    margin: 16px 0 8px;
+}
+span.h3 {
+    font-size: 16px;
+    margin: 16px 0 8px;
 }
 
 .top-btn {
@@ -2875,6 +2891,7 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 	font-size: 14px;
 	border: none;
 	color: #FFF;
+    transition: .2s;
 }
 .actionrow button:hover {
 	cursor: pointer;
@@ -2893,6 +2910,14 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 }
 .actionrow button.b-url a {
 	color: #FFF;
+}
+.actionrow button:hover {
+    opacity: 0.8;
+}
+
+.actionrow button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .actionrow .select {

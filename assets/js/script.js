@@ -20,7 +20,6 @@ let params = new URLSearchParams(location.search),
     onlyEmbed = hasParam('embed') || options.onlyEmbed,
     allowPlaceholders = hasParam('placeholders') || options.allowPlaceholders,
     autoUpdateURL = localStorage.getItem('autoUpdateURL') || options.autoUpdateURL,
-    multiEmbeds = true,
     sourceOption = localStorage.getItem('sourceOption') || hasParam('sourceoption') || options.sourceOption,
     validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0;
 
@@ -189,8 +188,7 @@ const externalParsing = ({ noEmojis, element } = {}) => {
         hljs.highlightBlock(block);
 
     const embed = element?.closest('.embed');
-    if (embed?.innerText.trim())
-        (multiEmbeds ? embed : document.body).classList.remove('emptyEmbed');
+    if (embed?.innerText.trim()) embed.classList.remove('emptyEmbed');
 
     afterBuilding()
 };
@@ -202,76 +200,12 @@ let allJsonKeys = [...mainKeys, ...embedKeys, ...componentKeys];
 
 // 'jsonObject' is used internally, do not change it's value. Assign to 'json' instead.
 // 'json' is the object that is used to build the embed. Assigning to it also updates the editor.
-let jsonObject = window.json || {
-    content: "You can~~not~~ do `this`.```py\nAnd this.\nprint('Hi')```\n*italics* or _italics_     __*underline italics*__\n**bold**     __**underline bold**__\n***bold italics***  __***underline bold italics***__\n__underline__     ~~Strikethrough~~",
-    embed: {
-        title: "Hello ~~people~~ world :wave:",
-        description: "You can use [links](https://discord.com) or emojis :smile: 😎\n```\nAnd also code blocks\n```",
-        color: 0x41f097,
-        timestamp: new Date().toISOString(),
-        url: "https://discord.com",
-        author: {
-            name: "Author name",
-            url: "https://discord.com",
-            icon_url: "https://cdn.discordapp.com/embed/avatars/0.png"
-        },
-        thumbnail: {
-            url: "https://cdn.discordapp.com/embed/avatars/0.png"
-        },
-        image: {
-            url: "https://glitchii.github.io/embedbuilder/assets/media/banner.png"
-        },
-        footer: {
-            text: "Footer text",
-            icon_url: "https://cdn.discordapp.com/embed/avatars/0.png"
-        },
-        fields: [
-            {
-                name: "Field 1, *lorem* **ipsum**, ~~dolor~~",
-                value: "Field value"
-            },
-            {
-                name: "Field 2",
-                value: "You can use custom emojis <:Kekwlaugh:722088222766923847>. <:GangstaBlob:742256196295065661>",
-                inline: false
-            },
-            {
-                name: "Inline field",
-                value: "Fields can be inline",
-                inline: true
-            },
-            {
-                name: "Inline field",
-                value: "*Lorem ipsum*",
-                inline: true
-            },
-            {
-                name: "Inline field",
-                value: "value",
-                inline: true
-            },
-            {
-                name: "Another field",
-                value: "> Nope, didn't forget about this",
-                inline: false
-            }
-        ]
-    }
-}
+let jsonObject = window.json ?? {};
 
-if (dataSpecified)
-    jsonObject = decodeJson();
+if (dataSpecified) jsonObject = decodeJson();
+if (allowPlaceholders) allowPlaceholders = params.get('placeholders') === 'errors' ? 1 : 2;
 
-if (allowPlaceholders)
-    allowPlaceholders = params.get('placeholders') === 'errors' ? 1 : 2;
-
-// Even if not in multi-embed mode, 'jsonObject' should always have an array 'embeds'
-// To get the right json object that includes either 'embeds' or 'embed' if not in multi-embed mode,
-// print 'json' (global variable) instead of 'jsonObject', jsonObject is used internally, you shouldn't modify it.
-if (multiEmbeds && !jsonObject.embeds?.length)
-    jsonObject.embeds = jsonObject.embed ? [jsonObject.embed] : [];
-else if (!multiEmbeds)
-    jsonObject.embeds = jsonObject.embeds?.[0] ? [jsonObject.embeds[0]] : jsonObject.embed ? [jsonObject.embed] : [];
+if (!jsonObject.embeds?.length) jsonObject.embeds = jsonObject.embed ? [jsonObject.embed] : [];
 
 delete jsonObject.embed;
 
@@ -403,16 +337,39 @@ addEventListener('DOMContentLoaded', () => {
         if (replaceEmojis)
             txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match);
 
+        let inList = false
         txt = txt
             /** Markdown */
-            .replace(/&#60;:\w+:(\d{17,19})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.png"/>')
-            .replace(/&#60;a:\w+:(\d{17,20})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif"/>')
+            .replace(/&#60;:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp"/>')
+            .replace(/&#60;a:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif"/>')
             .replace(/~~(.+?)~~/g, '<s>$1</s>')
             .replace(/\*\*\*(.+?)\*\*\*/g, '<em><strong>$1</strong></em>')
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
             .replace(/__(.+?)__/g, '<u>$1</u>')
             .replace(/\*(.+?)\*/g, '<em>$1</em>')
             .replace(/_(.+?)_/g, '<em>$1</em>')
+            .replace(/### ?([\S 	]+)/g, '<span class="h3">$1</span>')
+            .replace(/## ?([\S 	]+)/g, '<span class="h2">$1</span>')
+            .replace(/# ?([\S 	]+)/g, '<span class="h1">$1</span>')
+            // Replace non-markdown links
+            .replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
+            .replace(/^(-|\*|\d) ?([\S 	]+)/gm, (match, p1, p2) => {
+                let prefix = ""
+                if (!inList) {
+                    inList = true
+                    if (p1 == "-" || p1 == "*") prefix += "<ul>"
+                    else prefix += "<ol>"
+                }
+
+                let suffix = ""
+                const splitted = txt.split("\n")
+                if (splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].startsWith("-") && !splitted[splitted.indexOf(match) + 1].startsWith("*")) {
+                    suffix += "</ul>"
+                    inList = false
+                }
+
+                return prefix + "<li>" + p2 + "</li>" + suffix
+            })
             // Replace >>> and > with block-quotes. &#62; is HTML code for >
             .replace(/^(?: *&#62;&#62;&#62; ([\s\S]*))|(?:^ *&#62;(?!&#62;&#62;) +.+\n)+(?:^ *&#62;(?!&#62;&#62;) .+\n?)+|^(?: *&#62;(?!&#62;&#62;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) => {
                 return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&#62; /gm, '')}</blockquote></div>`;
@@ -439,7 +396,7 @@ addEventListener('DOMContentLoaded', () => {
         }
 
         if (inEmbed)
-            txt = txt.replace(/\[([^\[\]]+)\]\((.+?)\)/g, `<a title="$1" target="_blank" class="anchor" href="$2">$1</a>`);
+            txt = txt.replace(/\[([^\[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>");
 
         return txt;
     }
@@ -789,14 +746,14 @@ addEventListener('DOMContentLoaded', () => {
                     if (componentsObj.length >= 5) return error('Cannot have more than 5 components!');
                     componentsObj.push({ label: "Button label", type: 1, style: 1, disabled: false});
 
-                    const newComponent = guiActionRow?.querySelector('.item.components+.edit>.components')?.appendChild(fieldFragment.firstChild.cloneNode(true));
+                    const newComponent = guiActionRow?.querySelector('.guiComponent .edit')?.appendChild(fieldFragment.firstChild.cloneNode(true));
 
                     buildEmbed();
                     addGuiEventListeners();
 
                     newComponent.scrollIntoView({ behavior: "smooth", block: "center" });
                     if (!smallerScreen.matches) {
-                        const firstFieldInput = newComponent.querySelector('.designerFieldName input');
+                        const firstFieldInput = newComponent.querySelector('.editComponentLabel');
 
                         firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length);
                         firstFieldInput?.focus();
@@ -990,26 +947,22 @@ addEventListener('DOMContentLoaded', () => {
                     fileInput.click();
                 }
 
-            if (multiEmbeds) {
-                for (const e of document.querySelectorAll('.guiEmbed'))
-                    e.onclick = () => {
-                        const guiEmbed = e.closest('.guiEmbed');
-                        const indexOfGuiEmbed = Array.from(gui.querySelectorAll('.guiEmbed')).indexOf(guiEmbed);
-                        if (indexOfGuiEmbed === -1) return error('Could not find the embed to add the field to.');
+            for (const e of document.querySelectorAll('.guiEmbed'))
+                e.onclick = () => {
+                    const guiEmbed = e.closest('.guiEmbed');
+                    const indexOfGuiEmbed = Array.from(gui.querySelectorAll('.guiEmbed')).indexOf(guiEmbed);
+                    if (indexOfGuiEmbed === -1) return error('Could not find the embed to add the field to.');
 
-                        changeLastActiveGuiEmbed(indexOfGuiEmbed);
-                    };
+                    changeLastActiveGuiEmbed(indexOfGuiEmbed);
+                };
 
 
-                if (!jsonObject.embeds[lastActiveGuiEmbedIndex])
-                    changeLastActiveGuiEmbed(
-                        jsonObject.embeds[lastActiveGuiEmbedIndex - 1] ?
-                            lastActiveGuiEmbedIndex - 1 :
-                            jsonObject.embeds.length ? 0 : -1
-                    );
-            } else {
-                changeLastActiveGuiEmbed(-1);
-            }
+            if (!jsonObject.embeds[lastActiveGuiEmbedIndex])
+                changeLastActiveGuiEmbed(
+                    jsonObject.embeds[lastActiveGuiEmbedIndex - 1] ?
+                        lastActiveGuiEmbedIndex - 1 :
+                        jsonObject.embeds.length ? 0 : -1
+                );
         }
 
         addGuiEventListeners();
@@ -1146,12 +1099,9 @@ addEventListener('DOMContentLoaded', () => {
                     return externalParsing({ element: embedFooter });
             }
 
-            if (multiEmbeds) embedCont.innerHTML = '';
-
+            embedCont.innerHTML = '';
             for (const embedObj of jsonObject.embeds) {
                 if (!allGood(embedObj)) continue;
-                if (!multiEmbeds) embedCont.innerHTML = '';
-
                 validationError = false;
 
                 const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true));
@@ -1246,10 +1196,6 @@ addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Make sure that the embed has no text or any visible images such as custom emojis before hiding.
-            if (!multiEmbeds && !embedCont.innerText.trim() && !embedCont.querySelector('.embedGrid > [style*=display] img'))
-                document.body.classList.add('emptyEmbed');
-
             afterBuilding()
         } catch (e) {
             console.error(e);
@@ -1317,7 +1263,7 @@ addEventListener('DOMContentLoaded', () => {
 
     picker.on?.('exit', removePicker);
     picker.on?.('enter', () => {
-        const embedIndex = multiEmbeds && lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
+        const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
         if (jsonObject?.embeds[embedIndex]?.color) {
             hexInput.value = jsonObject.embeds[embedIndex].color.toString(16).padStart(6, '0');
             document.querySelector('.hex.incorrect')?.classList.remove('incorrect');
@@ -1326,7 +1272,7 @@ addEventListener('DOMContentLoaded', () => {
     })
 
     document.querySelectorAll('.color').forEach(e => e.addEventListener('click', el => {
-        const embedIndex = multiEmbeds && lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
+        const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
         const embed = document.querySelectorAll('.msgEmbed .container>.embed')[embedIndex];
         const embedObj = jsonObject.embeds[embedIndex] ??= {};
         const color = el.target.closest('.color');
@@ -1339,7 +1285,7 @@ addEventListener('DOMContentLoaded', () => {
     hexInput?.addEventListener('focus', () => typingHex = true);
     setTimeout(() => {
         picker.on?.('change', function (r, g, b, a) {
-            const embedIndex = multiEmbeds && lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
+            const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
             const embed = document.querySelectorAll('.msgEmbed .container>.embed')[embedIndex];
             const embedObj = jsonObject.embeds[embedIndex];
 
@@ -1495,7 +1441,7 @@ addEventListener('DOMContentLoaded', () => {
 
         e.target.closest('.hex').classList.remove('incorrect');
 
-        const embedIndex = multiEmbeds && lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
+        const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
         jsonObject.embeds[embedIndex].color = parseInt(inputValue, 16);
         picker.fire?.('change', toRGB(inputValue));
 
@@ -1543,20 +1489,15 @@ addEventListener('DOMContentLoaded', () => {
 Object.defineProperty(window, 'json', {
     configurable: true,
     // Getter to format 'jsonObject' properly depending on options and other factors
-    // eg. using 'embeds' or 'embed' in output depending on 'multiEmbeds' option.
     get() {
         const json = {};
 
-        if (jsonObject.content)
-            json.content = jsonObject.content;
+        if (jsonObject.content) json.content = jsonObject.content;
 
         // If 'jsonObject.embeds' array is set and has content. Empty braces ({}) will be filtered as not content.
-        if (jsonObject.embeds?.length)
-            if (multiEmbeds) json.embeds = jsonObject.embeds.map(cleanEmbed);
-            else json.embed = cleanEmbed(jsonObject.embeds[0]);
+        if (jsonObject.embeds?.length) json.embeds = jsonObject.embeds.map(cleanEmbed);
 
-        if (jsonObject.components?.length)
-            json.components = jsonObject.components;
+        if (jsonObject.components?.length) json.components = jsonObject.components;
 
         return json;
     },
