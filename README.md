@@ -28,9 +28,6 @@ Params that end with `=` in the list below need a value, those that don't will a
 ```
 Parameter               Description
 ---------               -----------
-username=               Used to set the default name of the bot.
-avatar=                 Avatar for the bot. Either URL encode it or make this the last param.
-verified                Displays a verified badge on the bot tag when set to true.
 reverse                 Reverse the preview and editors position.
 embed                   Display only the embed, no editor.
 guitabs=                Specify what gui tabs to display comma seperated.
@@ -40,12 +37,11 @@ placeholders            Silences some warrnings, e.g. warrnings about missing ur
                         This param is useful when your bot allows having placeholders in place of a URL eg. `{ server.url }`
 placeholders=errors     This also disables automatic insertion of 'http' for urls without a protocol.
                         Except, warnings won't be silenced. The user will still see a warning that a url or timestamp (etc.) is incorrect for 5 seconds.
-sourceOption            Display link to source code in menu. (Off by deafult unless enabled or top domain host is glitchii.github.io)
 data=                   URL + Base64 encoded string of json data to be used on the embed instead of the default.
 ```
 <small>Case matters, all parameters should be lowercase.</small>
 ### Example URL with all* the above parameters:
-https://glitchii.github.io/embedbuilder/?username=Troy&verified&reverse&guitabs=image,footer&avatar=https://cdn.discordapp.com/avatars/663074487335649292/576eb5f13519b9da10ba7807bdd83fab.webp
+https://glitchii.github.io/embedbuilder/?reverse&guitabs=image,footer
 
 ### Alternative to URL options:
 This will only work on a cloned repo of the builder: Have a JavaScript config file named `builder.config.js`. In this file, define `window.options` to an object containing the params.  Note that some param names and cases will be different from the URL ones. An example [builder.config.js](/builder.config.js) file is included in the repo. The config file is loaded before the [main script](/assets/js/script.js) and because it's a JS file, you can do and probably alter anything else.

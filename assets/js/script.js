@@ -11,16 +11,15 @@ window.inIframe ??= top !== self;
 let params = new URLSearchParams(location.search),
     hasParam = param => params.get(param) !== null,
     dataSpecified = options.data || params.get('data'),
-    username = params.get('username') || options.username,
-    avatar = params.get('avatar') || options.avatar,
+    username = "TomatenKuchen",
+    avatar = "https://tomatenkuchen.eu/assets/images/background_192.webp",
     guiTabs = params.get('guitabs') || options.guiTabs,
     useJsonEditor = params.get('editor') === 'json' || options.useJsonEditor,
-    verified = hasParam('verified') || options.verified,
+    verified = username != "TomatenKuchen",
     reverseColumns = hasParam('reverse') || options.reverseColumns,
     onlyEmbed = hasParam('embed') || options.onlyEmbed,
     allowPlaceholders = hasParam('placeholders') || options.allowPlaceholders,
     autoUpdateURL = localStorage.getItem('autoUpdateURL') || options.autoUpdateURL,
-    sourceOption = localStorage.getItem('sourceOption') || hasParam('sourceoption') || options.sourceOption,
     validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0;
 
 const guiEmbedIndex = guiEl => {
@@ -472,12 +471,12 @@ addEventListener('DOMContentLoaded', () => {
             dateArray = date.toLocaleString('en-US', { hour: 'numeric', hour12: false, minute: 'numeric' }),
             today = new Date(),
             yesterday = new Date(new Date().setDate(today.getDate() - 1)),
-            tommorrow = new Date(new Date().setDate(today.getDate() + 1));
+            tomorrow = new Date(new Date().setDate(today.getDate() + 1));
 
-        return today.toDateString() === date.toDateString() ? `Today at ${dateArray}` :
-            yesterday.toDateString() === date.toDateString() ? `Yesterday at ${dateArray}` :
-                tommorrow.toDateString() === date.toDateString() ? `Tomorrow at ${dateArray}` :
-                    `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}/${date.getFullYear()}`;
+        return today.toDateString() === date.toDateString() ? "Today at " + dateArray :
+            yesterday.toDateString() === date.toDateString() ? "Yesterday at " + dateArray :
+                tomorrow.toDateString() === date.toDateString() ? "Tomorrow at " + dateArray :
+                    new Date().toLocaleDateString() + " " + dateArray;
     }
 
     const display = (el, data, displayType) => {
@@ -645,7 +644,7 @@ addEventListener('DOMContentLoaded', () => {
         }
 
         for (const e of document.querySelectorAll('.top>.gui .item'))
-            e.addEventListener('click', el => {
+            e.addEventListener('click', () => {
                 if (e?.classList.contains('active'))
                     getSelection().anchorNode !== e && e.classList.remove('active');
                 else if (e) {
@@ -851,7 +850,7 @@ addEventListener('DOMContentLoaded', () => {
                                 const date = new Date(value);
                                 if (isNaN(date.getTime())) return error('Invalid date');
 
-                                embedObj.timestamp = date;
+                                embedObj.timestamp = date.getTime();
                                 el.target.parentElement.querySelector('svg>text').textContent = (date.getDate() + '').padStart(2, 0);
                                 buildEmbed({ only: 'embedFooterTimestamp', index: guiEmbedIndex(el.target) });
                                 break;
@@ -1092,11 +1091,11 @@ addEventListener('DOMContentLoaded', () => {
                 case 'embedFooterTimestamp':
                     const embedFooter = embed?.querySelector('.embedFooter');
                     if (!embedFooter) return buildEmbed();
-                    if (!embedObj.footer?.text) hide(embedFooter);
-                    else display(embedFooter, `
+                    if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter, `
                         ${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encodeHTML(url(embedObj.footer.icon_url)) + '">' : ''}<span class="embedFooterText">
                         ${encodeHTML(embedObj.footer.text)}
                         ${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encodeHTML(timestamp(embedObj.timestamp)) : ''}</span></div>`, 'flex');
+                    else hide(embedFooter);
 
                     return externalParsing({ element: embedFooter });
             }
@@ -1455,7 +1454,6 @@ addEventListener('DOMContentLoaded', () => {
     const menuMore = document.querySelector('.item.section .inner.more');
     const menuSource = menuMore?.querySelector('.source');
 
-    if (!sourceOption) menuSource.remove();
     if (menuMore.childElementCount < 2) menuMore?.classList.add('invisible');
     if (menuMore.parentElement.childElementCount < 1) menuMore?.parentElement.classList.add('invisible');
 

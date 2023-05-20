@@ -8,16 +8,12 @@
 // URL options can override the options below.
 // Options set through the menu can override both until the page is refreshed.
 options = {
-	username: "TomatenKuchen",
-	avatar: "https://tomatenkuchen.eu/assets/images/background_192.webp",
-	verified: true,
 	data: null,
 	guiTabs: ["description"],
 	useJsonEditor: false,
 	reverseColumns: false,
 	allowPlaceholders: false,
-	autoUpdateURL: false,
-	sourceOption: true // Display link to source code in menu.
+	autoUpdateURL: false
 }
 
 // Default JSON object
