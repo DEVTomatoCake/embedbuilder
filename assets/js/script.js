@@ -82,8 +82,10 @@ const encodeJson = (jsonCode, withURL = false, redirect = false) => {
 };
 
 const decodeJson = data => {
-    const jsonData = decodeURIComponent(atob(data || dataSpecified));
-    return typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+    if (!data && dataSpecified) data = dataSpecified
+    data = data.replace(/ /g, "+")
+    const jsonData = decodeURIComponent(atob(data))
+    return typeof jsonData === "string" ? JSON.parse(jsonData) : jsonData
 };
 
 const toRGB = (hex, reversed, integer) => {
@@ -348,9 +350,9 @@ addEventListener('DOMContentLoaded', () => {
             .replace(/__(.+?)__/g, '<u>$1</u>')
             .replace(/\*(.+?)\*/g, '<em>$1</em>')
             .replace(/_(.+?)_/g, '<em>$1</em>')
-            .replace(/### ?([\S 	]+)/g, '<span class="h3">$1</span>')
-            .replace(/## ?([\S 	]+)/g, '<span class="h2">$1</span>')
-            .replace(/# ?([\S 	]+)/g, '<span class="h1">$1</span>')
+            .replace(/### ([\S 	]+)/g, '<span class="h3">$1</span>')
+            .replace(/## ([\S 	]+)/g, '<span class="h2">$1</span>')
+            .replace(/# ([\S 	]+)/g, '<span class="h1">$1</span>')
             // Replace non-markdown links
             .replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
             .replace(/^(-|\*|\d) ?([\S 	]+)/gm, (match, p1, p2) => {
