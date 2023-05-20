@@ -22,7 +22,7 @@ json = {
 	embeds: [
 		{
 			title: "A title",
-			description: "A description",
+			description: "A description"
 		}
 	],
 	components: [
