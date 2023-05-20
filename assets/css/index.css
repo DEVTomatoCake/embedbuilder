@@ -2883,6 +2883,7 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 
 .actionrow {
 	display: flex;
+    flex-wrap: wrap;
 }
 .actionrow button {
 	border-radius: 5px;
@@ -2892,6 +2893,7 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 	border: none;
 	color: #FFF;
     transition: .2s;
+    max-height: 32px;
 }
 .actionrow button:hover {
 	cursor: pointer;

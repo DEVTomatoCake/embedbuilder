@@ -20,7 +20,7 @@ let params = new URLSearchParams(location.search),
 	onlyEmbed = hasParam('embed') || options.onlyEmbed,
 	allowPlaceholders = hasParam('placeholders') || options.allowPlaceholders,
 	autoUpdateURL = localStorage.getItem('autoUpdateURL') || options.autoUpdateURL,
-	validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0;
+	validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastActiveGuiActionRowIndex = -1, lastActiveGuiComponentIndex = -1, lastGuiJson, colNum = 1, num = 0;
 
 const guiEmbedIndex = guiEl => {
 	const guiEmbed = guiEl?.closest('.guiEmbed')
@@ -180,6 +180,9 @@ const changeLastActiveGuiEmbed = index => {
 	}
 }
 
+const changeLastActiveGuiActionRow = index => lastActiveGuiActionRowIndex = index
+const changeLastActiveGuiComponent = index => lastActiveGuiComponentIndex = index
+
 // Called after building embed for extra work.
 const afterBuilding = () => autoUpdateURL && urlOptions({ set: ['data', encodeJson(json)] });
 // Parses emojis to images and adds code highlighting.
@@ -323,7 +326,7 @@ addEventListener('DOMContentLoaded', () => {
 				}
 			}
 			if (allowPlaceholders !== 2)
-				invalid = true, err = (`URL should have a protocol. Did you mean <span class="inline full short">http://${makeShort(re[2], 30, 600).replace(' ', '')}</span>?`);
+				invalid = true, err = (`URL should have a protocol. Did you mean <span class="inline full short">https://${makeShort(re[2], 30, 600)}</span>?`);
 		}
 
 		if (invalid) {
@@ -653,8 +656,8 @@ addEventListener('DOMContentLoaded', () => {
 						txt = e.nextElementSibling?.querySelector('textarea');
 
 					e.classList.add('active');
-					if (e.classList.contains('guiEmbedName'))
-						return changeLastActiveGuiEmbed(guiEmbedIndex(e));
+					if (e.classList.contains('guiEmbedName')) return changeLastActiveGuiEmbed(guiEmbedIndex(e))
+					if (e.classList.contains('guiActionRowName')) return changeLastActiveGuiActionRow(guiActionRowIndex(e));
 
 					else if (inlineField)
 						inlineField.querySelector('.ttle~input').focus();
@@ -956,7 +959,14 @@ addEventListener('DOMContentLoaded', () => {
 
 					changeLastActiveGuiEmbed(indexOfGuiEmbed);
 				};
+			for (const e of document.querySelectorAll('.guiActionRow'))
+				e.onclick = () => {
+					const guiActionRow = e.closest('.guiActionRow');
+					const indexOfGuiActionRow = Array.from(gui.querySelectorAll('.guiActionRow')).indexOf(guiActionRow);
+					if (indexOfGuiActionRow === -1) return error('Could not find the action row to add the component to.');
 
+					changeLastActiveGuiActionRow(indexOfGuiActionRow);
+				};
 
 			if (!jsonObject.embeds[lastActiveGuiEmbedIndex])
 				changeLastActiveGuiEmbed(
@@ -969,13 +979,18 @@ addEventListener('DOMContentLoaded', () => {
 		addGuiEventListeners();
 
 		let activeGuiEmbed;
-
 		if (opts?.guiEmbedIndex) {
 			activeGuiEmbed = Array.from(document.querySelectorAll('.gui .item.guiEmbedName'))[opts.guiEmbedIndex];
 			activeGuiEmbed?.classList.add('active');
 			activeGuiEmbed = activeGuiEmbed?.nextElementSibling;
 		}
 
+		let activeGuiActionRow;
+		if (opts?.guiActionRowIndex) {
+			activeGuiActionRow = Array.from(document.querySelectorAll('.gui .item.guiActionRowName'))[opts.guiActionRowIndex];
+			activeGuiActionRow?.classList.add('active');
+			activeGuiActionRow = activeGuiActionRow?.nextElementSibling;
+		}
 
 		if (opts?.activateClassNames)
 			for (const cName of opts.activateClassNames)
@@ -1015,7 +1030,7 @@ addEventListener('DOMContentLoaded', () => {
 	buildGui(jsonObject, { guiTabs });
 	gui.classList.remove('hidden');
 
-	fields = gui.querySelector('.fields ~ .edit .fields');
+	//fields = gui.querySelector('.fields ~ .edit .fields');
 
 	// Renders embed and message content.
 	buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
@@ -1354,14 +1369,27 @@ addEventListener('DOMContentLoaded', () => {
 			content.focus();
 	})
 
-	document.querySelector('.top-btn.menu')?.addEventListener('click', e => {
+	document.querySelector('.top-btn.menu')?.addEventListener('click', async e => {
 		if (e.target.closest('.item.dataLink')) {
-			const data = encodeJson(json, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x === '=' ? '' : '&');
-			if (!window.chrome)
-				// With long text inside a 'prompt' on Chromium based browsers, some text will be trimmed off and replaced with '...'.
-				return prompt('Here\'s the current URL with base64 embed data:', data);
+			let data = encodeJson(json, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x === '=' ? '' : '&');
+			if (data.length > 2000) {
+				const name = Math.random().toString(36).slice(5)
+				const shorterres = await fetch("https://api.tomatenkuchen.eu/short", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						name,
+						url: data,
+						date: Date.now() + 1000 * 60 * 60 * 24 * 3
+					})
+				})
+				const shorterjson = await shorterres.json()
+				console.log("Response for POST https://api.tomatenkuchen.eu/short:", shorterjson)
+				data = "https://shorter.cf/" + name
+			}
 
-			// So, for the Chromium users, we copy to clipboard instead of showing a prompt.
 			try {
 				// Clipboard API might only work on HTTPS protocol.
 				navigator.clipboard.writeText(data);
@@ -1370,16 +1398,16 @@ addEventListener('DOMContentLoaded', () => {
 				input.value = data;
 				input.select();
 				document.setSelectionRange(0, 50000);
-				document.execCommand('copy');
+				document.execCommand("copy");
 				document.body.removeChild(input);
 			}
 
-			setTimeout(() => alert('Copied to clipboard.'), 1);
+			setTimeout(() => alert("Copied to clipboard." + (data.startsWith("https://shorter.cf") ? " URL was shortened to work in the embed command." : "")), 1);
 			return
 		}
 
 		if (e.target.closest('.item.download'))
-			return createElement({ a: { download: 'embed' + '.json', href: 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click();
+			return createElement({ a: { download: "embed-" + new Date().toLocaleTimeString() + ".json", href: 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click();
 
 		const input = e.target.closest('.item')?.querySelector('input');
 		if (input) input.checked = !input.checked;
@@ -1452,7 +1480,6 @@ addEventListener('DOMContentLoaded', () => {
 	if (onlyEmbed) document.querySelector('.side1')?.remove();
 
 	const menuMore = document.querySelector('.item.section .inner.more');
-	const menuSource = menuMore?.querySelector('.source');
 
 	if (menuMore.childElementCount < 2) menuMore?.classList.add('invisible');
 	if (menuMore.parentElement.childElementCount < 1) menuMore?.parentElement.classList.add('invisible');
