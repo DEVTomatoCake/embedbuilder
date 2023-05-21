@@ -14,7 +14,7 @@
 			}
 		}
 	],
-	"ignorePatterns": ["libs/color-picker/color-picker.min.js"],
+	"ignorePatterns": ["assets/libs/color-picker/color-picker.min.js"],
 	"settings": {
 		"html/html-extensions": [".html"]
 	},
@@ -36,8 +36,6 @@
 		"key-spacing": 2,
 		"keyword-spacing": 2,
 		"max-statements-per-line": 2,
-		"max-len": [2, { "code": 450 }],
-		"new-cap": 2,
 		"new-parens": 2,
 		"no-array-constructor": 2,
 		"no-compare-neg-zero": 2,

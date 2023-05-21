@@ -393,7 +393,7 @@ addEventListener("DOMContentLoaded", () => {
 		return txt;
 	}
 
-
+	const encodeHTML = str => str.replace(/[\u00A0-\u9999<>&]/g, i => "&#" + i.charCodeAt(0) + ";")
 	const createEmbedFields = (fields, embedFields) => {
 		embedFields.innerHTML = "";
 		let index, gridCol;
@@ -446,23 +446,20 @@ addEventListener("DOMContentLoaded", () => {
 
 
 		for (const e of document.querySelectorAll('.embedField[style="grid-column: 1 / 5;"]'))
-			if (!e.nextElementSibling || e.nextElementSibling.style.gridColumn === "1 / 13")
-				e.style.gridColumn = "1 / 13";
-		colNum = 1;
+			if (!e.nextElementSibling || e.nextElementSibling.style.gridColumn === "1 / 13") e.style.gridColumn = "1 / 13"
+		colNum = 1
 
-		display(embedFields, void 0, "grid");
+		display(embedFields, void 0, "grid")
 	}
 
-	const smallerScreen = matchMedia("(max-width: 1015px)");
-
-	const encodeHTML = str => str.replace(/[\u00A0-\u9999<>\&]/g, i => "&#" + i.charCodeAt(0) + ";");
+	const smallerScreen = matchMedia("(max-width: 1015px)")
 
 	const timestamp = stringISO => {
-		const date = stringISO ? new Date(stringISO) : new Date(),
-			dateArray = date.toLocaleString("en-US", { hour: "numeric", hour12: false, minute: "numeric" }),
-			today = new Date(),
-			yesterday = new Date(new Date().setDate(today.getDate() - 1)),
-			tomorrow = new Date(new Date().setDate(today.getDate() + 1));
+		const date = stringISO ? new Date(stringISO) : new Date()
+		const dateArray = date.toLocaleString("en-US", { hour: "numeric", hour12: false, minute: "numeric" })
+		const today = new Date()
+		const yesterday = new Date(new Date().setDate(today.getDate() - 1))
+		const tomorrow = new Date(new Date().setDate(today.getDate() + 1))
 
 		return today.toDateString() === date.toDateString() ? "Today at " + dateArray :
 			yesterday.toDateString() === date.toDateString() ? "Yesterday at " + dateArray :
@@ -471,56 +468,55 @@ addEventListener("DOMContentLoaded", () => {
 	}
 
 	const display = (el, data, displayType) => {
-		if (data) el.innerHTML = data;
-		el.style.display = displayType || "unset";
+		if (data) el.innerHTML = data
+		el.style.display = displayType || "unset"
 	}
 
-	const hide = el => el.style.removeProperty("display"),
-		imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = `url(${src})`;
+	const hide = el => el.style.removeProperty("display")
+	const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
 
-	const [guiFragment, fieldFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 6 }, () => document.createDocumentFragment());
-	embedFragment.appendChild(document.querySelector(".embed.markup").cloneNode(true));
-	actionRowFragment.appendChild(document.querySelector(".actionrow.markup").cloneNode(true));
-	guiEmbedAddFragment.appendChild(document.querySelector(".guiEmbedAdd").cloneNode(true));
-	guiActionRowAddFragment.appendChild(document.querySelector(".guiActionRowAdd").cloneNode(true));
-	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true));
+	const [guiFragment, fieldFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 6 }, () => document.createDocumentFragment())
+	embedFragment.appendChild(document.querySelector(".embed.markup").cloneNode(true))
+	actionRowFragment.appendChild(document.querySelector(".actionrow.markup").cloneNode(true))
+	guiEmbedAddFragment.appendChild(document.querySelector(".guiEmbedAdd").cloneNode(true))
+	guiActionRowAddFragment.appendChild(document.querySelector(".guiActionRowAdd").cloneNode(true))
+	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
 
-	document.querySelector(".embed.markup").remove();
-	gui.querySelector(".edit>.fields>.field").remove();
+	document.querySelector(".embed.markup").remove()
+	gui.querySelector(".edit>.fields>.field").remove()
 
-	for (const child of gui.childNodes)
-		guiFragment.appendChild(child.cloneNode(true));
+	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
 
 	// Renders the GUI editor with json data from 'jsonObject'.
 	buildGui = (object = jsonObject, opts) => {
-		gui.innerHTML = "";
+		gui.innerHTML = ""
 		gui.appendChild(guiEmbedAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
-				if (indexOfEmptyGuiEmbed("(empty embed)") !== -1) return;
-				jsonObject.embeds.push({});
-				buildGui();
-			});
+				if (indexOfEmptyGuiEmbed("(empty embed)") !== -1) return
+				jsonObject.embeds.push({})
+				buildGui()
+			})
 		gui.appendChild(guiActionRowAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
-				jsonObject.components.push({});
-				buildGui();
-			});
+				jsonObject.components.push({})
+				buildGui()
+			})
 
 		for (const child of Array.from(guiFragment.childNodes)) {
-			if (child.classList?.[1] === "content")
-				gui.insertBefore(gui.appendChild(child.cloneNode(true)), gui.appendChild(child.nextElementSibling.cloneNode(true))).nextElementSibling.firstElementChild.value = object.content || "";
-			else if (child.classList?.[1] === "guiEmbedName") {
+			if (child.classList?.[1] == "content")
+				gui.insertBefore(gui.appendChild(child.cloneNode(true)), gui.appendChild(child.nextElementSibling.cloneNode(true))).nextElementSibling.firstElementChild.value = object.content || ""
+			else if (child.classList?.[1] == "guiEmbedName") {
 				for (const [i, embed] of (object.embeds.length ? object.embeds : [{}]).entries()) {
 					const guiEmbedName = gui.appendChild(child.cloneNode(true))
 
 					guiEmbedName.querySelector(".text").innerHTML = `Embed ${i + 1}${embed.title ? `: <span>${embed.title}</span>` : ""}`;
 					guiEmbedName.querySelector(".icon").addEventListener("click", () => {
-						object.embeds.splice(i, 1);
-						buildGui();
-						buildEmbed();
-					});
+						object.embeds.splice(i, 1)
+						buildGui()
+						buildEmbed()
+					})
 
-					const guiEmbed = gui.appendChild(createElement({ "div": { className: "guiEmbed" } }));
+					const guiEmbed = gui.appendChild(createElement({ "div": { className: "guiEmbed" } }))
 					const guiEmbedTemplate = child.nextElementSibling;
 
 					for (const child2 of Array.from(guiEmbedTemplate.children)) {
@@ -859,7 +855,7 @@ addEventListener("DOMContentLoaded", () => {
 								componentObj.url = value;
 								buildEmbed({ only: "componentURL", index: guiComponentIndex(el.target) });
 								break;
-							case "editComponentEmoji":
+							case "editComponentDisabled":
 								componentObj.disabled = value;
 								buildEmbed({ only: "componentDisabled", index: guiComponentIndex(el.target) });
 								break;
@@ -1009,78 +1005,77 @@ addEventListener("DOMContentLoaded", () => {
 			clss.classList.add("active");
 	}
 
-	buildGui(jsonObject, { guiTabs });
-	gui.classList.remove("hidden");
+	buildGui(jsonObject, { guiTabs })
+	gui.classList.remove("hidden")
 
 	// Renders embed and message content.
 	buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
-		if (jsonData) json = jsonData;
-		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed");
+		if (jsonData) json = jsonData
+		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed")
 
 		try {
 			// If there's no message content, hide the message content HTML element.
-			if (!jsonObject.content) document.body.classList.add("emptyContent");
-			else {
+			if (jsonObject.content) {
 				// Update embed content in render
-				embedContent.innerHTML = markup(encodeHTML(jsonObject.content), { replaceEmojis: true });
-				document.body.classList.remove("emptyContent");
-			}
+				embedContent.innerHTML = markup(encodeHTML(jsonObject.content), { replaceEmojis: true })
+				document.body.classList.remove("emptyContent")
+			} else document.body.classList.add("emptyContent")
 
-			const embed = document.querySelectorAll(".container>.embed")[index];
-			const embedObj = jsonObject.embeds[index];
+			const embed = document.querySelectorAll(".container>.embed")[index]
+			const embedObj = jsonObject.embeds[index]
 
-			if (only && (!embed || !embedObj)) return buildEmbed();
+			if (only && (!embed || !embedObj)) return buildEmbed()
 
-			console.log(only)
 			switch (only) {
 				// If only updating the message content and nothing else, return here.
-				case "content": return externalParsing({ element: embedContent });
+				case "content": return externalParsing({ element: embedContent })
 				case "embedTitle":
-					const embedTitle = embed?.querySelector(".embedTitle");
-					if (!embedTitle) return buildEmbed();
-					if (!embedObj.title) hide(embedTitle);
-					else display(embedTitle, markup(`${embedObj.url ? '<a class="anchor" target="_blank" href="' + encodeHTML(url(embedObj.url)) + '">' + encodeHTML(embedObj.title) + "</a>" : encodeHTML(embedObj.title)}`, { replaceEmojis: true, inlineBlock: true }));
+					const embedTitle = embed?.querySelector(".embedTitle")
+					if (!embedTitle) return buildEmbed()
+					if (embedObj.title) display(embedTitle, markup(`${embedObj.url ? '<a class="anchor" target="_blank" href="' + encodeHTML(url(embedObj.url)) + '">' + encodeHTML(embedObj.title) + "</a>" : encodeHTML(embedObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
+					else hide(embedTitle)
 
-					return externalParsing({ element: embedTitle });
+					return externalParsing({ element: embedTitle })
 				case "embedAuthorName":
 				case "embedAuthorLink":
-					const embedAuthor = embed?.querySelector(".embedAuthor");
-					if (!embedAuthor) return buildEmbed();
-					if (!embedObj.author?.name) hide(embedAuthor);
-					else display(embedAuthor, `
+					const embedAuthor = embed?.querySelector(".embedAuthor")
+					if (!embedAuthor) return buildEmbed()
+					if (embedObj.author?.name) display(embedAuthor, `
 						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encodeHTML(url(embedObj.author.icon_url)) + '">' : ""}
-						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(embedObj.author.url)) + '" target="_blank">' + encodeHTML(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(embedObj.author.name) + "</span>"}`, "flex");
+						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(embedObj.author.url)) + '" target="_blank">' + encodeHTML(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(embedObj.author.name) + "</span>"}`, "flex")
+					else hide(embedAuthor)
 
-					return externalParsing({ element: embedAuthor });
+					return externalParsing({ element: embedAuthor })
 				case "embedDescription":
-					const embedDescription = embed?.querySelector(".embedDescription");
-					if (!embedDescription) return buildEmbed();
-					if (!embedObj.description) hide(embedDescription);
-					else display(embedDescription, markup(encodeHTML(embedObj.description), { inEmbed: true, replaceEmojis: true }));
+					const embedDescription = embed?.querySelector(".embedDescription")
+					if (!embedDescription) return buildEmbed()
+					if (embedObj.description) display(embedDescription, markup(encodeHTML(embedObj.description), { inEmbed: true, replaceEmojis: true }))
+					else hide(embedDescription)
 
-					return externalParsing({ element: embedDescription });
+					return externalParsing({ element: embedDescription })
 				case "embedThumbnail":
-					const embedThumbnailLink = embed?.querySelector(".embedThumbnailLink");
-					if (!embedThumbnailLink) return buildEmbed();
-					const pre = embed.querySelector(".embedGrid .markup pre");
+					const embedThumbnailLink = embed?.querySelector(".embedThumbnailLink")
+					if (!embedThumbnailLink) return buildEmbed()
+					const pre = embed.querySelector(".embedGrid .markup pre")
 					if (embedObj.thumbnail?.url) {
-						embedThumbnailLink.src = embedObj.thumbnail.url;
-						embedThumbnailLink.parentElement.style.display = "block";
-						if (pre) pre.style.maxWidth = "90%";
+						embedThumbnailLink.src = embedObj.thumbnail.url
+						embedThumbnailLink.parentElement.style.display = "block"
+						if (pre) pre.style.maxWidth = "90%"
 					} else {
-						hide(embedThumbnailLink.parentElement);
-						pre?.style.removeProperty("max-width");
+						hide(embedThumbnailLink.parentElement)
+						pre?.style.removeProperty("max-width")
 					}
 
-					return afterBuilding();
+					return afterBuilding()
 				case "embedImage":
-					const embedImageLink = embed?.querySelector(".embedImageLink");
-					if (!embedImageLink) return buildEmbed();
-					if (!embedObj.image?.url) hide(embedImageLink.parentElement);
-					else embedImageLink.src = embedObj.image.url,
-						embedImageLink.parentElement.style.display = "block";
+					const embedImageLink = embed?.querySelector(".embedImageLink")
+					if (!embedImageLink) return buildEmbed()
+					if (embedObj.image?.url) {
+						embedImageLink.src = embedObj.image.url
+						embedImageLink.parentElement.style.display = "block"
+					} else hide(embedImageLink.parentElement)
 
-					return afterBuilding();
+					return afterBuilding()
 				case "embedFooterText":
 				case "embedFooterLink":
 				case "embedFooterTimestamp":
@@ -1223,80 +1218,80 @@ addEventListener("DOMContentLoaded", () => {
 				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys[usedKeys.length - 1] + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`);
 			}
 
-			buildEmbed();
-
+			buildEmbed()
 		} catch (e) {
-			if (editor.getValue()) return;
-			document.body.classList.add("emptyEmbed");
-			embedContent.innerHTML = "";
+			if (editor.getValue()) return
+			document.body.classList.add("emptyEmbed")
+			embedContent.innerHTML = ""
 		}
 	});
 
-	const picker = new CP(document.querySelector(".picker"), state = { parent: document.querySelector(".cTop") });
+	const picker = new CP(document.querySelector(".picker"), state = { parent: document.querySelector(".cTop") })
 
-	picker.fire?.("change", toRGB("#41f097"));
+	picker.fire?.("change", toRGB("#41f097"))
 
-	const colors = document.querySelector(".colors");
-	const hexInput = colors?.querySelector(".hex>div input");
+	const colors = document.querySelector(".colors")
+	const hexInput = colors?.querySelector(".hex>div input")
 
-	let typingHex = true, exit = false;
+	let typingHex = true
+	let exit = false
 
 	removePicker = () => {
-		if (exit) return exit = false;
-		if (typingHex) picker.enter();
+		if (exit) return exit = false
+		if (typingHex) picker.enter()
 		else {
-			typingHex = false, exit = true;
-			colors.classList.remove("picking");
-			picker.exit();
+			typingHex = false, exit = true
+			colors.classList.remove("picking")
+			picker.exit()
 		}
 	}
 
 	document.querySelector(".colBack")?.addEventListener("click", () => {
-		picker.self.remove();
-		typingHex = false;
-		removePicker();
+		picker.self.remove()
+		typingHex = false
+		removePicker()
 	})
 
-	picker.on?.("exit", removePicker);
+	picker.on?.("exit", removePicker)
 	picker.on?.("enter", () => {
-		const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
+		const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0
 		if (jsonObject?.embeds[embedIndex]?.color) {
-			hexInput.value = jsonObject.embeds[embedIndex].color.toString(16).padStart(6, "0");
-			document.querySelector(".hex.incorrect")?.classList.remove("incorrect");
+			hexInput.value = jsonObject.embeds[embedIndex].color.toString(16).padStart(6, "0")
+			document.querySelector(".hex.incorrect")?.classList.remove("incorrect")
 		}
 		colors.classList.add("picking")
 	})
 
 	document.querySelectorAll(".color").forEach(e => e.addEventListener("click", el => {
-		const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
-		const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex];
-		const embedObj = jsonObject.embeds[embedIndex] ??= {};
-		const color = el.target.closest(".color");
+		const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0
+		const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex]
+		const embedObj = jsonObject.embeds[embedIndex] ??= {}
+		const color = el.target.closest(".color")
 
-		embedObj.color = toRGB(color.style.backgroundColor, false, true);
-		embed && (embed.style.borderColor = color.style.backgroundColor);
-		picker.source.style.removeProperty("background");
+		embedObj.color = toRGB(color.style.backgroundColor, false, true)
+		embed && (embed.style.borderColor = color.style.backgroundColor)
+		picker.source.style.removeProperty("background")
 	}))
 
-	hexInput?.addEventListener("focus", () => typingHex = true);
+	hexInput?.addEventListener("focus", () => typingHex = true)
 	setTimeout(() => {
-		picker.on?.("change", function (r, g, b, a) {
-			const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
-			const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex];
-			const embedObj = jsonObject.embeds[embedIndex];
+		picker.on?.("change", (r, g, b) => {
+			const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0
+			const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex]
+			const embedObj = jsonObject.embeds[embedIndex]
 
-			picker.source.style.background = this.color(r, g, b);
-			embedObj.color = parseInt(this.color(r, g, b).slice(1), 16);
-			embed.style.borderColor = this.color(r, g, b);
-			hexInput.value = embedObj.color.toString(16).padStart(6, "0");
+			picker.source.style.background = this.color(r, g, b)
+			embedObj.color = parseInt(this.color(r, g, b).slice(1), 16)
+			embed.style.borderColor = this.color(r, g, b)
+			hexInput.value = embedObj.color.toString(16).padStart(6, "0")
 		})
 	}, 1000)
 
-	document.querySelector(".timeText").innerText = timestamp();
+	document.querySelector(".timeText").innerText = timestamp()
 
-	for (const block of document.querySelectorAll(".markup pre > code"))
-		hljs.highlightBlock(block);
+	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightBlock(block)
 
+	let pickInGuiMode = false;
 	document.querySelector(".opt.gui").addEventListener("click", () => {
 		if (lastGuiJson && lastGuiJson !== JSON.stringify(json, null, 4))
 			buildGui();
@@ -1424,7 +1419,6 @@ addEventListener("DOMContentLoaded", () => {
 			})
 	})
 
-	let pickInGuiMode = false;
 	togglePicker = pickLater => {
 		colors.classList.toggle("display");
 		document.querySelector(".side1").classList.toggle("low");
@@ -1449,7 +1443,7 @@ addEventListener("DOMContentLoaded", () => {
 
 		e.target.closest(".hex").classList.remove("incorrect");
 
-		const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0;
+		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex;
 		jsonObject.embeds[embedIndex].color = parseInt(inputValue, 16);
 		picker.fire?.("change", toRGB(inputValue));
 
