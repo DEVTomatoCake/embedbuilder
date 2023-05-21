@@ -600,18 +600,31 @@ addEventListener("DOMContentLoaded", () => {
 
 					for (const child2 of Array.from(guiActionRowTemplate.children)) {
 						if (!child2?.classList.contains("edit")) {
-							const row = guiActionRow.appendChild(child2.cloneNode(true));
+							guiActionRow.appendChild(child2.cloneNode(true));
 							const edit = child2.nextElementSibling?.cloneNode(true);
 							edit?.classList.contains("edit") && guiActionRow.appendChild(edit);
 
 							switch (child2.classList[1]) {
 								case "button":
-									edit.querySelector(".editButtonLabel").value = component?.label || "";
-									edit.querySelector(".editButtonStyle").value = component?.style || 1;
-									edit.querySelector(".editButtonURL").value = component?.url || "";
-									edit.querySelector(".editButtonEmoji").value = component?.emoji?.id || "";
-									edit.querySelector(".editButtonEmojiName").value = component?.emoji?.name || "";
-									edit.querySelector(".editButtonCustomId").value = component?.custom_id || "";
+									for (const f of component?.components || []) {
+										const actionRow = edit.querySelector(".component");
+										const componentElem = actionRow.appendChild(createElement({ "div": { className: "button" } }));
+
+										for (const child3 of Array.from(fieldFragment.firstChild.children)) {
+											const newChild = componentElem.appendChild(child3.cloneNode(true));
+
+											if (child3.classList.contains("disableCheck"))
+												newChild.querySelector("input").checked = Boolean(f.disabled);
+
+											else if (f.value && child3.classList?.contains("fieldInner"))
+												newChild.querySelector(".editButtonLabel input").value = f?.label || "";
+												newChild.querySelector(".editButtonStyle select").value = f?.style || 1;
+												newChild.querySelector(".editButtonURL input").value = f?.url || "";
+												newChild.querySelector(".editButtonEmoji input").value = f?.emoji?.id || "";
+												//newChild.querySelector(".editButtonEmojiName input").value = f?.emoji?.name || "";
+												newChild.querySelector(".editButtonCustomId input").value = f?.custom_id || "";
+										}
+									}
 									break;
 								case "selectMenu":
 									edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || "";
@@ -666,24 +679,12 @@ addEventListener("DOMContentLoaded", () => {
 						txt.focus();
 
 					if (e.classList.contains("fields")) {
-						if (reverseColumns && smallerScreen.matches)
-							// return elm.nextElementSibling.scrollIntoView({ behavior: 'smooth', block: "end" });
-							return e.parentNode.scrollTop = e.offsetTop;
+						if (reverseColumns && smallerScreen.matches) return e.parentNode.scrollTop = e.offsetTop;
 
 						e.scrollIntoView({ behavior: "smooth", block: "center" });
 					}
 				}
 			})
-
-		content = gui.querySelector(".editContent");
-		title = gui.querySelector(".editTitle");
-		authorName = gui.querySelector(".editAuthorName");
-		authorLink = gui.querySelector(".editAuthorLink");
-		desc = gui.querySelector(".editDescription");
-		thumbLink = gui.querySelector(".editThumbnailLink");
-		imgLink = gui.querySelector(".editImageLink");
-		footerText = gui.querySelector(".editFooterText");
-		footerLink = gui.querySelector(".editFooterLink");
 
 		// Scroll into view when tabs are opened in the GUI.
 		const lastTabs = Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg"));
@@ -986,7 +987,6 @@ addEventListener("DOMContentLoaded", () => {
 			const bottomKeys = ["footer", "image"];
 			const topKeys = ["author", "content"];
 
-
 			// Deactivate the default activated GUI fields
 			for (const e of gui.querySelectorAll(".item:not(.guiEmbedName).active"))
 				e.classList.remove("active");
@@ -1011,8 +1011,6 @@ addEventListener("DOMContentLoaded", () => {
 
 	buildGui(jsonObject, { guiTabs });
 	gui.classList.remove("hidden");
-
-	//fields = gui.querySelector('.fields ~ .edit .fields');
 
 	// Renders embed and message content.
 	buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
@@ -1441,7 +1439,6 @@ addEventListener("DOMContentLoaded", () => {
 			togglePicker();
 	})
 
-	// #0070ff, #5865f2
 	document.querySelector(".colors .hex>div")?.addEventListener("input", e => {
 		let inputValue = e.target.value;
 

@@ -1870,6 +1870,7 @@ body {
 }
 
 .inlineCheck,
+.disableCheck,
 .removeBtn {
     font-size: 11px;
     font-weight: bold;
@@ -1907,12 +1908,12 @@ body {
     fill: #ff9191;
 }
 
-.inlineCheck input[type="checkbox"] {
+.inlineCheck input[type="checkbox"], .disableCheck input[type="checkbox"] {
     scale: .8;
     cursor: pointer;
 }
 
-.inlineCheck input[type="checkbox"]+span {
+.inlineCheck input[type="checkbox"]+span, .disableCheck input[type="checkbox"]+span {
     cursor: pointer;
 }
 
