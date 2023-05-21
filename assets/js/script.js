@@ -415,32 +415,29 @@ addEventListener("DOMContentLoaded", () => {
 						// or it's the first field on the last row or the last field on the last row is not inline or it's the first field in a row and it's the last field on the last row.
 					) && (i == fields.length - 2 || !fields[i + 2].inline))) || i % 3 === 0 && i == fields.length - 2) {
 					// then make the field halfway (and the next field will take the other half of the embed).
-					index = i, gridCol = "1 / 7";
+					index = i, gridCol = "1 / 7"
 				}
 				// The next field.
-				if (index === i - 1)
-					gridCol = "7 / 13";
+				if (index == i - 1) gridCol = "7 / 13"
 
-				if (!f.inline)
-					fieldElement.outerHTML = `
-						<div class="embedField" style="grid-column: 1 / 13;">
-							<div class="embedFieldName">${markup(encodeHTML(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
-							<div class="embedFieldValue">${markup(encodeHTML(f.value), { inEmbed: true, replaceEmojis: true })}</div>
-						</div>`;
-				else {
-					if (i && !fields[i - 1].inline) colNum = 1;
+				if (f.inline) {
+					if (i && !fields[i - 1].inline) colNum = 1
 
 					fieldElement.outerHTML = `
 						<div class="embedField ${num}${gridCol ? " colNum-2" : ""}" style="grid-column: ${gridCol || (colNum + " / " + (colNum + 4))};">
 							<div class="embedFieldName">${markup(encodeHTML(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
 							<div class="embedFieldValue">${markup(encodeHTML(f.value), { inEmbed: true, replaceEmojis: true })}</div>
-						</div>`;
+						</div>`
 
-					if (index !== i) gridCol = false;
-				}
+					if (index != i) gridCol = false
+				} else fieldElement.outerHTML = `
+					<div class="embedField" style="grid-column: 1 / 13;">
+						<div class="embedFieldName">${markup(encodeHTML(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
+						<div class="embedFieldValue">${markup(encodeHTML(f.value), { inEmbed: true, replaceEmojis: true })}</div>
+					</div>`
 
-				colNum = (colNum === 9 ? 1 : colNum + 4);
-				num++;
+				colNum = (colNum == 9 ? 1 : colNum + 4)
+				num++
 			}
 		}
 
@@ -516,62 +513,62 @@ addEventListener("DOMContentLoaded", () => {
 						buildEmbed()
 					})
 
-					const guiEmbed = gui.appendChild(createElement({ "div": { className: "guiEmbed" } }))
-					const guiEmbedTemplate = child.nextElementSibling;
+					const guiEmbed = gui.appendChild(createElement({ div: { className: "guiEmbed" } }))
+					const guiEmbedTemplate = child.nextElementSibling
 
 					for (const child2 of Array.from(guiEmbedTemplate.children)) {
 						if (!child2?.classList.contains("edit")) {
-							const row = guiEmbed.appendChild(child2.cloneNode(true));
-							const edit = child2.nextElementSibling?.cloneNode(true);
-							edit?.classList.contains("edit") && guiEmbed.appendChild(edit);
+							const row = guiEmbed.appendChild(child2.cloneNode(true))
+							const edit = child2.nextElementSibling?.cloneNode(true)
+							edit?.classList.contains("edit") && guiEmbed.appendChild(edit)
 
 							switch (child2.classList[1]) {
 								case "author":
-									const authorURL = embed?.author?.icon_url || "";
+									const authorURL = embed?.author?.icon_url || ""
 									if (authorURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(authorURL) + ")";
-									edit.querySelector(".editAuthorLink").value = authorURL;
-									edit.querySelector(".editAuthorName").value = embed?.author?.name || "";
-									break;
+										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(authorURL) + ")"
+									edit.querySelector(".editAuthorLink").value = authorURL
+									edit.querySelector(".editAuthorName").value = embed?.author?.name || ""
+									break
 								case "title":
-									row.querySelector(".editTitle").value = embed?.title || "";
-									break;
+									row.querySelector(".editTitle").value = embed?.title || ""
+									break
 								case "description":
-									edit.querySelector(".editDescription").value = embed?.description || "";
-									break;
+									edit.querySelector(".editDescription").value = embed?.description || ""
+									break
 								case "thumbnail":
-									const thumbnailURL = embed?.thumbnail?.url || "";
+									const thumbnailURL = embed?.thumbnail?.url || ""
 									if (thumbnailURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(thumbnailURL) + ")";
-									edit.querySelector(".editThumbnailLink").value = thumbnailURL;
-									break;
+										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(thumbnailURL) + ")"
+									edit.querySelector(".editThumbnailLink").value = thumbnailURL
+									break
 								case "image":
-									const imageURL = embed?.image?.url || "";
+									const imageURL = embed?.image?.url || ""
 									if (imageURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(imageURL) + ")";
-									edit.querySelector(".editImageLink").value = imageURL;
-									break;
+										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(imageURL) + ")"
+									edit.querySelector(".editImageLink").value = imageURL
+									break
 								case "footer":
-									const footerURL = embed?.footer?.icon_url || "";
+									const footerURL = embed?.footer?.icon_url || ""
 									if (footerURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(footerURL) + ")";
-									edit.querySelector(".editFooterLink").value = footerURL;
-									edit.querySelector(".editFooterText").value = embed?.footer?.text || "";
-									break;
+										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(footerURL) + ")"
+									edit.querySelector(".editFooterLink").value = footerURL
+									edit.querySelector(".editFooterText").value = embed?.footer?.text || ""
+									break
 								case "fields":
 									for (const f of embed?.fields || []) {
-										const fields = edit.querySelector(".fields");
-										const field = fields.appendChild(createElement({ "div": { className: "field" } }));
+										const fields = edit.querySelector(".fields")
+										const field = fields.appendChild(createElement({ div: { className: "field" } }))
 
-										for (const child of Array.from(fieldFragment.firstChild.children)) {
-											const newChild = field.appendChild(child.cloneNode(true));
+										for (const child3 of Array.from(fieldFragment.firstChild.children)) {
+											const newChild = field.appendChild(child3.cloneNode(true))
 
 											if (child.classList.contains("inlineCheck"))
-												newChild.querySelector("input").checked = Boolean(f.inline);
-
-											else if (f.value && child.classList?.contains("fieldInner"))
-												newChild.querySelector(".designerFieldName input").value = f.name || "",
-													newChild.querySelector(".designerFieldValue textarea").value = f.value || "";
+												newChild.querySelector("input").checked = Boolean(f.inline)
+											else if (f.value && child3.classList?.contains("fieldInner")) {
+												newChild.querySelector(".designerFieldName input").value = f.name || ""
+												newChild.querySelector(".designerFieldValue textarea").value = f.value || ""
+											}
 										}
 									}
 							}
@@ -591,7 +588,7 @@ addEventListener("DOMContentLoaded", () => {
 						buildEmbed();
 					});
 
-					const guiActionRow = gui.appendChild(createElement({ "div": { className: "guiActionRow" } }));
+					const guiActionRow = gui.appendChild(createElement({ div: { className: "guiActionRow" } }));
 					const guiActionRowTemplate = child.nextElementSibling;
 
 					for (const child2 of Array.from(guiActionRowTemplate.children)) {
@@ -604,7 +601,7 @@ addEventListener("DOMContentLoaded", () => {
 								case "button":
 									for (const f of component?.components || []) {
 										const actionRow = edit.querySelector(".component");
-										const componentElem = actionRow.appendChild(createElement({ "div": { className: "button" } }));
+										const componentElem = actionRow.appendChild(createElement({ div: { className: "button" } }));
 
 										for (const child3 of Array.from(fieldFragment.firstChild.children)) {
 											const newChild = componentElem.appendChild(child3.cloneNode(true));
@@ -887,11 +884,11 @@ addEventListener("DOMContentLoaded", () => {
 			}
 
 			for (const browse of document.querySelectorAll(".browse"))
-				browse.onclick = e => {
-					const formData = new FormData();
-					const fileInput = createElement({ "input": { type: "file", accept: "image/*" } });
-					const edit = browse.closest(".edit");
-					const expiration = 7 * 24 * 60 * 60;
+				browse.onclick = () => {
+					const formData = new FormData()
+					const fileInput = createElement({ input: { type: "file", accept: "image/*" } })
+					const edit = browse.closest(".edit")
+					const expiration = 7 * 24 * 60 * 60
 
 					fileInput.onchange = el => {
 						if (el.target.files[0].size > 32 * 1024 * 1024)
@@ -934,58 +931,56 @@ addEventListener("DOMContentLoaded", () => {
 
 			for (const e of document.querySelectorAll(".guiEmbed"))
 				e.onclick = () => {
-					const guiEmbed = e.closest(".guiEmbed");
-					const indexOfGuiEmbed = Array.from(gui.querySelectorAll(".guiEmbed")).indexOf(guiEmbed);
-					if (indexOfGuiEmbed === -1) return error("Could not find the embed to add the field to.");
+					const guiEmbed = e.closest(".guiEmbed")
+					const indexOfGuiEmbed = Array.from(gui.querySelectorAll(".guiEmbed")).indexOf(guiEmbed)
+					if (indexOfGuiEmbed == -1) return error("Could not find the embed to add the field to.")
 
-					changeLastActiveGuiEmbed(indexOfGuiEmbed);
-				};
+					changeLastActiveGuiEmbed(indexOfGuiEmbed)
+				}
 			for (const e of document.querySelectorAll(".guiActionRow"))
 				e.onclick = () => {
-					const guiActionRow = e.closest(".guiActionRow");
-					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow);
-					if (indexOfGuiActionRow === -1) return error("Could not find the action row to add the component to.");
+					const guiActionRow = e.closest(".guiActionRow")
+					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
+					if (indexOfGuiActionRow == -1) return error("Could not find the action row to add the component to.")
 
-					changeLastActiveGuiActionRow(indexOfGuiActionRow);
-				};
+					changeLastActiveGuiActionRow(indexOfGuiActionRow)
+				}
 
 			if (!jsonObject.embeds[lastActiveGuiEmbedIndex])
 				changeLastActiveGuiEmbed(
 					jsonObject.embeds[lastActiveGuiEmbedIndex - 1] ?
 						lastActiveGuiEmbedIndex - 1 :
 						jsonObject.embeds.length ? 0 : -1
-				);
+				)
 		}
 
-		addGuiEventListeners();
+		addGuiEventListeners()
 
-		let activeGuiEmbed;
+		let activeGuiEmbed
 		if (opts?.guiEmbedIndex) {
-			activeGuiEmbed = Array.from(document.querySelectorAll(".gui .item.guiEmbedName"))[opts.guiEmbedIndex];
-			activeGuiEmbed?.classList.add("active");
-			activeGuiEmbed = activeGuiEmbed?.nextElementSibling;
+			activeGuiEmbed = Array.from(document.querySelectorAll(".gui .item.guiEmbedName"))[opts.guiEmbedIndex]
+			activeGuiEmbed?.classList.add("active")
+			activeGuiEmbed = activeGuiEmbed?.nextElementSibling
 		}
 
-		let activeGuiActionRow;
+		let activeGuiActionRow
 		if (opts?.guiActionRowIndex) {
-			activeGuiActionRow = Array.from(document.querySelectorAll(".gui .item.guiActionRowName"))[opts.guiActionRowIndex];
-			activeGuiActionRow?.classList.add("active");
-			activeGuiActionRow = activeGuiActionRow?.nextElementSibling;
+			activeGuiActionRow = Array.from(document.querySelectorAll(".gui .item.guiActionRowName"))[opts.guiActionRowIndex]
+			activeGuiActionRow?.classList.add("active")
+			activeGuiActionRow = activeGuiActionRow?.nextElementSibling
 		}
 
 		if (opts?.activateClassNames)
 			for (const cName of opts.activateClassNames)
-				for (const e of document.getElementsByClassName(cName))
-					e.classList.add("active");
+				for (const e of document.getElementsByClassName(cName)) e.classList.add("active")
 
 		else if (opts?.guiTabs) {
 			const tabs = opts.guiTabs.split?.(/, */) || opts.guiTabs;
-			const bottomKeys = ["footer", "image"];
-			const topKeys = ["author", "content"];
+			const bottomKeys = ["footer", "image"]
+			const topKeys = ["author", "content"]
 
 			// Deactivate the default activated GUI fields
-			for (const e of gui.querySelectorAll(".item:not(.guiEmbedName).active"))
-				e.classList.remove("active");
+			for (const e of gui.querySelectorAll(".item:not(.guiEmbedName).active")) e.classList.remove("active")
 
 			// Activate wanted GUI fields
 			for (const e of document.querySelectorAll(`.${tabs.join(", .")}`))
@@ -993,11 +988,11 @@ addEventListener("DOMContentLoaded", () => {
 
 			// Autoscroll GUI to the bottom if necessary.
 			if (!tabs.some(item => topKeys.includes(item)) && tabs.some(item => bottomKeys.includes(item))) {
-				const gui2 = document.querySelector(".top .gui");
-				gui2.scrollTo({ top: gui2.scrollHeight });
+				const gui2 = document.querySelector(".top .gui")
+				gui2.scrollTo({ top: gui2.scrollHeight })
 			}
 		} else if (opts?.activate)
-			for (const clss of Array.from(opts.activate).map(el => el.className).map(clss => "." + clss.split(" ").slice(0, 2).join(".")))
+			for (const clss of Array.from(opts.activate).map(el => el.className).map(cls => "." + cls.split(" ").slice(0, 2).join(".")))
 				for (const e of document.querySelectorAll(clss))
 					e.classList.add("active");
 
@@ -1090,66 +1085,67 @@ addEventListener("DOMContentLoaded", () => {
 					return externalParsing({ element: embedFooter });
 			}
 
-			embedCont.innerHTML = "";
-			for (const embedObj of jsonObject.embeds) {
-				if (!allGood(embedObj)) continue;
-				validationError = false;
+			embedCont.innerHTML = ""
+			for (const currentObj of jsonObject.embeds) {
+				if (!allGood(currentObj)) continue
+				validationError = false
 
-				const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true));
-				const embedGrid = embedElement.querySelector(".embedGrid");
-				const embedTitle = embedElement.querySelector(".embedTitle");
-				const embedDescription = embedElement.querySelector(".embedDescription");
-				const embedAuthor = embedElement.querySelector(".embedAuthor");
-				const embedFooter = embedElement.querySelector(".embedFooter");
-				const embedImage = embedElement.querySelector(".embedImage > img");
-				const embedThumbnail = embedElement.querySelector(".embedThumbnail > img");
-				const embedFields = embedElement.querySelector(".embedFields");
+				const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true))
+				const embedGrid = embedElement.querySelector(".embedGrid")
+				const embedTitle = embedElement.querySelector(".embedTitle")
+				const embedDescription = embedElement.querySelector(".embedDescription")
+				const embedAuthor = embedElement.querySelector(".embedAuthor")
+				const embedFooter = embedElement.querySelector(".embedFooter")
+				const embedImage = embedElement.querySelector(".embedImage > img")
+				const embedThumbnail = embedElement.querySelector(".embedThumbnail > img")
+				const embedFields = embedElement.querySelector(".embedFields")
 
-				if (embedObj.title) display(embedTitle, markup(`${embedObj.url ? '<a class="anchor" target="_blank" href="' + encodeHTML(url(embedObj.url)) + '">' + encodeHTML(embedObj.title) + "</a>" : encodeHTML(embedObj.title)}`, { replaceEmojis: true, inlineBlock: true }));
-				else hide(embedTitle);
+				if (currentObj.title) display(embedTitle, markup(`${currentObj.url ? '<a class="anchor" target="_blank" href="' + encodeHTML(url(currentObj.url)) + '">' + encodeHTML(currentObj.title) + "</a>" : encodeHTML(currentObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
+				else hide(embedTitle)
 
-				if (embedObj.description) display(embedDescription, markup(encodeHTML(embedObj.description), { inEmbed: true, replaceEmojis: true }));
-				else hide(embedDescription);
+				if (currentObj.description) display(embedDescription, markup(encodeHTML(currentObj.description), { inEmbed: true, replaceEmojis: true }))
+				else hide(embedDescription)
 
-				if (embedObj.color) embedGrid.closest(".embed").style.borderColor = (typeof embedObj.color === "number" ? "#" + embedObj.color.toString(16).padStart(6, "0") : embedObj.color);
-				else embedGrid.closest(".embed").style.removeProperty("border-color");
+				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = (typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color)
+				else embedGrid.closest(".embed").style.removeProperty("border-color")
 
-				if (embedObj.author?.name) display(embedAuthor, `
-					${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encodeHTML(url(embedObj.author.icon_url)) + '">' : ""}
-					${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(embedObj.author.url)) + '" target="_blank">' + encodeHTML(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(embedObj.author.name) + "</span>"}`, "flex");
-				else hide(embedAuthor);
+				if (currentObj.author?.name) display(embedAuthor, `
+					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encodeHTML(url(currentObj.author.icon_url)) + '">' : ""}
+					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(currentObj.author.url)) + '" target="_blank">' + encodeHTML(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(currentObj.author.name) + "</span>"}`, "flex");
+				else hide(embedAuthor)
 
-				const pre = embedGrid.querySelector(".markup pre");
-				if (embedObj.thumbnail?.url) {
-					embedThumbnail.src = embedObj.thumbnail.url;
-					embedThumbnail.parentElement.style.display = "block";
-					if (pre) pre.style.maxWidth = "90%";
+				const pre = embedGrid.querySelector(".markup pre")
+				if (currentObj.thumbnail?.url) {
+					embedThumbnail.src = currentObj.thumbnail.url
+					embedThumbnail.parentElement.style.display = "block"
+					if (pre) pre.style.maxWidth = "90%"
 				} else {
-					hide(embedThumbnail.parentElement);
-					if (pre) pre.style.removeProperty("max-width");
+					hide(embedThumbnail.parentElement)
+					if (pre) pre.style.removeProperty("max-width")
 				}
 
-				if (embedObj.image?.url)
-					embedImage.src = embedObj.image.url,
-						embedImage.parentElement.style.display = "block";
-				else hide(embedImage.parentElement);
+				if (currentObj.image?.url) {
+					embedImage.src = currentObj.image.url
+					embedImage.parentElement.style.display = "block"
+				} else hide(embedImage.parentElement)
 
-				if (embedObj.footer?.text) display(embedFooter, `
-					${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encodeHTML(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
-						${encodeHTML(embedObj.footer.text)}
-					${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encodeHTML(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex");
-				else if (embedObj.timestamp) display(embedFooter, `<span class="embedFooterText">${encodeHTML(timestamp(embedObj.timestamp))}</span></div>`, "flex");
-				else hide(embedFooter);
+				if (currentObj.footer?.text) display(embedFooter, `
+					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encodeHTML(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
+						${encodeHTML(currentObj.footer.text)}
+					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encodeHTML(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
+				else if (currentObj.timestamp)
+					display(embedFooter, `<span class="embedFooterText">${encodeHTML(timestamp(currentObj.timestamp))}</span></div>`, "flex")
+				else hide(embedFooter)
 
-				if (embedObj.fields) createEmbedFields(embedObj.fields, embedFields);
-				else hide(embedFields);
+				if (currentObj.fields) createEmbedFields(currentObj.fields, embedFields)
+				else hide(embedFields)
 
-				document.body.classList.remove("emptyEmbed");
-				externalParsing();
+				document.body.classList.remove("emptyEmbed")
+				externalParsing()
 
 				if (embedElement.innerText.trim() || embedElement.querySelector(".embedGrid > [style*=display] img"))
-					embedElement.classList.remove("emptyEmbed");
-				else embedElement.classList.add("emptyEmbed");
+					embedElement.classList.remove("emptyEmbed")
+				else embedElement.classList.add("emptyEmbed")
 			}
 
 			actionRowCont.innerHTML = "";
@@ -1183,28 +1179,28 @@ addEventListener("DOMContentLoaded", () => {
 						buttonElement.appendChild(emojiElement);
 					}
 
-					actionRowElement.appendChild(buttonElement);
+					actionRowElement.appendChild(buttonElement)
 				}
 			}
 
 			afterBuilding()
 		} catch (e) {
-			console.error(e);
-			error(e);
+			console.error(e)
+			error(e)
 		}
 	}
 
 	editor.on("change", editor => {
 		// If the editor value is not set by the user, return.
-		if (JSON.stringify(json, null, 4) === editor.getValue()) return;
+		if (JSON.stringify(json, null, 4) == editor.getValue()) return
 
 		try {
 			// Autofill when " is typed on new line
-			const line = editor.getCursor().line;
+			const line = editor.getCursor().line
 			const text = editor.getLine(line)
 
-			if (text.trim() === '"') {
-				editor.replaceRange(text.trim() + ":", { line, ch: line.length });
+			if (text.trim() == '"') {
+				editor.replaceRange(text.trim() + ":", { line, ch: line.length })
 				editor.setCursor(line, text.length)
 			}
 
@@ -1254,7 +1250,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	picker.on?.("exit", removePicker)
 	picker.on?.("enter", () => {
-		const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0
+		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
 		if (jsonObject?.embeds[embedIndex]?.color) {
 			hexInput.value = jsonObject.embeds[embedIndex].color.toString(16).padStart(6, "0")
 			document.querySelector(".hex.incorrect")?.classList.remove("incorrect")
@@ -1263,7 +1259,7 @@ addEventListener("DOMContentLoaded", () => {
 	})
 
 	document.querySelectorAll(".color").forEach(e => e.addEventListener("click", el => {
-		const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0
+		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
 		const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex]
 		const embedObj = jsonObject.embeds[embedIndex] ??= {}
 		const color = el.target.closest(".color")
@@ -1276,7 +1272,7 @@ addEventListener("DOMContentLoaded", () => {
 	hexInput?.addEventListener("focus", () => typingHex = true)
 	setTimeout(() => {
 		picker.on?.("change", (r, g, b) => {
-			const embedIndex = lastActiveGuiEmbedIndex !== -1 ? lastActiveGuiEmbedIndex : 0
+			const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
 			const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex]
 			const embedObj = jsonObject.embeds[embedIndex]
 
@@ -1307,41 +1303,38 @@ addEventListener("DOMContentLoaded", () => {
 	})
 
 	document.querySelector(".opt.json").addEventListener("click", () => {
-		const emptyEmbedIndex = indexOfEmptyGuiEmbed(false);
+		const emptyEmbedIndex = indexOfEmptyGuiEmbed(false)
 		if (emptyEmbedIndex !== -1)
 			// Clicked GUI tab while a blank embed is added from GUI.
-			return error(gui.querySelectorAll(".item.guiEmbedName")[emptyEmbedIndex].innerText.split(":")[0] + " should not be empty.", "3s");
+			return error(gui.querySelectorAll(".item.guiEmbedName")[emptyEmbedIndex].innerText.split(":")[0] + " should not be empty.", "3s")
 
-		const jsonStr = JSON.stringify(json, null, 4);
-		lastGuiJson = jsonStr;
+		const jsonStr = JSON.stringify(json, null, 4)
+		lastGuiJson = jsonStr
 
-		document.body.classList.remove("gui");
-		editor.setValue(jsonStr === "{}" ? "{\n\t\n}" : jsonStr);
-		editor.refresh();
-		editor.focus();
+		document.body.classList.remove("gui")
+		editor.setValue(jsonStr === "{}" ? "{\n\t\n}" : jsonStr)
+		editor.refresh()
+		editor.focus()
 
-		activeFields = document.querySelectorAll(".gui > .item.active");
-		if (document.querySelector("section.side1.low"))
-			togglePicker(true);
+		activeFields = document.querySelectorAll(".gui > .item.active")
+		if (document.querySelector("section.side1.low")) togglePicker(true)
 	})
 
 	document.querySelector(".clear").addEventListener("click", () => {
-		json = {};
+		json = {}
 
-		picker.source.style.removeProperty("background");
-		document.querySelector(".msgEmbed .container>.embed")?.remove();
+		picker.source.style.removeProperty("background")
+		document.querySelector(".msgEmbed .container>.embed")?.remove()
 
-		buildEmbed();
-		buildGui();
+		buildEmbed()
+		buildGui()
 
-		const jsonStr = JSON.stringify(json, null, 4);
-		editor.setValue(jsonStr === "{}" ? "{\n\t\n}" : jsonStr);
+		const jsonStr = JSON.stringify(json, null, 4)
+		editor.setValue(jsonStr === "{}" ? "{\n\t\n}" : jsonStr)
 
-		for (const e of document.querySelectorAll(".gui .item"))
-			e.classList.add("active");
+		for (const e of document.querySelectorAll(".gui .item")) e.classList.add("active")
 
-		if (!smallerScreen.matches)
-			content.focus();
+		if (!smallerScreen.matches) content.focus()
 	})
 
 	document.querySelector(".top-btn.menu")?.addEventListener("click", async e => {
@@ -1357,7 +1350,7 @@ addEventListener("DOMContentLoaded", () => {
 					body: JSON.stringify({
 						name,
 						url: data,
-						date: Date.now() + 1000 * 60 * 60 * 24 * 3
+						date: Date.now() + 1000 * 60 * 60 * 24 * 5
 					})
 				})
 				const shorterjson = await shorterres.json()
