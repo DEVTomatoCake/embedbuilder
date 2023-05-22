@@ -1342,7 +1342,7 @@ addEventListener("DOMContentLoaded", () => {
 			let data = encodeJson(json, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x === "=" ? "" : "&");
 			if (data.length > 2000) {
 				const name = Math.random().toString(36).slice(5)
-				const shorterres = await fetch("https://api.tomatenkuchen.eu/short", {
+				const shorterres = await fetch("https://shorter.cf", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json"
@@ -1354,8 +1354,8 @@ addEventListener("DOMContentLoaded", () => {
 					})
 				})
 				const shorterjson = await shorterres.json()
-				console.log("Response for POST https://api.tomatenkuchen.eu/short:", shorterjson)
-				data = "https://shorter.cf/" + name
+				console.log("Response from https://shorter.cf:", shorterjson)
+				data = "https://shorter.cf/" + shorterjson.name
 			}
 
 			try {
