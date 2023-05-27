@@ -804,10 +804,13 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "embedTitle", index: guiEmbedIndex(el.target) })
 								break
 							case "editAuthorName":
-								embedObj.author ??= {}, embedObj.author.name = value
+								embedObj.author ??= {}
+								embedObj.author.name = value
 								buildEmbed({ only: "embedAuthorName", index: guiEmbedIndex(el.target) })
 								break
-							case "editAuthorLink": embedObj.author ??= {}, embedObj.author.icon_url = value
+							case "editAuthorLink":
+								embedObj.author ??= {}
+								embedObj.author.icon_url = value
 								imgSrc(el.target.previousElementSibling, value)
 								buildEmbed({ only: "embedAuthorLink", index: guiEmbedIndex(el.target) })
 								break
@@ -822,16 +825,19 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "embedThumbnail", index: guiEmbedIndex(el.target) })
 								break
 							case "editImageLink":
-								embedObj.image ??= {}, embedObj.image.url = value
+								embedObj.image ??= {}
+								embedObj.image.url = value
 								imgSrc(el.target.closest(".editIcon").querySelector(".imgParent"), value)
 								buildEmbed({ only: "embedImageLink", index: guiEmbedIndex(el.target) })
 								break
 							case "editFooterText":
-								embedObj.footer ??= {}, embedObj.footer.text = value
+								embedObj.footer ??= {}
+								embedObj.footer.text = value
 								buildEmbed({ only: "embedFooterText", index: guiEmbedIndex(el.target) })
 								break
 							case "editFooterLink":
-								embedObj.footer ??= {}, embedObj.footer.icon_url = value
+								embedObj.footer ??= {}
+								embedObj.footer.icon_url = value
 								imgSrc(el.target.previousElementSibling, value)
 								buildEmbed({ only: "embedFooterLink", index: guiEmbedIndex(el.target) })
 								break
