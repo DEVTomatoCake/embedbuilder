@@ -131,7 +131,7 @@ const animateGuiEmbedNameAt = (i, text) => {
 		{ duration: 100, iterations: 3 }
 	)
 
-	text && (guiEmbedName?.style.setProperty("--text", `"${text}"`))
+	if (text) guiEmbedName?.style.setProperty("--text", `"${text}"`)
 
 	guiEmbedName?.scrollIntoView({ behavior: "smooth", block: "center" })
 	guiEmbedName?.classList.remove("empty")
@@ -141,13 +141,13 @@ const animateGuiEmbedNameAt = (i, text) => {
 const indexOfEmptyGuiEmbed = text => {
 	for (const [i, element] of document.querySelectorAll(".msgEmbed>.container .embed").entries())
 		if (element.classList.contains("emptyEmbed")) {
-			text !== false && animateGuiEmbedNameAt(i, text)
+			if (text !== false) animateGuiEmbedNameAt(i, text)
 			return i
 		}
 
 	for (const [i, embedObj] of (json.embeds || []).entries())
 		if (!(0 in Object.keys(embedObj))) {
-			text !== false && animateGuiEmbedNameAt(i, text)
+			if (text !== false) animateGuiEmbedNameAt(i, text)
 			return i
 		}
 
@@ -287,7 +287,7 @@ addEventListener("DOMContentLoaded", () => {
 		return false
 	}
 
-	const url = url => /^(https?:)?\/\//g.exec(url) ? url : "//" + url
+	const url = str => /^(https?:)?\/\//g.exec(str) ? str : "//" + str
 
 	const makeShort = (txt, length, mediaWidth) => {
 		if (mediaWidth && matchMedia(`(max-width:${mediaWidth}px)`).matches)
@@ -302,7 +302,10 @@ addEventListener("DOMContentLoaded", () => {
 
 		if (embedObj.timestamp && new Date(embedObj.timestamp).toString() === "Invalid Date") {
 			if (allowPlaceholders === 2) return true
-			if (!allowPlaceholders) invalid = true, err = "Timestamp is invalid"
+			if (!allowPlaceholders) {
+				invalid = true
+				err = "Timestamp is invalid"
+			}
 		} else if (re) { // If a URL is found without a protocol
 			if (!/\w+:|\/\/|^\//g.exec(re[2]) && re[2].includes(".")) {
 				let activeInput = document.querySelector('input[class$="link" i]:focus')
@@ -313,8 +316,10 @@ addEventListener("DOMContentLoaded", () => {
 					return true
 				}
 			}
-			if (allowPlaceholders !== 2)
-				invalid = true, err = (`URL should have a protocol. Did you mean <span class="inline full short">https://${makeShort(re[2], 30, 600)}</span>?`)
+			if (allowPlaceholders !== 2) {
+				invalid = true
+				err = (`URL should have a protocol. Did you mean <span class="inline full short">https://${makeShort(re[2], 30, 600)}</span>?`)
+			}
 		}
 
 		if (invalid) {
@@ -393,6 +398,11 @@ addEventListener("DOMContentLoaded", () => {
 		return txt;
 	}
 
+	const display = (el, data, displayType) => {
+		if (data) el.innerHTML = data
+		el.style.display = displayType || "unset"
+	}
+
 	const encodeHTML = str => str.replace(/[\u00A0-\u9999<>&]/g, i => "&#" + i.charCodeAt(0) + ";")
 	const createEmbedFields = (fields, embedFields) => {
 		embedFields.innerHTML = "";
@@ -464,11 +474,6 @@ addEventListener("DOMContentLoaded", () => {
 					new Date().toLocaleDateString() + " " + dateArray;
 	}
 
-	const display = (el, data, displayType) => {
-		if (data) el.innerHTML = data
-		el.style.display = displayType || "unset"
-	}
-
 	const hide = el => el.style.removeProperty("display")
 	const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
 
@@ -506,7 +511,7 @@ addEventListener("DOMContentLoaded", () => {
 				for (const [i, embed] of (object.embeds.length ? object.embeds : [{}]).entries()) {
 					const guiEmbedName = gui.appendChild(child.cloneNode(true))
 
-					guiEmbedName.querySelector(".text").innerHTML = `Embed ${i + 1}${embed.title ? `: <span>${embed.title}</span>` : ""}`;
+					guiEmbedName.querySelector(".text").innerHTML = `Embed ${i + 1}${embed.title ? `: <span>${embed.title}</span>` : ""}`
 					guiEmbedName.querySelector(".icon").addEventListener("click", () => {
 						object.embeds.splice(i, 1)
 						buildGui()
@@ -581,12 +586,12 @@ addEventListener("DOMContentLoaded", () => {
 					const guiActionRowName = gui.appendChild(child.cloneNode(true))
 					console.log(guiActionRowName)
 
-					guiActionRowName.querySelector(".text").innerHTML = `Action Row ${i + 1}${component.custom_id ? `: <span>${component.custom_id}</span>` : ""}`;
+					guiActionRowName.querySelector(".text").innerHTML = `Action Row ${i + 1}${component.custom_id ? `: <span>${component.custom_id}</span>` : ""}`
 					guiActionRowName.querySelector(".icon").addEventListener("click", () => {
-						object.components.splice(i, 1);
-						buildGui();
-						buildEmbed();
-					});
+						object.components.splice(i, 1)
+						buildGui()
+						buildEmbed()
+					})
 
 					const guiActionRow = gui.appendChild(createElement({ div: { className: "guiActionRow" } }));
 					const guiActionRowTemplate = child.nextElementSibling;
@@ -786,50 +791,50 @@ addEventListener("DOMContentLoaded", () => {
 					} else {
 						switch (el.target.classList?.[0]) {
 							case "editContent":
-								jsonObject.content = value;
-								buildEmbed({ only: "content" });
-								break;
+								jsonObject.content = value
+								buildEmbed({ only: "content" })
+								break
 
 							case "editTitle":
 								embedObj.title = value;
-								const guiEmbedName = el.target.closest(".guiEmbed")?.previousElementSibling;
+								const guiEmbedName = el.target.closest(".guiEmbed")?.previousElementSibling
 								if (guiEmbedName?.classList.contains("guiEmbedName"))
-									guiEmbedName.querySelector(".text").innerHTML = `${guiEmbedName.innerText.split(":")[0]}${value ? `: <span>${value}</span>` : ""}`;
-								buildEmbed({ only: "embedTitle", index: guiEmbedIndex(el.target) });
-								break;
+									guiEmbedName.querySelector(".text").innerHTML = `${guiEmbedName.innerText.split(":")[0]}${value ? `: <span>${value}</span>` : ""}`
+								buildEmbed({ only: "embedTitle", index: guiEmbedIndex(el.target) })
+								break
 							case "editAuthorName":
-								embedObj.author ??= {}, embedObj.author.name = value;
-								buildEmbed({ only: "embedAuthorName", index: guiEmbedIndex(el.target) });
-								break;
-							case "editAuthorLink": embedObj.author ??= {}, embedObj.author.icon_url = value;
-								imgSrc(el.target.previousElementSibling, value);
-								buildEmbed({ only: "embedAuthorLink", index: guiEmbedIndex(el.target) });
-								break;
-							case "editDescription": embedObj.description = value;
-								buildEmbed({ only: "embedDescription", index: guiEmbedIndex(el.target) });
-								break;
+								embedObj.author ??= {}, embedObj.author.name = value
+								buildEmbed({ only: "embedAuthorName", index: guiEmbedIndex(el.target) })
+								break
+							case "editAuthorLink": embedObj.author ??= {}, embedObj.author.icon_url = value
+								imgSrc(el.target.previousElementSibling, value)
+								buildEmbed({ only: "embedAuthorLink", index: guiEmbedIndex(el.target) })
+								break
+							case "editDescription": embedObj.description = value
+								buildEmbed({ only: "embedDescription", index: guiEmbedIndex(el.target) })
+								break
 							case "editThumbnailLink":
-								embedObj.thumbnail ??= {}, embedObj.thumbnail.url = value;
-								imgSrc(el.target.closest(".editIcon").querySelector(".imgParent"), value);
-								buildEmbed({ only: "embedThumbnail", index: guiEmbedIndex(el.target) });
-								break;
+								embedObj.thumbnail ??= {}, embedObj.thumbnail.url = value
+								imgSrc(el.target.closest(".editIcon").querySelector(".imgParent"), value)
+								buildEmbed({ only: "embedThumbnail", index: guiEmbedIndex(el.target) })
+								break
 							case "editImageLink":
-								embedObj.image ??= {}, embedObj.image.url = value;
-								imgSrc(el.target.closest(".editIcon").querySelector(".imgParent"), value);
-								buildEmbed({ only: "embedImageLink", index: guiEmbedIndex(el.target) });
-								break;
+								embedObj.image ??= {}, embedObj.image.url = value
+								imgSrc(el.target.closest(".editIcon").querySelector(".imgParent"), value)
+								buildEmbed({ only: "embedImageLink", index: guiEmbedIndex(el.target) })
+								break
 							case "editFooterText":
-								embedObj.footer ??= {}, embedObj.footer.text = value;
-								buildEmbed({ only: "embedFooterText", index: guiEmbedIndex(el.target) });
-								break;
+								embedObj.footer ??= {}, embedObj.footer.text = value
+								buildEmbed({ only: "embedFooterText", index: guiEmbedIndex(el.target) })
+								break
 							case "editFooterLink":
-								embedObj.footer ??= {}, embedObj.footer.icon_url = value;
-								imgSrc(el.target.previousElementSibling, value);
-								buildEmbed({ only: "embedFooterLink", index: guiEmbedIndex(el.target) });
-								break;
+								embedObj.footer ??= {}, embedObj.footer.icon_url = value
+								imgSrc(el.target.previousElementSibling, value)
+								buildEmbed({ only: "embedFooterLink", index: guiEmbedIndex(el.target) })
+								break
 							case "embedFooterTimestamp":
-								const date = new Date(value);
-								if (isNaN(date.getTime())) return error("Invalid date");
+								const date = new Date(value)
+								if (isNaN(date.getTime())) return error("Invalid date")
 
 								embedObj.timestamp = date.getTime();
 								el.target.parentElement.querySelector("svg>text").textContent = (date.getDate() + "").padStart(2, 0);
@@ -892,36 +897,36 @@ addEventListener("DOMContentLoaded", () => {
 
 					fileInput.onchange = el => {
 						if (el.target.files[0].size > 32 * 1024 * 1024)
-							return uploadError("File is too large. Maximum size is 32 MB.", browse, 5000);
+							return uploadError("File is too large. Maximum size is 32 MB.", browse, 5000)
 
-						formData.append("expiration", expiration); // Expire after 7 days. Discord caches files.
-						formData.append("key", "247664c78b4606093dc9a510037483e0");
-						formData.append("image", el.target.files[0]);
+						formData.append("expiration", expiration) // Expire after 7 days. Discord caches files.
+						formData.append("key", "247664c78b4606093dc9a510037483e0")
+						formData.append("image", el.target.files[0])
 
-						browse.classList.add("loading");
+						browse.classList.add("loading")
 
 						fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData })
 							.then(res => res.json())
 							.then(res => {
-								browse.classList.remove("loading");
+								browse.classList.remove("loading")
 								if (!res.success) {
-									console.log("Upload failed:", res.data?.error || res.error?.message || res);
-									return uploadError(res.data?.error || res.error?.message || "Request failed. (Check dev-console)", browse);
+									console.log("Upload failed:", res.data?.error || res.error?.message || res)
+									return uploadError(res.data?.error || res.error?.message || "Request failed. (Check dev-console)", browse)
 								}
 
-								imgSrc(edit.querySelector(".editIcon > .imgParent"), res.data.url);
-								const linkInput = edit.querySelector("input[type=text]");
-								const textInput = edit.querySelector("input[class$=Name], input[class$=Text]");
+								imgSrc(edit.querySelector(".editIcon > .imgParent"), res.data.url)
+								const linkInput = edit.querySelector("input[type=text]")
+								const textInput = edit.querySelector("input[class$=Name], input[class$=Text]")
 
-								linkInput.value = res.data.url;
+								linkInput.value = res.data.url
 								// focus on the next empty input if the field requires a name or text to display eg. footer or author.
-								!textInput?.value && textInput?.focus();
+								if (!textInput?.value) textInput?.focus()
 
-								console.info(`${res.data.url} will be deleted in ${expiration / 60 / 60} hours. To delete it now, visit ${res.data.delete_url} and scroll down to find the delete button.`);
+								console.info(`${res.data.url} will be deleted in ${expiration / 60 / 60} hours. To delete it now, visit ${res.data.delete_url} and scroll down to find the delete button.`)
 
-								linkInput.dispatchEvent(new Event("input"));
+								linkInput.dispatchEvent(new Event("input"))
 							}).catch(err => {
-								browse.classList.remove("loading");
+								browse.classList.remove("loading")
 								error(`Request failed with error: ${err}`)
 							})
 					}
@@ -975,7 +980,7 @@ addEventListener("DOMContentLoaded", () => {
 				for (const e of document.getElementsByClassName(cName)) e.classList.add("active")
 
 		else if (opts?.guiTabs) {
-			const tabs = opts.guiTabs.split?.(/, */) || opts.guiTabs;
+			const tabs = opts.guiTabs.split?.(/, */) || opts.guiTabs
 			const bottomKeys = ["footer", "image"]
 			const topKeys = ["author", "content"]
 
@@ -983,8 +988,7 @@ addEventListener("DOMContentLoaded", () => {
 			for (const e of gui.querySelectorAll(".item:not(.guiEmbedName).active")) e.classList.remove("active")
 
 			// Activate wanted GUI fields
-			for (const e of document.querySelectorAll(`.${tabs.join(", .")}`))
-				e.classList.add("active");
+			for (const e of document.querySelectorAll(`.${tabs.join(", .")}`)) e.classList.add("active")
 
 			// Autoscroll GUI to the bottom if necessary.
 			if (!tabs.some(item => topKeys.includes(item)) && tabs.some(item => bottomKeys.includes(item))) {
@@ -1236,7 +1240,8 @@ addEventListener("DOMContentLoaded", () => {
 		if (exit) return exit = false
 		if (typingHex) picker.enter()
 		else {
-			typingHex = false, exit = true
+			typingHex = false
+			exit = true
 			colors.classList.remove("picking")
 			picker.exit()
 		}
@@ -1265,7 +1270,7 @@ addEventListener("DOMContentLoaded", () => {
 		const color = el.target.closest(".color")
 
 		embedObj.color = toRGB(color.style.backgroundColor, false, true)
-		embed && (embed.style.borderColor = color.style.backgroundColor)
+		if (embed) embed.style.borderColor = color.style.backgroundColor
 		picker.source.style.removeProperty("background")
 	}))
 
@@ -1360,44 +1365,50 @@ addEventListener("DOMContentLoaded", () => {
 
 			try {
 				// Clipboard API might only work on HTTPS protocol.
-				navigator.clipboard.writeText(data);
+				navigator.clipboard.writeText(data)
 			} catch {
-				const input = document.body.appendChild(document.createElement("input"));
-				input.value = data;
-				input.select();
-				document.setSelectionRange(0, 50000);
-				document.execCommand("copy");
-				document.body.removeChild(input);
+				const input = document.body.appendChild(document.createElement("input"))
+				input.value = data
+				input.select()
+				document.setSelectionRange(0, 30000)
+				document.execCommand("copy")
+				document.body.removeChild(input)
 			}
 
-			setTimeout(() => alert("Copied to clipboard." + (data.startsWith("https://shorter.cf") ? " URL was shortened to work in the embed command." : "")), 1);
+			setTimeout(() => alert("Copied to clipboard." + (data.startsWith("https://shorter.cf") ? " URL was shortened to work in the embed command." : "")), 1)
 			return
 		}
 
-		if (e.target.closest(".item.download"))
-			return createElement({ a: { download: "embed-" + new Date().toLocaleTimeString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click();
+		if (e.target.closest(".item.import")) {
+			const importres = await fetch("https://api.tomatenkuchen.eu/api/import")
+			const importjson = await importres.json()
+			alert("Send the code " + importjson.code + " while replying to the message you want to import. The bot must be able to see the channel.")
+		}
 
-		const input = e.target.closest(".item")?.querySelector("input");
-		if (input) input.checked = !input.checked;
+		if (e.target.closest(".item.download"))
+			return createElement({ a: { download: "embed-" + new Date().toLocaleTimeString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click()
+
+		const input = e.target.closest(".item")?.querySelector("input")
+		if (input) input.checked = !input.checked
 
 		if (e.target.closest(".item.auto")) {
-			autoUpdateURL = document.body.classList.toggle("autoUpdateURL");
-			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", true);
-			else localStorage.removeItem("autoUpdateURL");
-			urlOptions({ set: ["data", encodeJson(json)] });
+			autoUpdateURL = document.body.classList.toggle("autoUpdateURL")
+			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", true)
+			else localStorage.removeItem("autoUpdateURL")
+			urlOptions({ set: ["data", encodeJson(json)] })
 		} else if (e.target.closest(".item.reverse")) {
-			reverse(reverseColumns);
-			reverseColumns = !reverseColumns;
-			toggleStored("reverseColumns");
+			reverse(reverseColumns)
+			reverseColumns = !reverseColumns
+			toggleStored("reverseColumns")
 		} else if (e.target.closest(".toggles>.item")) {
-			const win = input.closest(".item").classList[2];
+			const win = input.closest(".item").classList[2]
 
 			if (input.checked) {
-				document.body.classList.remove(`no-${win}`);
-				localStorage.removeItem(`hide${win}`);
+				document.body.classList.remove(`no-${win}`)
+				localStorage.removeItem(`hide${win}`)
 			} else {
-				document.body.classList.add(`no-${win}`);
-				localStorage.setItem(`hide${win}`, true);
+				document.body.classList.add(`no-${win}`)
+				localStorage.setItem(`hide${win}`, true)
 			}
 		}
 
@@ -1407,68 +1418,68 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelectorAll(".img").forEach(e => {
 		if (e.nextElementSibling?.classList.contains("spinner-container"))
 			e.addEventListener("error", el => {
-				el.target.style.removeProperty("display");
-				el.target.nextElementSibling.style.display = "block";
+				el.target.style.removeProperty("display")
+				el.target.nextElementSibling.style.display = "block"
 			})
 	})
 
 	togglePicker = pickLater => {
-		colors.classList.toggle("display");
-		document.querySelector(".side1").classList.toggle("low");
-		if (pickLater) pickInGuiMode = true;
+		colors.classList.toggle("display")
+		document.querySelector(".side1").classList.toggle("low")
+		if (pickLater) pickInGuiMode = true
 	};
 
-	document.querySelector(".pickerToggle").addEventListener("click", () => togglePicker());
-	buildEmbed();
+	document.querySelector(".pickerToggle").addEventListener("click", () => togglePicker())
+	buildEmbed()
 
 	document.body.addEventListener("click", e => {
 		if (e.target.classList.contains("low") || (e.target.classList.contains("top") && colors.classList.contains("display")))
-			togglePicker();
+			togglePicker()
 	})
 
 	document.querySelector(".colors .hex>div")?.addEventListener("input", e => {
-		let inputValue = e.target.value;
+		let inputValue = e.target.value
 
 		if (inputValue.startsWith("#"))
-			e.target.value = inputValue.slice(1), inputValue = e.target.value;
+			e.target.value = inputValue.slice(1), inputValue = e.target.value
 		if (inputValue.length !== 6 || !/^[a-zA-Z0-9]{6}$/g.test(inputValue))
-			return e.target.closest(".hex").classList.add("incorrect");
+			return e.target.closest(".hex").classList.add("incorrect")
 
-		e.target.closest(".hex").classList.remove("incorrect");
+		e.target.closest(".hex").classList.remove("incorrect")
 
-		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex;
-		jsonObject.embeds[embedIndex].color = parseInt(inputValue, 16);
-		picker.fire?.("change", toRGB(inputValue));
+		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
+		jsonObject.embeds[embedIndex].color = parseInt(inputValue, 16)
+		picker.fire?.("change", toRGB(inputValue))
 
-		buildEmbed();
+		buildEmbed()
 	})
 
-	const menuMore = document.querySelector(".item.section .inner.more");
-	if (menuMore.childElementCount < 2) menuMore?.classList.add("invisible");
-	if (menuMore.parentElement.childElementCount < 1) menuMore?.parentElement.classList.add("invisible");
+	const menuMore = document.querySelector(".item.section .inner.more")
+	if (menuMore.childElementCount < 2) menuMore?.classList.add("invisible")
+	if (menuMore.parentElement.childElementCount < 1) menuMore?.parentElement.classList.add("invisible")
 
 	document.querySelector(".top-btn.copy").addEventListener("click", e => {
-		const mark = e.target.closest(".top-btn.copy").querySelector(".mark"),
-			jsonData = JSON.stringify(json, null, 4),
-			next = () => {
-				mark?.classList.remove("hidden");
-				mark?.previousElementSibling?.classList.add("hidden");
+		const mark = e.target.closest(".top-btn.copy").querySelector(".mark")
+		const jsonData = JSON.stringify(json, null, 4)
+		const next = () => {
+			mark?.classList.remove("hidden");
+			mark?.previousElementSibling?.classList.add("hidden");
 
-				setTimeout(() => {
-					mark?.classList.add("hidden");
-					mark?.previousElementSibling?.classList.remove("hidden");
-				}, 1500);
-			}
+			setTimeout(() => {
+				mark?.classList.add("hidden");
+				mark?.previousElementSibling?.classList.remove("hidden");
+			}, 1500);
+		}
 
 		if (!navigator.clipboard?.writeText(jsonData).then(next).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
-			const textarea = document.body.appendChild(document.createElement("textarea"));
+			const textarea = document.body.appendChild(document.createElement("textarea"))
 
-			textarea.value = jsonData;
-			textarea.select();
-			textarea.setSelectionRange(0, 50000);
-			document.execCommand("copy");
-			document.body.removeChild(textarea);
-			next();
+			textarea.value = jsonData
+			textarea.select()
+			textarea.setSelectionRange(0, 50000)
+			document.execCommand("copy")
+			document.body.removeChild(textarea)
+			next()
 		}
 	});
 });
@@ -1480,35 +1491,35 @@ Object.defineProperty(window, "json", {
 	configurable: true,
 	// Getter to format 'jsonObject' properly depending on options and other factors
 	get() {
-		const json = {};
+		const json = {}
 
-		if (jsonObject.content) json.content = jsonObject.content;
+		if (jsonObject.content) json.content = jsonObject.content
 
 		// If 'jsonObject.embeds' array is set and has content. Empty braces ({}) will be filtered as not content.
-		if (jsonObject.embeds?.length) json.embeds = jsonObject.embeds.map(cleanEmbed);
+		if (jsonObject.embeds?.length) json.embeds = jsonObject.embeds.map(cleanEmbed)
 
-		if (jsonObject.components?.length) json.components = jsonObject.components;
+		if (jsonObject.components?.length) json.components = jsonObject.components
 
-		return json;
+		return json
 	},
 
 	// Setter for 'json' which formats the value properly into 'jsonObject'.
 	set(val) {
 		// Filter out items which are not objects and not empty objects.
-		const embedObjects = val.embeds?.filter(j => j.constructor === Object && 0 in Object.keys(j));
+		const embedObjects = val.embeds?.filter(j => j.constructor === Object && 0 in Object.keys(j))
 		// Convert 'embed' to 'embeds' and delete 'embed' or validate and use 'embeds' if provided.
 		const embeds = val.embed ? [val.embed] : embedObjects?.length ? embedObjects : []
 		// Convert objects used as values to string and trim whitespace.
-		const content = val.content?.toString().trim();
+		const content = val.content?.toString().trim()
 
 		jsonObject = {
 			...(content && { content }),
 			embeds: embeds.map(cleanEmbed),
 			components: val.components
-		};
+		}
 
-		buildEmbed();
-		buildGui();
+		buildEmbed()
+		buildGui()
 	}
 });
 
@@ -1525,8 +1536,7 @@ function cleanEmbed(obj, recursing = false) {
 	if (!recursing)
 		// Remove all invalid properties from embed object.
 		for (const key in obj)
-			if (!embedKeys.includes(key))
-				delete obj[key];
+			if (!embedKeys.includes(key)) delete obj[key]
 			else if (obj[key].constructor === Object) // Value is an object. eg. 'author'
 				// Remove items that are not in the props of the current key.
 				for (const item in obj[key])
@@ -1542,17 +1552,17 @@ function cleanEmbed(obj, recursing = false) {
 	for (const [key, val] of Object.entries(obj))
 		if (val === void 0 || val.trim?.() === "")
 			// Remove the key if value is empty
-			delete obj[key];
+			delete obj[key]
 		else if (val.constructor === Object)
 			// Remove object (val) if it has no keys or recursively remove empty keys from objects.
-			(!Object.keys(val).length && delete obj[key]) || (obj[key] = cleanEmbed(val, true));
+			(!Object.keys(val).length && delete obj[key]) || (obj[key] = cleanEmbed(val, true))
 		else if (val.constructor === Array)
 			// Remove array (val) if it has no keys or recursively remove empty keys from objects in array.
-			!val.length && delete obj[key] || (obj[key] = val.map(k => cleanEmbed(k, true)));
+			!val.length && delete obj[key] || (obj[key] = val.map(k => cleanEmbed(k, true)))
 		else
 			// If object isn't a string, boolean, number, array or object, convert it to string.
 			if (!["string", "boolean", "number"].includes(typeof val))
-				obj[key] = val.toString();
+				obj[key] = val.toString()
 
 	return obj;
 }
