@@ -184,7 +184,7 @@ const changeLastActiveGuiActionRow = index => lastActiveGuiActionRowIndex = inde
 const afterBuilding = () => autoUpdateURL && urlOptions({ set: ["data", encodeJson(json)] })
 // Parses emojis to images and adds code highlighting.
 const externalParsing = ({ noEmojis, element } = {}) => {
-	!noEmojis && twemoji.parse(element || document.querySelector(".msgEmbed"), { base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/" })
+	if (!noEmojis) twemoji.parse(element || document.querySelector(".msgEmbed"), { base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/" })
 	for (const block of document.querySelectorAll(".markup pre > code"))
 		hljs.highlightBlock(block)
 
@@ -275,8 +275,7 @@ addEventListener("DOMContentLoaded", () => {
 		notif.onanimationend = () => notif.style.display = null
 
 		// If notification element is not already visible, (no other message is already displayed), display it.
-		if (!notif.style.display)
-			return notif.style.display = "block", false
+		if (!notif.style.display) return notif.style.display = "block"
 
 		// If there's a message already displayed, update it and delay animating out.
 		notif.style.setProperty("--startY", 0)
@@ -576,6 +575,7 @@ addEventListener("DOMContentLoaded", () => {
 											}
 										}
 									}
+									break
 							}
 						}
 					}
@@ -593,44 +593,44 @@ addEventListener("DOMContentLoaded", () => {
 						buildEmbed()
 					})
 
-					const guiActionRow = gui.appendChild(createElement({ div: { className: "guiActionRow" } }));
-					const guiActionRowTemplate = child.nextElementSibling;
+					const guiActionRow = gui.appendChild(createElement({ div: { className: "guiActionRow" } }))
+					const guiActionRowTemplate = child.nextElementSibling
 
 					for (const child2 of Array.from(guiActionRowTemplate.children)) {
 						if (!child2?.classList.contains("edit")) {
-							guiActionRow.appendChild(child2.cloneNode(true));
-							const edit = child2.nextElementSibling?.cloneNode(true);
-							edit?.classList.contains("edit") && guiActionRow.appendChild(edit);
+							guiActionRow.appendChild(child2.cloneNode(true))
+							const edit = child2.nextElementSibling?.cloneNode(true)
+							if (edit?.classList.contains("edit")) guiActionRow.appendChild(edit)
 
 							switch (child2.classList[1]) {
 								case "button":
 									for (const f of component?.components || []) {
 										const actionRow = edit.querySelector(".component");
-										const componentElem = actionRow.appendChild(createElement({ div: { className: "button" } }));
+										const componentElem = actionRow.appendChild(createElement({ div: { className: "button" } }))
 
 										for (const child3 of Array.from(fieldFragment.firstChild.children)) {
-											const newChild = componentElem.appendChild(child3.cloneNode(true));
+											const newChild = componentElem.appendChild(child3.cloneNode(true))
 
 											if (child3.classList.contains("disableCheck"))
-												newChild.querySelector("input").checked = Boolean(f.disabled);
+												newChild.querySelector("input").checked = Boolean(f.disabled)
 
 											else if (f.value && child3.classList?.contains("fieldInner"))
-												newChild.querySelector(".editButtonLabel input").value = f?.label || "";
-												newChild.querySelector(".editButtonStyle select").value = f?.style || 1;
-												newChild.querySelector(".editButtonURL input").value = f?.url || "";
-												newChild.querySelector(".editButtonEmoji input").value = f?.emoji?.id || "";
-												//newChild.querySelector(".editButtonEmojiName input").value = f?.emoji?.name || "";
-												newChild.querySelector(".editButtonCustomId input").value = f?.custom_id || "";
+												newChild.querySelector(".editButtonLabel input").value = f?.label || ""
+												newChild.querySelector(".editButtonStyle select").value = f?.style || 1
+												newChild.querySelector(".editButtonURL input").value = f?.url || ""
+												newChild.querySelector(".editButtonEmoji input").value = f?.emoji?.id || ""
+												//newChild.querySelector(".editButtonEmojiName input").value = f?.emoji?.name || ""
+												newChild.querySelector(".editButtonCustomId input").value = f?.custom_id || ""
 										}
 									}
-									break;
+									break
 								case "selectMenu":
-									edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || "";
-									edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || "";
-									edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1;
-									edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1;
-									edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || "";
-									break;
+									edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || ""
+									edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || ""
+									edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
+									edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
+									edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
+									break
 							}
 						}
 					}
@@ -650,13 +650,13 @@ addEventListener("DOMContentLoaded", () => {
 				if (e?.classList.contains("active"))
 					getSelection().anchorNode !== e && e.classList.remove("active");
 				else if (e) {
-					const inlineField = e.closest(".inlineField"),
-						input = e.nextElementSibling?.querySelector('input[type="text"]'),
-						txt = e.nextElementSibling?.querySelector("textarea");
+					const inlineField = e.closest(".inlineField")
+					const input = e.nextElementSibling?.querySelector('input[type="text"]')
+					const txt = e.nextElementSibling?.querySelector("textarea")
 
 					e.classList.add("active");
 					if (e.classList.contains("guiEmbedName")) return changeLastActiveGuiEmbed(guiEmbedIndex(e))
-					if (e.classList.contains("guiActionRowName")) return changeLastActiveGuiActionRow(guiActionRowIndex(e));
+					if (e.classList.contains("guiActionRowName")) return changeLastActiveGuiActionRow(guiActionRowIndex(e))
 
 					else if (inlineField)
 						inlineField.querySelector(".ttle~input").focus()
@@ -1567,5 +1567,5 @@ function cleanEmbed(obj, recursing = false) {
 			if (!["string", "boolean", "number"].includes(typeof val))
 				obj[key] = val.toString()
 
-	return obj;
+	return obj
 }
