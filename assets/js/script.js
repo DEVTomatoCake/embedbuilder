@@ -267,7 +267,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	const notif = document.querySelector(".notification")
 
-	const error = (msg, time = "5s") => {
+	error = (msg, time = "5s") => {
 		notif.innerHTML = msg
 		notif.style.removeProperty("--startY")
 		notif.style.removeProperty("--startOpacity")
@@ -386,15 +386,15 @@ addEventListener("DOMContentLoaded", () => {
 			txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
 				if (w) return `<pre><code class="${w}">${x.trim()}</code></pre>`
 				else return `<pre><code class="hljs nohighlight">${x.trim()}</code></pre>`
-			})
+			});
 			// Inline code
 			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? `<code class="inline">${x}</code>` : y ? `<code class="inline">${y}</code>` : z ? `<code class="inline">${z}</code>` : m)
 		}
 
 		if (inEmbed)
-			txt = txt.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
+			txt = txt.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>");
 
-		return txt
+		return txt;
 	}
 
 	const display = (el, data, displayType) => {
@@ -404,12 +404,12 @@ addEventListener("DOMContentLoaded", () => {
 
 	const encodeHTML = str => str.replace(/[\u00A0-\u9999<>&]/g, i => "&#" + i.charCodeAt(0) + ";")
 	const createEmbedFields = (fields, embedFields) => {
-		embedFields.innerHTML = ""
-		let index, gridCol
+		embedFields.innerHTML = "";
+		let index, gridCol;
 
 		for (const [i, f] of fields.entries()) {
 			if (f.name && f.value) {
-				const fieldElement = embedFields.insertBefore(document.createElement("div"), null)
+				const fieldElement = embedFields.insertBefore(document.createElement("div"), null);
 				// Figuring out if there are only two fields on a row to give them more space.
 				// e.fields = json.embeds.fields.
 
@@ -424,8 +424,7 @@ addEventListener("DOMContentLoaded", () => {
 						// or it's the first field on the last row or the last field on the last row is not inline or it's the first field in a row and it's the last field on the last row.
 					) && (i == fields.length - 2 || !fields[i + 2].inline))) || i % 3 === 0 && i == fields.length - 2) {
 					// then make the field halfway (and the next field will take the other half of the embed).
-					index = i
-					gridCol = "1 / 7"
+					index = i, gridCol = "1 / 7"
 				}
 				// The next field.
 				if (index == i - 1) gridCol = "7 / 13"
@@ -525,7 +524,7 @@ addEventListener("DOMContentLoaded", () => {
 						if (!child2?.classList.contains("edit")) {
 							const row = guiEmbed.appendChild(child2.cloneNode(true))
 							const edit = child2.nextElementSibling?.cloneNode(true)
-							if (edit?.classList.contains("edit")) guiEmbed.appendChild(edit)
+							edit?.classList.contains("edit") && guiEmbed.appendChild(edit)
 
 							switch (child2.classList[1]) {
 								case "author":
@@ -649,7 +648,7 @@ addEventListener("DOMContentLoaded", () => {
 		for (const e of document.querySelectorAll(".top>.gui .item"))
 			e.addEventListener("click", () => {
 				if (e?.classList.contains("active"))
-					if (getSelection().anchorNode !== e) e.classList.remove("active");
+					getSelection().anchorNode !== e && e.classList.remove("active");
 				else if (e) {
 					const inlineField = e.closest(".inlineField")
 					const input = e.nextElementSibling?.querySelector('input[type="text"]')
@@ -750,44 +749,44 @@ addEventListener("DOMContentLoaded", () => {
 
 			for (const e of document.querySelectorAll(".fields .field .removeBtn"))
 				e.onclick = () => {
-					const embedIndex = guiEmbedIndex(e)
-					const fieldIndex = Array.from(e.closest(".fields").children).indexOf(e.closest(".field"))
+					const embedIndex = guiEmbedIndex(e);
+					const fieldIndex = Array.from(e.closest(".fields").children).indexOf(e.closest(".field"));
 
 					if (jsonObject.embeds[embedIndex]?.fields[fieldIndex] === -1)
-						return error("Failed to find the index of the field to remove.")
+						return error("Failed to find the index of the field to remove.");
 
-					jsonObject.embeds[embedIndex].fields.splice(fieldIndex, 1)
+					jsonObject.embeds[embedIndex].fields.splice(fieldIndex, 1);
 
-					buildEmbed()
-					e.closest(".field").remove()
+					buildEmbed();
+					e.closest(".field").remove();
 				};
 
 			for (const e of gui.querySelectorAll("textarea, input"))
 				e.oninput = el => {
-					const value = el.target.value
-					const index = guiEmbedIndex(el.target)
-					const field = el.target.closest(".field")
-					const fields = field?.closest(".fields")
-					const embedObj = jsonObject.embeds[index] ??= {}
+					const value = el.target.value;
+					const index = guiEmbedIndex(el.target);
+					const field = el.target.closest(".field");
+					const fields = field?.closest(".fields");
+					const embedObj = jsonObject.embeds[index] ??= {};
 
-					const rowindex = guiActionRowIndex(el.target)
-					const componentindex = guiComponentIndex(el.target)
-					const actionRowObj = rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {}
+					const rowindex = guiActionRowIndex(el.target);
+					const componentindex = guiComponentIndex(el.target);
+					const actionRowObj = rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {};
 					let componentObj
 					if (actionRowObj.components) actionRowObj.components.forEach((component, i) => {
-						if (i == componentindex) componentObj = component
-					})
+						if (i == componentindex) componentObj = component;
+					});
 
 					if (field) {
-						const fieldIndex = Array.from(fields.children).indexOf(field)
-						const jsonField = embedObj.fields[fieldIndex]
-						const embedFields = document.querySelectorAll(".container>.embed")[index]?.querySelector(".embedFields")
+						const fieldIndex = Array.from(fields.children).indexOf(field);
+						const jsonField = embedObj.fields[fieldIndex];
+						const embedFields = document.querySelectorAll(".container>.embed")[index]?.querySelector(".embedFields");
 
 						if (jsonField) {
-							if (el.target.type === "text") jsonField.name = value
-							else if (el.target.type === "textarea") jsonField.value = value
-							else jsonField.inline = el.target.checked
-							createEmbedFields(embedObj.fields, embedFields)
+							if (el.target.type === "text") jsonField.name = value;
+							else if (el.target.type === "textarea") jsonField.value = value;
+							else jsonField.inline = el.target.checked;
+							createEmbedFields(embedObj.fields, embedFields);
 						}
 					} else {
 						switch (el.target.classList?.[0]) {
@@ -819,8 +818,7 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "embedDescription", index: guiEmbedIndex(el.target) })
 								break
 							case "editThumbnailLink":
-								embedObj.thumbnail ??= {}
-								embedObj.thumbnail.url = value
+								embedObj.thumbnail ??= {}, embedObj.thumbnail.url = value
 								imgSrc(el.target.closest(".editIcon").querySelector(".imgParent"), value)
 								buildEmbed({ only: "embedThumbnail", index: guiEmbedIndex(el.target) })
 								break
@@ -848,7 +846,7 @@ addEventListener("DOMContentLoaded", () => {
 								embedObj.timestamp = date.getTime()
 								el.target.parentElement.querySelector("svg>text").textContent = (date.getDate() + "").padStart(2, 0)
 								buildEmbed({ only: "embedFooterTimestamp", index: guiEmbedIndex(el.target) })
-								break
+								break;
 
 							case "editComponentLabel":
 								componentObj.label = value
