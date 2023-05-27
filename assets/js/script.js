@@ -659,27 +659,27 @@ addEventListener("DOMContentLoaded", () => {
 					if (e.classList.contains("guiActionRowName")) return changeLastActiveGuiActionRow(guiActionRowIndex(e));
 
 					else if (inlineField)
-						inlineField.querySelector(".ttle~input").focus();
+						inlineField.querySelector(".ttle~input").focus()
 
 					else if (e.classList.contains("footer")) {
-						const date = new Date(jsonObject.embeds[guiEmbedIndex(e)]?.timestamp || new Date());
-						const textElement = e.nextElementSibling.querySelector("svg>text");
-						const dateInput = textElement.closest(".footerDate").querySelector("input");
+						const date = new Date(jsonObject.embeds[guiEmbedIndex(e)]?.timestamp || new Date())
+						const textElement = e.nextElementSibling.querySelector("svg>text")
+						const dateInput = textElement.closest(".footerDate").querySelector("input")
 
 						return (
 							textElement.textContent = (date.getDate() + "").padStart(2, 0),
 							dateInput.value = date.toISOString().substring(0, 19)
-						);
+						)
 					} else if (input) {
-						!smallerScreen.matches && input.focus();
-						input.selectionStart = input.selectionEnd = input.value.length;
+						!smallerScreen.matches && input.focus()
+						input.selectionStart = input.selectionEnd = input.value.length
 					} else if (txt && !smallerScreen.matches)
-						txt.focus();
+						txt.focus()
 
 					if (e.classList.contains("fields")) {
-						if (reverseColumns && smallerScreen.matches) return e.parentNode.scrollTop = e.offsetTop;
+						if (reverseColumns && smallerScreen.matches) return e.parentNode.scrollTop = e.offsetTop
 
-						e.scrollIntoView({ behavior: "smooth", block: "center" });
+						e.scrollIntoView({ behavior: "smooth", block: "center" })
 					}
 				}
 			})
@@ -694,34 +694,34 @@ addEventListener("DOMContentLoaded", () => {
 						if (!reverseColumns || !smallerScreen.matches)
 							e.scrollIntoView({ behavior: "smooth", block: "center" });
 						else if (e.nextElementSibling.classList.contains("edit") && e.classList.contains("active"))
-							// e.nextElementSibling.scrollIntoView({ behavior: 'smooth', block: "end" });
-							e.parentNode.scrollTop = e.offsetTop;
+							// e.nextElementSibling.scrollIntoView({ behavior: 'smooth', block: "end" })
+							e.parentNode.scrollTop = e.offsetTop
 					}
-				};
+				}
 
 			for (const e of document.querySelectorAll(".addField"))
 				e.onclick = () => {
-					const guiEmbed = e.closest(".guiEmbed");
-					const indexOfGuiEmbed = Array.from(gui.querySelectorAll(".guiEmbed")).indexOf(guiEmbed);
-					if (indexOfGuiEmbed === -1) return error("Could not find the embed to add the field to.");
+					const guiEmbed = e.closest(".guiEmbed")
+					const indexOfGuiEmbed = Array.from(gui.querySelectorAll(".guiEmbed")).indexOf(guiEmbed)
+					if (indexOfGuiEmbed === -1) return error("Could not find the embed to add the field to.")
 
-					const fieldsObj = (jsonObject.embeds[indexOfGuiEmbed] ??= {}).fields ??= [];
-					if (fieldsObj.length >= 25) return error("Cannot have more than 25 fields!");
-					fieldsObj.push({ name: "Field name", value: "Field value", inline: false });
+					const fieldsObj = (jsonObject.embeds[indexOfGuiEmbed] ??= {}).fields ??= []
+					if (fieldsObj.length >= 25) return error("Cannot have more than 25 fields!")
+					fieldsObj.push({ name: "Field name", value: "Field value", inline: false })
 
-					const newField = guiEmbed?.querySelector(".item.fields+.edit>.fields")?.appendChild(fieldFragment.firstChild.cloneNode(true));
+					const newField = guiEmbed?.querySelector(".item.fields+.edit>.fields")?.appendChild(fieldFragment.firstChild.cloneNode(true))
 
-					buildEmbed();
-					addGuiEventListeners();
+					buildEmbed()
+					addGuiEventListeners()
 
-					newField.scrollIntoView({ behavior: "smooth", block: "center" });
+					newField.scrollIntoView({ behavior: "smooth", block: "center" })
 					if (!smallerScreen.matches) {
-						const firstFieldInput = newField.querySelector(".designerFieldName input");
+						const firstFieldInput = newField.querySelector(".designerFieldName input")
 
-						firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length);
-						firstFieldInput?.focus();
+						firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
+						firstFieldInput?.focus()
 					}
-				};
+				}
 
 			for (const e of document.querySelectorAll(".addComponent"))
 				e.onclick = () => {
@@ -796,7 +796,7 @@ addEventListener("DOMContentLoaded", () => {
 								break
 
 							case "editTitle":
-								embedObj.title = value;
+								embedObj.title = value
 								const guiEmbedName = el.target.closest(".guiEmbed")?.previousElementSibling
 								if (guiEmbedName?.classList.contains("guiEmbedName"))
 									guiEmbedName.querySelector(".text").innerHTML = `${guiEmbedName.innerText.split(":")[0]}${value ? `: <span>${value}</span>` : ""}`
@@ -810,7 +810,8 @@ addEventListener("DOMContentLoaded", () => {
 								imgSrc(el.target.previousElementSibling, value)
 								buildEmbed({ only: "embedAuthorLink", index: guiEmbedIndex(el.target) })
 								break
-							case "editDescription": embedObj.description = value
+							case "editDescription":
+								embedObj.description = value
 								buildEmbed({ only: "embedDescription", index: guiEmbedIndex(el.target) })
 								break
 							case "editThumbnailLink":
@@ -836,56 +837,56 @@ addEventListener("DOMContentLoaded", () => {
 								const date = new Date(value)
 								if (isNaN(date.getTime())) return error("Invalid date")
 
-								embedObj.timestamp = date.getTime();
-								el.target.parentElement.querySelector("svg>text").textContent = (date.getDate() + "").padStart(2, 0);
-								buildEmbed({ only: "embedFooterTimestamp", index: guiEmbedIndex(el.target) });
+								embedObj.timestamp = date.getTime()
+								el.target.parentElement.querySelector("svg>text").textContent = (date.getDate() + "").padStart(2, 0)
+								buildEmbed({ only: "embedFooterTimestamp", index: guiEmbedIndex(el.target) })
 								break;
 
 							case "editComponentLabel":
-								componentObj.label = value;
-								buildEmbed({ only: "componentLabel", index: guiComponentIndex(el.target) });
-								break;
+								componentObj.label = value
+								buildEmbed({ only: "componentLabel", index: guiComponentIndex(el.target) })
+								break
 							case "editComponentStyle":
-								componentObj.style = parseInt(value);
-								buildEmbed({ only: "componentStyle", index: guiComponentIndex(el.target) });
-								break;
+								componentObj.style = parseInt(value)
+								buildEmbed({ only: "componentStyle", index: guiComponentIndex(el.target) })
+								break
 							case "editComponentEmoji":
-								componentObj.emoji = value;
-								buildEmbed({ only: "componentEmoji", index: guiComponentIndex(el.target) });
-								break;
+								componentObj.emoji = value
+								buildEmbed({ only: "componentEmoji", index: guiComponentIndex(el.target) })
+								break
 							case "editComponentURL":
-								componentObj.url = value;
-								buildEmbed({ only: "componentURL", index: guiComponentIndex(el.target) });
-								break;
+								componentObj.url = value
+								buildEmbed({ only: "componentURL", index: guiComponentIndex(el.target) })
+								break
 							case "editComponentDisabled":
-								componentObj.disabled = value;
-								buildEmbed({ only: "componentDisabled", index: guiComponentIndex(el.target) });
-								break;
+								componentObj.disabled = value
+								buildEmbed({ only: "componentDisabled", index: guiComponentIndex(el.target) })
+								break
 						}
 
 						// Find and filter out any empty objects ({}) in the embeds array as Discord doesn't like them.
-						const nonEmptyEmbedObjects = json.embeds?.filter(o => 0 in Object.keys(o));
-						if (nonEmptyEmbedObjects?.length) json.embeds = nonEmptyEmbedObjects;
+						const nonEmptyEmbedObjects = json.embeds?.filter(o => 0 in Object.keys(o))
+						if (nonEmptyEmbedObjects?.length) json.embeds = nonEmptyEmbedObjects
 
-						const nonEmptyComponentObjects = json.components?.filter(o => 0 in Object.keys(o));
-						if (nonEmptyComponentObjects?.length) json.components = nonEmptyComponentObjects;
+						const nonEmptyComponentObjects = json.components?.filter(o => 0 in Object.keys(o))
+						if (nonEmptyComponentObjects?.length) json.components = nonEmptyComponentObjects
 					}
 
 					// Display embed elements hidden due to not having content. '.msgEmbed>.container' is embed container.
-					document.querySelectorAll(".msgEmbed>.container")[guiEmbedIndex(el.target)]?.querySelector(".emptyEmbed")?.classList.remove("emptyEmbed");
+					document.querySelectorAll(".msgEmbed>.container")[guiEmbedIndex(el.target)]?.querySelector(".emptyEmbed")?.classList.remove("emptyEmbed")
 				}
 
 			const uploadError = (message, browse, sleepTime) => {
-				browse.classList.remove("loading");
-				browse.classList.add("error");
+				browse.classList.remove("loading")
+				browse.classList.add("error")
 
 				const p = browse.parentElement.querySelector(".browse.error>p")
-				p.dataset.error = message;
+				p.dataset.error = message
 
 				setTimeout(() => {
-					browse.classList.remove("error");
-					delete p.dataset.error;
-				}, sleepTime ?? 7000);
+					browse.classList.remove("error")
+					delete p.dataset.error
+				}, sleepTime ?? 7000)
 			}
 
 			for (const browse of document.querySelectorAll(".browse"))
@@ -1208,14 +1209,14 @@ addEventListener("DOMContentLoaded", () => {
 				editor.setCursor(line, text.length)
 			}
 
-			json = JSON.parse(editor.getValue());
-			const dataKeys = Object.keys(json);
+			json = JSON.parse(editor.getValue())
+			const dataKeys = Object.keys(json)
 
 			if (dataKeys.length && !allJsonKeys.some(key => dataKeys.includes(key))) {
-				const usedKeys = dataKeys.filter(key => !allJsonKeys.includes(key));
+				const usedKeys = dataKeys.filter(key => !allJsonKeys.includes(key))
 				if (usedKeys.length > 2)
-					return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, usedKeys.length - 1).join("', '")}', and '${usedKeys[usedKeys.length - 1]}' are invalid keys.`);
-				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys[usedKeys.length - 1] + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`);
+					return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, usedKeys.length - 1).join("', '")}', and '${usedKeys[usedKeys.length - 1]}' are invalid keys.`)
+				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys[usedKeys.length - 1] + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`)
 			}
 
 			buildEmbed()
@@ -1440,8 +1441,10 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelector(".colors .hex>div")?.addEventListener("input", e => {
 		let inputValue = e.target.value
 
-		if (inputValue.startsWith("#"))
-			e.target.value = inputValue.slice(1), inputValue = e.target.value
+		if (inputValue.startsWith("#")) {
+			e.target.value = inputValue.slice(1)
+			inputValue = e.target.value
+		}
 		if (inputValue.length !== 6 || !/^[a-zA-Z0-9]{6}$/g.test(inputValue))
 			return e.target.closest(".hex").classList.add("incorrect")
 
@@ -1540,13 +1543,13 @@ function cleanEmbed(obj, recursing = false) {
 			else if (obj[key].constructor === Object) // Value is an object. eg. 'author'
 				// Remove items that are not in the props of the current key.
 				for (const item in obj[key])
-					!embedObjectsProps[key].includes(item) && delete obj[key][item];
+					if (!embedObjectsProps[key].includes(item)) delete obj[key][item];
 
 			else if (obj[key].constructor === Array) // Value is an array. eg. 'fields'
 				// Remove items that are not in the props of the current key.
 				for (const item of obj[key])
 					for (const i in item)
-						!embedObjectsProps[key].items.includes(i) && delete item[i];
+						if (!embedObjectsProps[key].items.includes(i)) delete item[i];
 
 	// Remove empty properties from embed object.
 	for (const [key, val] of Object.entries(obj))
