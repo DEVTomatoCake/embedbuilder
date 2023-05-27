@@ -1549,13 +1549,13 @@ function cleanEmbed(obj, recursing = false) {
 			else if (obj[key].constructor === Object) // Value is an object. eg. 'author'
 				// Remove items that are not in the props of the current key.
 				for (const item in obj[key])
-					if (!embedObjectsProps[key].includes(item)) delete obj[key][item];
+					if (!embedObjectsProps[key].includes(item)) delete obj[key][item]
 
 			else if (obj[key].constructor === Array) // Value is an array. eg. 'fields'
 				// Remove items that are not in the props of the current key.
 				for (const item of obj[key])
 					for (const i in item)
-						if (!embedObjectsProps[key].items.includes(i)) delete item[i];
+						if (!embedObjectsProps[key].items.includes(i)) delete item[i]
 
 	// Remove empty properties from embed object.
 	for (const [key, val] of Object.entries(obj))
