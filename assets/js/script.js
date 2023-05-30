@@ -461,7 +461,8 @@ addEventListener("DOMContentLoaded", () => {
 						// or it's the first field on the last row or the last field on the last row is not inline or it's the first field in a row and it's the last field on the last row.
 					) && (i == fields.length - 2 || !fields[i + 2].inline))) || i % 3 === 0 && i == fields.length - 2) {
 					// then make the field halfway (and the next field will take the other half of the embed).
-					index = i, gridCol = "1 / 7"
+					index = i
+					gridCol = "1 / 7"
 				}
 				// The next field.
 				if (index == i - 1) gridCol = "7 / 13"
@@ -526,7 +527,7 @@ addEventListener("DOMContentLoaded", () => {
 	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
 
 	// Renders the GUI editor with json data from 'jsonObject'.
-	buildGui = (object = jsonObject, opts) => {
+	const buildGui = (object = jsonObject, opts) => {
 		gui.innerHTML = ""
 		gui.appendChild(guiEmbedAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
@@ -561,7 +562,7 @@ addEventListener("DOMContentLoaded", () => {
 						if (!child2?.classList.contains("edit")) {
 							const row = guiEmbed.appendChild(child2.cloneNode(true))
 							const edit = child2.nextElementSibling?.cloneNode(true)
-							edit?.classList.contains("edit") && guiEmbed.appendChild(edit)
+							if (edit?.classList.contains("edit")) guiEmbed.appendChild(edit)
 
 							switch (child2.classList[1]) {
 								case "author":
@@ -617,7 +618,7 @@ addEventListener("DOMContentLoaded", () => {
 						}
 					}
 				}
-			} else if (child.classList?.[1] === "guiActionRowName") {
+			} else if (child.classList?.[1] == "guiActionRowName") {
 				for (const [i, component] of (object.components && object.components.length ? object.components : [{}]).entries()) {
 					if (!component) console.warn("component is undefined", i, object.components)
 					const guiActionRowName = gui.appendChild(child.cloneNode(true))
@@ -675,23 +676,23 @@ addEventListener("DOMContentLoaded", () => {
 			}
 
 			// Expand last embed in GUI
-			const embedList = gui.querySelectorAll(".guiEmbedName");
-			embedList[embedList.length - 1]?.classList.add("active");
+			const embedList = gui.querySelectorAll(".guiEmbedName")
+			embedList[embedList.length - 1]?.classList.add("active")
 
-			const componentList = gui.querySelectorAll(".guiActionRowName");
-			componentList[componentList.length - 1]?.classList.add("active");
+			const componentList = gui.querySelectorAll(".guiActionRowName")
+			componentList[componentList.length - 1]?.classList.add("active")
 		}
 
 		for (const e of document.querySelectorAll(".top>.gui .item"))
 			e.addEventListener("click", () => {
-				if (e?.classList.contains("active"))
-					getSelection().anchorNode !== e && e.classList.remove("active");
-				else if (e) {
+				if (e?.classList.contains("active")) {
+					if (getSelection().anchorNode != e) e.classList.remove("active")
+				} else if (e) {
 					const inlineField = e.closest(".inlineField")
 					const input = e.nextElementSibling?.querySelector('input[type="text"]')
 					const txt = e.nextElementSibling?.querySelector("textarea")
 
-					e.classList.add("active");
+					e.classList.add("active")
 					if (e.classList.contains("guiEmbedName")) return changeLastActiveGuiEmbed(guiEmbedIndex(e))
 					if (e.classList.contains("guiActionRowName")) return changeLastActiveGuiActionRow(guiActionRowIndex(e))
 
@@ -708,10 +709,9 @@ addEventListener("DOMContentLoaded", () => {
 							dateInput.value = date.toISOString().substring(0, 19)
 						)
 					} else if (input) {
-						!smallerScreen.matches && input.focus()
+						if (!smallerScreen.matches) input.focus()
 						input.selectionStart = input.selectionEnd = input.value.length
-					} else if (txt && !smallerScreen.matches)
-						txt.focus()
+					} else if (txt && !smallerScreen.matches) txt.focus()
 
 					if (e.classList.contains("fields")) {
 						if (reverseColumns && smallerScreen.matches) return e.parentNode.scrollTop = e.offsetTop
@@ -722,16 +722,15 @@ addEventListener("DOMContentLoaded", () => {
 			})
 
 		// Scroll into view when tabs are opened in the GUI.
-		const lastTabs = Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg"));
-		const requiresView = matchMedia(`${smallerScreen.media}, (max-height: 845px)`);
+		const lastTabs = Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg"))
+		const requiresView = matchMedia(`${smallerScreen.media}, (max-height: 845px)`)
 		const addGuiEventListeners = () => {
 			for (const e of document.querySelectorAll(".gui .item:not(.fields)"))
 				e.onclick = () => {
 					if (lastTabs.includes(e) || requiresView.matches) {
 						if (!reverseColumns || !smallerScreen.matches)
-							e.scrollIntoView({ behavior: "smooth", block: "center" });
+							e.scrollIntoView({ behavior: "smooth", block: "center" })
 						else if (e.nextElementSibling.classList.contains("edit") && e.classList.contains("active"))
-							// e.nextElementSibling.scrollIntoView({ behavior: 'smooth', block: "end" })
 							e.parentNode.scrollTop = e.offsetTop
 					}
 				}
@@ -740,7 +739,7 @@ addEventListener("DOMContentLoaded", () => {
 				e.onclick = () => {
 					const guiEmbed = e.closest(".guiEmbed")
 					const indexOfGuiEmbed = Array.from(gui.querySelectorAll(".guiEmbed")).indexOf(guiEmbed)
-					if (indexOfGuiEmbed === -1) return error("Could not find the embed to add the field to.")
+					if (indexOfGuiEmbed == -1) return error("Could not find the embed to add the field to.")
 
 					const fieldsObj = (jsonObject.embeds[indexOfGuiEmbed] ??= {}).fields ??= []
 					if (fieldsObj.length >= 25) return error("Cannot have more than 25 fields!")
@@ -763,56 +762,56 @@ addEventListener("DOMContentLoaded", () => {
 			for (const e of document.querySelectorAll(".addComponent"))
 				e.onclick = () => {
 					const guiActionRow = e.closest(".guiActionRow");
-					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow);
-					if (indexOfGuiActionRow === -1) return error("Could not find the row to add the field to.");
+					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
+					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
-					const componentsObj = (jsonObject.embeds[indexOfGuiActionRow] ??= {}).fields ??= [];
-					if (componentsObj.length >= 5) return error("Cannot have more than 5 components!");
-					componentsObj.push({ label: "Button label", type: 1, style: 1, disabled: false});
+					const componentsObj = (jsonObject.embeds[indexOfGuiActionRow] ??= {}).fields ??= []
+					if (componentsObj.length >= 5) return error("Cannot have more than 5 components!")
+					componentsObj.push({ label: "Button label", type: 1, style: 1, disabled: false})
 
-					const newComponent = guiActionRow?.querySelector(".guiComponent .edit")?.appendChild(fieldFragment.firstChild.cloneNode(true));
+					const newComponent = guiActionRow?.querySelector(".guiComponent .edit")?.appendChild(fieldFragment.firstChild.cloneNode(true))
 
-					buildEmbed();
-					addGuiEventListeners();
+					buildEmbed()
+					addGuiEventListeners()
 
-					newComponent.scrollIntoView({ behavior: "smooth", block: "center" });
+					newComponent.scrollIntoView({ behavior: "smooth", block: "center" })
 					if (!smallerScreen.matches) {
-						const firstFieldInput = newComponent.querySelector(".editComponentLabel");
+						const firstFieldInput = newComponent.querySelector(".editComponentLabel")
 
-						firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length);
-						firstFieldInput?.focus();
+						firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
+						firstFieldInput?.focus()
 					}
-				};
+				}
 
 			for (const e of document.querySelectorAll(".fields .field .removeBtn"))
 				e.onclick = () => {
-					const embedIndex = guiEmbedIndex(e);
-					const fieldIndex = Array.from(e.closest(".fields").children).indexOf(e.closest(".field"));
+					const embedIndex = guiEmbedIndex(e)
+					const fieldIndex = Array.from(e.closest(".fields").children).indexOf(e.closest(".field"))
 
-					if (jsonObject.embeds[embedIndex]?.fields[fieldIndex] === -1)
-						return error("Failed to find the index of the field to remove.");
+					if (jsonObject.embeds[embedIndex]?.fields[fieldIndex] == -1)
+						return error("Failed to find the index of the field to remove.")
 
-					jsonObject.embeds[embedIndex].fields.splice(fieldIndex, 1);
+					jsonObject.embeds[embedIndex].fields.splice(fieldIndex, 1)
 
-					buildEmbed();
-					e.closest(".field").remove();
-				};
+					buildEmbed()
+					e.closest(".field").remove()
+				}
 
 			for (const e of gui.querySelectorAll("textarea, input"))
 				e.oninput = el => {
-					const value = el.target.value;
-					const index = guiEmbedIndex(el.target);
-					const field = el.target.closest(".field");
-					const fields = field?.closest(".fields");
-					const embedObj = jsonObject.embeds[index] ??= {};
+					const value = el.target.value
+					const index = guiEmbedIndex(el.target)
+					const field = el.target.closest(".field")
+					const fields = field?.closest(".fields")
+					const embedObj = jsonObject.embeds[index] ??= {}
 
-					const rowindex = guiActionRowIndex(el.target);
-					const componentindex = guiComponentIndex(el.target);
-					const actionRowObj = rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {};
+					const rowindex = guiActionRowIndex(el.target)
+					const componentindex = guiComponentIndex(el.target)
+					const actionRowObj = rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {}
 					let componentObj
 					if (actionRowObj.components) actionRowObj.components.forEach((component, i) => {
-						if (i == componentindex) componentObj = component;
-					});
+						if (i == componentindex) componentObj = component
+					})
 
 					if (field) {
 						const fieldIndex = Array.from(fields.children).indexOf(field);
@@ -855,7 +854,8 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "embedDescription", index: guiEmbedIndex(el.target) })
 								break
 							case "editThumbnailLink":
-								embedObj.thumbnail ??= {}, embedObj.thumbnail.url = value
+								embedObj.thumbnail ??= {}
+								embedObj.thumbnail.url = value
 								imgSrc(el.target.closest(".editIcon").querySelector(".imgParent"), value)
 								buildEmbed({ only: "embedThumbnail", index: guiEmbedIndex(el.target) })
 								break
@@ -1585,9 +1585,9 @@ function cleanEmbed(obj, recursing = false) {
 
 			else if (obj[key].constructor === Array) // Value is an array. eg. 'fields'
 				// Remove items that are not in the props of the current key.
-				for (const item of obj[key])
-					for (const i in item)
-						if (!embedObjectsProps[key].items.includes(i)) delete item[i]
+				for (const field of obj[key])
+					for (const i in field)
+						if (!embedObjectsProps[key].items.includes(i)) delete field[i]
 
 	// Remove empty properties from embed object.
 	for (const [key, val] of Object.entries(obj))
