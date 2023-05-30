@@ -18,7 +18,7 @@ options = {
 
 // Default JSON object
 json = {
-	content: "Hello ~~world~~ Discord user :D\n\n# New markdown works too!\n\n## So, what are you waiting for?\n\n### Go ahead and edit this message!\n\nThen:\n- https://tomatenkuchen.eu/invite\n* Use the `embed` command to send the message",
+	content: "Hello ~~world~~ Discord user :D\n\n# New markdown works too!\n\n## So, what are you waiting for?\n\n### Go ahead and edit this message!\n\nNext steps:\n1. https://tomatenkuchen.eu/invite\n2. Use the `embed` command to send the message",
 	embeds: [
 		{
 			title: "A title",

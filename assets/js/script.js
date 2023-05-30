@@ -5,8 +5,8 @@
  * https://github.com/DEVTomatoCake/embedbuilder
  */
 
-window.options ??= {};
-window.inIframe ??= top !== self;
+window.options ??= {}
+window.inIframe ??= top !== self
 
 let params = new URLSearchParams(location.search),
 	hasParam = param => params.get(param) !== null,
@@ -206,7 +206,8 @@ let jsonObject = window.json ?? {}
 if (dataSpecified) jsonObject = decodeJson()
 if (allowPlaceholders) allowPlaceholders = params.get("placeholders") === "errors" ? 1 : 2
 
-if (!jsonObject.embeds?.length) jsonObject.embeds = jsonObject.embed ? [jsonObject.embed] : []
+if (!jsonObject.embeds?.length) jsonObject.embeds = []
+if (!jsonObject.components?.length) jsonObject.components = []
 
 delete jsonObject.embed
 
@@ -286,6 +287,32 @@ addEventListener("DOMContentLoaded", () => {
 		return false
 	}
 
+	const socket = sockette("wss://api.tomatenkuchen.eu/embedbuilder", {
+		onClose: event => console.log("Disconnected!", event),
+		onOpen: event => console.log("Connected!", event),
+		onMessage: event => {
+			let wsjson
+			try {
+				wsjson = JSON.parse(event.data)
+			} catch (e) {
+				console.warn(e, event)
+				return socket.send({
+					status: "error",
+					message: "Invalid json",
+					debug: event.data
+				})
+			}
+			console.log(wsjson)
+
+			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
+			else if (wsjson.action == "result_getcode") {
+				alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel.")
+			} else if (wsjson.action == "result_import") {
+				json = wsjson.data
+			}
+		}
+	})
+
 	const url = str => /^(https?:)?\/\//g.exec(str) ? str : "//" + str
 
 	const makeShort = (txt, length, mediaWidth) => {
@@ -333,7 +360,7 @@ addEventListener("DOMContentLoaded", () => {
 		if (replaceEmojis)
 			txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
-		let inList = false
+		let listType
 		txt = txt
 			/** Markdown */
 			.replace(/&#60;:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp"/>')
@@ -349,19 +376,29 @@ addEventListener("DOMContentLoaded", () => {
 			.replace(/# ([\S 	]+)/g, '<span class="h1">$1</span>')
 			// Replace non-markdown links
 			.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
-			.replace(/^(-|\*|\d) ?([\S 	]+)/gm, (match, p1, p2) => {
+
+		txt = txt
+			.replace(/^(-|\*|\d\.) ?([\S 	]+)/gm, (match, p1, p2) => {
 				let prefix = ""
-				if (!inList) {
-					inList = true
-					if (p1 == "-" || p1 == "*") prefix += "<ul>"
-					else prefix += "<ol>"
+				if (!listType) {
+					if (p1 == "-" || p1 == "*") {
+						listType = "ul"
+						prefix += "<ul>"
+					} else {
+						listType = "ol"
+						prefix += "<ol>"
+					}
 				}
 
 				let suffix = ""
 				const splitted = txt.split("\n")
-				if (splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].startsWith("-") && !splitted[splitted.indexOf(match) + 1].startsWith("*")) {
-					suffix += "</ul>"
-					inList = false
+				if (
+					(listType == "ul" && splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].startsWith("-") && !splitted[splitted.indexOf(match) + 1].startsWith("*")) ||
+					(listType == "ol" && splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].split(" ")[0].match(/^\d+\./)) ||
+					!splitted[splitted.indexOf(match) + 1]
+				) {
+					suffix += "</" + listType + ">"
+					listType = void 0
 				}
 
 				return prefix + "<li>" + p2 + "</li>" + suffix
@@ -1005,10 +1042,10 @@ addEventListener("DOMContentLoaded", () => {
 		} else if (opts?.activate)
 			for (const clss of Array.from(opts.activate).map(el => el.className).map(cls => "." + cls.split(" ").slice(0, 2).join(".")))
 				for (const e of document.querySelectorAll(clss))
-					e.classList.add("active");
+					e.classList.add("active")
 
 		else for (const clss of document.querySelectorAll(".item.author, .item.description"))
-			clss.classList.add("active");
+			clss.classList.add("active")
 	}
 
 	buildGui(jsonObject, { guiTabs })
@@ -1159,35 +1196,35 @@ addEventListener("DOMContentLoaded", () => {
 				else embedElement.classList.add("emptyEmbed")
 			}
 
-			actionRowCont.innerHTML = "";
+			actionRowCont.innerHTML = ""
 			if (jsonObject.components) for (const actionRow of jsonObject.components) {
 				if (!actionRow) console.warn(actionRow)
-				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true));
+				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true))
 
 				if (actionRow.components) for (const component of actionRow.components) {
-					const buttonElement = document.createElement("button");
-					if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select");
+					const buttonElement = document.createElement("button")
+					if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select")
 
-					if (component.style) buttonElement.classList.add("b-" + buttonStyles[component.style]);
-					if (component.disabled) buttonElement.classList.add("disabled");
+					if (component.style) buttonElement.classList.add("b-" + buttonStyles[component.style])
+					if (component.disabled) buttonElement.classList.add("disabled")
 					if (component.url && component.style == 5) {
-						const urlElement = document.createElement("a");
-						urlElement.href = url(component.url);
-						urlElement.target = "_blank";
-						urlElement.innerText = component.label;
-						buttonElement.appendChild(urlElement);
+						const urlElement = document.createElement("a")
+						urlElement.href = url(component.url)
+						urlElement.target = "_blank"
+						urlElement.innerText = component.label
+						buttonElement.appendChild(urlElement)
 					}
-					if (component.custom_id && component.style != 5) buttonElement.dataset.customId = component.custom_id;
+					if (component.custom_id && component.style != 5) buttonElement.dataset.customId = component.custom_id
 					if (component.label && !component.url) {
-						const label = document.createElement("span");
-						label.innerText = component.label;
-						buttonElement.appendChild(label);
+						const label = document.createElement("span")
+						label.innerText = component.label
+						buttonElement.appendChild(label)
 					}
 					if (component.emoji) {
-						const emojiElement = document.createElement("span");
-						if (component.emoji.id) emojiElement.src = url(component.emoji.id);
-						else emojiElement.innerText = component.emoji.name;
-						buttonElement.appendChild(emojiElement);
+						const emojiElement = document.createElement("span")
+						if (component.emoji.id) emojiElement.src = url(component.emoji.id)
+						else emojiElement.innerText = component.emoji.name
+						buttonElement.appendChild(emojiElement)
 					}
 
 					actionRowElement.appendChild(buttonElement)
@@ -1299,18 +1336,17 @@ addEventListener("DOMContentLoaded", () => {
 
 	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightBlock(block)
 
-	let pickInGuiMode = false;
+	let pickInGuiMode = false
 	document.querySelector(".opt.gui").addEventListener("click", () => {
-		if (lastGuiJson && lastGuiJson !== JSON.stringify(json, null, 4))
-			buildGui();
+		if (lastGuiJson && lastGuiJson !== JSON.stringify(json, null, 4)) buildGui()
 
 		lastGuiJson = false
-		activeFields = null;
+		activeFields = null
 
-		document.body.classList.add("gui");
+		document.body.classList.add("gui")
 		if (pickInGuiMode) {
-			pickInGuiMode = false;
-			togglePicker();
+			pickInGuiMode = false
+			togglePicker()
 		}
 	})
 
@@ -1386,11 +1422,7 @@ addEventListener("DOMContentLoaded", () => {
 			return
 		}
 
-		if (e.target.closest(".item.import")) {
-			const importres = await fetch("https://api.tomatenkuchen.eu/api/import")
-			const importjson = await importres.json()
-			alert("Send the code " + importjson.code + " while replying to the message you want to import. The bot must be able to see the channel.")
-		}
+		if (e.target.closest(".item.import")) socket.send(JSON.stringify({action: "import"}))
 
 		if (e.target.closest(".item.download"))
 			return createElement({ a: { download: "embed-" + new Date().toLocaleTimeString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click()
@@ -1411,11 +1443,11 @@ addEventListener("DOMContentLoaded", () => {
 			const win = input.closest(".item").classList[2]
 
 			if (input.checked) {
-				document.body.classList.remove(`no-${win}`)
-				localStorage.removeItem(`hide${win}`)
+				document.body.classList.remove("no-" + win)
+				localStorage.removeItem("hide" + win)
 			} else {
-				document.body.classList.add(`no-${win}`)
-				localStorage.setItem(`hide${win}`, true)
+				document.body.classList.add("no-" + win)
+				localStorage.setItem("hide" + win, true)
 			}
 		}
 
@@ -1434,7 +1466,7 @@ addEventListener("DOMContentLoaded", () => {
 		colors.classList.toggle("display")
 		document.querySelector(".side1").classList.toggle("low")
 		if (pickLater) pickInGuiMode = true
-	};
+	}
 
 	document.querySelector(".pickerToggle").addEventListener("click", () => togglePicker())
 	buildEmbed()
@@ -1471,13 +1503,13 @@ addEventListener("DOMContentLoaded", () => {
 		const mark = e.target.closest(".top-btn.copy").querySelector(".mark")
 		const jsonData = JSON.stringify(json, null, 4)
 		const next = () => {
-			mark?.classList.remove("hidden");
-			mark?.previousElementSibling?.classList.add("hidden");
+			mark?.classList.remove("hidden")
+			mark?.previousElementSibling?.classList.add("hidden")
 
 			setTimeout(() => {
-				mark?.classList.add("hidden");
-				mark?.previousElementSibling?.classList.remove("hidden");
-			}, 1500);
+				mark?.classList.add("hidden")
+				mark?.previousElementSibling?.classList.remove("hidden")
+			}, 1500)
 		}
 
 		if (!navigator.clipboard?.writeText(jsonData).then(next).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
@@ -1490,8 +1522,8 @@ addEventListener("DOMContentLoaded", () => {
 			document.body.removeChild(textarea)
 			next()
 		}
-	});
-});
+	})
+})
 
 // Don't assign to 'jsonObject', assign to 'json' instead.
 // 'jsonObject' is used to store the final json object and used internally.
@@ -1530,7 +1562,7 @@ Object.defineProperty(window, "json", {
 		buildEmbed()
 		buildGui()
 	}
-});
+})
 
 // Props used to validate embed properties.
 window.embedObjectsProps ??= {
