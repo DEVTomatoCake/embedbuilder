@@ -356,7 +356,7 @@ addEventListener("DOMContentLoaded", () => {
 		return true
 	}
 
-	const markup = (txt, { replaceEmojis, inlineBlock, inEmbed }) => {
+	const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) => {
 		if (replaceEmojis)
 			txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
@@ -371,11 +371,13 @@ addEventListener("DOMContentLoaded", () => {
 			.replace(/__(.+?)__/g, "<u>$1</u>")
 			.replace(/\*(.+?)\*/g, "<em>$1</em>")
 			.replace(/_(.+?)_/g, "<em>$1</em>")
+			// Replace non-markdown links
+			.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
+
+		if (replaceHeaders) txt = txt
 			.replace(/### ([\S 	]+)/g, '<span class="h3">$1</span>')
 			.replace(/## ([\S 	]+)/g, '<span class="h2">$1</span>')
 			.replace(/# ([\S 	]+)/g, '<span class="h1">$1</span>')
-			// Replace non-markdown links
-			.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
 
 		txt = txt
 			.replace(/^(-|\*|\d\.) ?([\S 	]+)/gm, (match, p1, p2) => {
@@ -1060,7 +1062,7 @@ addEventListener("DOMContentLoaded", () => {
 			// If there's no message content, hide the message content HTML element.
 			if (jsonObject.content) {
 				// Update embed content in render
-				embedContent.innerHTML = markup(encodeHTML(jsonObject.content), { replaceEmojis: true })
+				embedContent.innerHTML = markup(encodeHTML(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
 				document.body.classList.remove("emptyContent")
 			} else document.body.classList.add("emptyContent")
 
@@ -1092,7 +1094,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedDescription":
 					const embedDescription = embed?.querySelector(".embedDescription")
 					if (!embedDescription) return buildEmbed()
-					if (embedObj.description) display(embedDescription, markup(encodeHTML(embedObj.description), { inEmbed: true, replaceEmojis: true }))
+					if (embedObj.description) display(embedDescription, markup(encodeHTML(embedObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
 					else hide(embedDescription)
 
 					return externalParsing({ element: embedDescription })
@@ -1151,7 +1153,7 @@ addEventListener("DOMContentLoaded", () => {
 				if (currentObj.title) display(embedTitle, markup(`${currentObj.url ? '<a class="anchor" target="_blank" href="' + encodeHTML(url(currentObj.url)) + '">' + encodeHTML(currentObj.title) + "</a>" : encodeHTML(currentObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
 				else hide(embedTitle)
 
-				if (currentObj.description) display(embedDescription, markup(encodeHTML(currentObj.description), { inEmbed: true, replaceEmojis: true }))
+				if (currentObj.description) display(embedDescription, markup(encodeHTML(currentObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
 				else hide(embedDescription)
 
 				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = (typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color)
@@ -1591,16 +1593,18 @@ function cleanEmbed(obj, recursing = false) {
 
 	// Remove empty properties from embed object.
 	for (const [key, val] of Object.entries(obj))
-		if (val === void 0 || val.trim?.() === "")
+		if (val === void 0 || val.trim?.() == "")
 			// Remove the key if value is empty
 			delete obj[key]
-		else if (val.constructor === Object)
+		else if (val.constructor === Object) {
 			// Remove object (val) if it has no keys or recursively remove empty keys from objects.
-			(!Object.keys(val).length && delete obj[key]) || (obj[key] = cleanEmbed(val, true))
-		else if (val.constructor === Array)
+			if (!Object.keys(val).length) delete obj[key]
+			else obj[key] = cleanEmbed(val, true)
+		} else if (val.constructor === Array) {
 			// Remove array (val) if it has no keys or recursively remove empty keys from objects in array.
-			!val.length && delete obj[key] || (obj[key] = val.map(k => cleanEmbed(k, true)))
-		else
+			if (val.length) obj[key] = val.map(k => cleanEmbed(k, true))
+			else delete obj[key]
+		} else
 			// If object isn't a string, boolean, number, array or object, convert it to string.
 			if (!["string", "boolean", "number"].includes(typeof val))
 				obj[key] = val.toString()

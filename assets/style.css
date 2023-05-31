@@ -445,10 +445,6 @@ body.no-user .msgEmbed {
     line-height: 1.375rem;
 }
 
-.botTagVerified {
-    display: none;
-}
-
 .contents {
     position: static;
     margin-left: 0px;
@@ -458,10 +454,6 @@ body.no-user .msgEmbed {
 
 .contents.verified .botTag {
     padding-left: 0;
-}
-
-.contents.verified .botTagVerified {
-    display: block;
 }
 
 .avatar {
