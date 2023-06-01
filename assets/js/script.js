@@ -41,15 +41,15 @@ const guiComponentIndex = guiRo => {
 }
 
 const toggleStored = item => {
-	const found = localStorage.getItem(item);
-	if (!found) return localStorage.setItem(item, true);
+	const found = localStorage.getItem(item)
+	if (!found) return localStorage.setItem(item, true)
 
-	localStorage.removeItem(item);
-	return found;
-};
+	localStorage.removeItem(item)
+	return found
+}
 
 const createElement = object => {
-	let element;
+	let element
 	for (const tag in object) {
 		element = document.createElement(tag)
 
@@ -425,15 +425,15 @@ addEventListener("DOMContentLoaded", () => {
 			txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
 				if (w) return `<pre><code class="${w}">${x.trim()}</code></pre>`
 				else return `<pre><code class="hljs nohighlight">${x.trim()}</code></pre>`
-			});
+			})
 			// Inline code
 			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? `<code class="inline">${x}</code>` : y ? `<code class="inline">${y}</code>` : z ? `<code class="inline">${z}</code>` : m)
 		}
 
 		if (inEmbed)
-			txt = txt.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>");
+			txt = txt.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
 
-		return txt;
+		return txt
 	}
 
 	const display = (el, data, displayType) => {
@@ -448,7 +448,7 @@ addEventListener("DOMContentLoaded", () => {
 
 		for (const [i, f] of fields.entries()) {
 			if (f.name && f.value) {
-				const fieldElement = embedFields.insertBefore(document.createElement("div"), null);
+				const fieldElement = embedFields.insertBefore(document.createElement("div"), null)
 				// Figuring out if there are only two fields on a row to give them more space.
 				// e.fields = json.embeds.fields.
 
@@ -624,7 +624,6 @@ addEventListener("DOMContentLoaded", () => {
 				for (const [i, component] of (object.components && object.components.length ? object.components : [{}]).entries()) {
 					if (!component) console.warn("component is undefined", i, object.components)
 					const guiActionRowName = gui.appendChild(child.cloneNode(true))
-					console.log(guiActionRowName)
 
 					guiActionRowName.querySelector(".text").innerHTML = `Action Row ${i + 1}${component.custom_id ? `: <span>${component.custom_id}</span>` : ""}`
 					guiActionRowName.querySelector(".icon").addEventListener("click", () => {
@@ -645,7 +644,7 @@ addEventListener("DOMContentLoaded", () => {
 							switch (child2.classList[1]) {
 								case "button":
 									for (const f of component?.components || []) {
-										const actionRow = edit.querySelector(".component");
+										const actionRow = edit.querySelector(".component")
 										const componentElem = actionRow.appendChild(createElement({ div: { className: "button" } }))
 
 										for (const child3 of Array.from(fieldFragment.firstChild.children)) {
@@ -763,7 +762,7 @@ addEventListener("DOMContentLoaded", () => {
 
 			for (const e of document.querySelectorAll(".addComponent"))
 				e.onclick = () => {
-					const guiActionRow = e.closest(".guiActionRow");
+					const guiActionRow = e.closest(".guiActionRow")
 					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
 					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
@@ -816,15 +815,15 @@ addEventListener("DOMContentLoaded", () => {
 					})
 
 					if (field) {
-						const fieldIndex = Array.from(fields.children).indexOf(field);
-						const jsonField = embedObj.fields[fieldIndex];
-						const embedFields = document.querySelectorAll(".container>.embed")[index]?.querySelector(".embedFields");
+						const fieldIndex = Array.from(fields.children).indexOf(field)
+						const jsonField = embedObj.fields[fieldIndex]
+						const embedFields = document.querySelectorAll(".container>.embed")[index]?.querySelector(".embedFields")
 
 						if (jsonField) {
-							if (el.target.type === "text") jsonField.name = value;
-							else if (el.target.type === "textarea") jsonField.value = value;
-							else jsonField.inline = el.target.checked;
-							createEmbedFields(embedObj.fields, embedFields);
+							if (el.target.type === "text") jsonField.name = value
+							else if (el.target.type === "textarea") jsonField.value = value
+							else jsonField.inline = el.target.checked
+							createEmbedFields(embedObj.fields, embedFields)
 						}
 					} else {
 						switch (el.target.classList?.[0]) {
@@ -885,7 +884,7 @@ addEventListener("DOMContentLoaded", () => {
 								embedObj.timestamp = date.getTime()
 								el.target.parentElement.querySelector("svg>text").textContent = (date.getDate() + "").padStart(2, 0)
 								buildEmbed({ only: "embedFooterTimestamp", index: guiEmbedIndex(el.target) })
-								break;
+								break
 
 							case "editComponentLabel":
 								componentObj.label = value
@@ -977,7 +976,7 @@ addEventListener("DOMContentLoaded", () => {
 							})
 					}
 
-					fileInput.click();
+					fileInput.click()
 				}
 
 			for (const e of document.querySelectorAll(".guiEmbed"))
@@ -1124,15 +1123,15 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedFooterText":
 				case "embedFooterLink":
 				case "embedFooterTimestamp":
-					const embedFooter = embed?.querySelector(".embedFooter");
-					if (!embedFooter) return buildEmbed();
+					const embedFooter = embed?.querySelector(".embedFooter")
+					if (!embedFooter) return buildEmbed()
 					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter, `
 						${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encodeHTML(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
 						${encodeHTML(embedObj.footer.text)}
-						${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encodeHTML(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex");
-					else hide(embedFooter);
+						${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encodeHTML(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex")
+					else hide(embedFooter)
 
-					return externalParsing({ element: embedFooter });
+					return externalParsing({ element: embedFooter })
 			}
 
 			embedCont.innerHTML = ""
@@ -1200,23 +1199,29 @@ addEventListener("DOMContentLoaded", () => {
 
 			actionRowCont.innerHTML = ""
 			if (jsonObject.components) for (const actionRow of jsonObject.components) {
-				if (!actionRow) console.warn(actionRow)
 				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true))
 
 				if (actionRow.components) for (const component of actionRow.components) {
 					const buttonElement = document.createElement("button")
 					if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select")
 
-					if (component.style) buttonElement.classList.add("b-" + buttonStyles[component.style])
+					if (component.style) {
+						buttonElement.classList.add("b-" + buttonStyles[component.style])
+						buttonElement.dataset.style = component.style
+					}
 					if (component.disabled) buttonElement.classList.add("disabled")
+					if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
 					if (component.url && component.style == 5) {
 						const urlElement = document.createElement("a")
 						urlElement.href = url(component.url)
 						urlElement.target = "_blank"
-						urlElement.innerText = component.label
+						urlElement.innerHTML = component.label +
+							// From Discord's client source code
+							"<svg aria-hidden='true' role='img' width='16' height='16' viewBox='0 0 24 24'>" +
+							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
+							"<path fill='currentColor' d='M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z'></path></svg>"
 						buttonElement.appendChild(urlElement)
 					}
-					if (component.custom_id && component.style != 5) buttonElement.dataset.customId = component.custom_id
 					if (component.label && !component.url) {
 						const label = document.createElement("span")
 						label.innerText = component.label
@@ -1270,7 +1275,7 @@ addEventListener("DOMContentLoaded", () => {
 			document.body.classList.add("emptyEmbed")
 			embedContent.innerHTML = ""
 		}
-	});
+	})
 
 	const picker = new CP(document.querySelector(".picker"), state = { parent: document.querySelector(".cTop") })
 
@@ -1389,7 +1394,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	document.querySelector(".top-btn.menu")?.addEventListener("click", async e => {
 		if (e.target.closest(".item.dataLink")) {
-			let data = encodeJson(json, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x === "=" ? "" : "&");
+			let data = encodeJson(json, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x === "=" ? "" : "&")
 			if (data.length > 2000) {
 				const name = Math.random().toString(36).slice(5)
 				const shorterres = await fetch("https://shorter.cf", {
