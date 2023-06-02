@@ -72,10 +72,6 @@ body {
     color: #fff;
 }
 
-body.no-user .msgEmbed>.contents {
-    display: none;
-}
-
 .hidden,
 .embed.emptyEmbed {
     display: none;
@@ -433,8 +429,8 @@ img[alt] {
     padding: calc(0.125rem + 10px) 20px 20px 92px;
 }
 
-body.no-user .msgEmbed {
-    padding-left: 35px;
+ol {
+	list-style-position: inside;
 }
 
 .msgEmbed:hover {
@@ -450,10 +446,6 @@ body.no-user .msgEmbed {
     margin-left: 0px;
     padding-left: 0px;
     text-indent: 0px;
-}
-
-.contents.verified .botTag {
-    padding-left: 0;
 }
 
 .avatar {
@@ -485,7 +477,7 @@ body.no-user .msgEmbed {
 
 .botTag {
     height: 0.9375rem;
-    padding: 0px 0.275rem;
+    padding: 0 0.275rem 0 0;
     margin-top: 0.075em;
     border-radius: 0.1875rem;
     background: #5961ec;
@@ -2748,11 +2740,6 @@ body.toHook .done .channels .selectOptions .hook {
         padding: 0.125rem 10px 20px 65px;
     }
 
-    body.no-user .msgEmbed {
-        padding-left: 25px;
-        margin-top: 13px;
-    }
-
     .avatar {
         left: 10px;
     }
@@ -2898,9 +2885,14 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 .actionrow button.b-danger {
 	background-color: #DA373C;
 }
-.actionrow button.b-url a {
-	color: #FFF;
+
+.actionrow button.b-url {
+	display: flex;
 }
+.actionrow button.b-url svg {
+	margin-left: 5px;
+}
+
 .actionrow button:hover {
     opacity: 0.8;
 }

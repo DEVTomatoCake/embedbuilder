@@ -15,11 +15,10 @@ let params = new URLSearchParams(location.search),
 	avatar = "https://tomatenkuchen.eu/assets/images/background_192.webp",
 	guiTabs = params.get("guitabs") || options.guiTabs,
 	useJsonEditor = params.get("editor") === "json" || options.useJsonEditor,
-	verified = username != "TomatenKuchen",
 	reverseColumns = hasParam("reverse") || options.reverseColumns,
 	allowPlaceholders = hasParam("placeholders") || options.allowPlaceholders,
 	autoUpdateURL = localStorage.getItem("autoUpdateURL") || options.autoUpdateURL,
-	validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastActiveGuiActionRowIndex = -1, lastActiveGuiComponentIndex = -1, lastGuiJson, colNum = 1, num = 0;
+	validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastActiveGuiActionRowIndex = -1, lastActiveGuiComponentIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui
 
 const guiEmbedIndex = guiEl => {
 	const guiEmbed = guiEl?.closest(".guiEmbed")
@@ -224,7 +223,6 @@ addEventListener("DOMContentLoaded", () => {
 
 	if (username) document.querySelector(".username").textContent = username
 	if (avatar) document.querySelector(".avatar").src = avatar
-	if (verified) document.querySelector(".msgEmbed > .contents").classList.add("verified")
 
 	for (const e of document.querySelectorAll(".clickable > img"))
 		e.parentElement.addEventListener("mouseup", el => window.open(el.target.src))
@@ -375,9 +373,9 @@ addEventListener("DOMContentLoaded", () => {
 			.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
 
 		if (replaceHeaders) txt = txt
-			.replace(/### ([\S 	]+)/g, '<span class="h3">$1</span>')
-			.replace(/## ([\S 	]+)/g, '<span class="h2">$1</span>')
-			.replace(/# ([\S 	]+)/g, '<span class="h1">$1</span>')
+			.replace(/^### ([\S 	]+)/gm, '<span class="h3">$1</span>')
+			.replace(/^## ([\S 	]+)/gm, '<span class="h2">$1</span>')
+			.replace(/^# ([\S 	]+)/gm, '<span class="h1">$1</span>')
 
 		txt = txt
 			.replace(/^(-|\*|\d\.) ?([\S 	]+)/gm, (match, p1, p2) => {
@@ -407,14 +405,14 @@ addEventListener("DOMContentLoaded", () => {
 			})
 			// Replace >>> and > with block-quotes. &#62; is HTML code for >
 			.replace(/^(?: *&#62;&#62;&#62; ([\s\S]*))|(?:^ *&#62;(?!&#62;&#62;) +.+\n)+(?:^ *&#62;(?!&#62;&#62;) .+\n?)+|^(?: *&#62;(?!&#62;&#62;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) => {
-				return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&#62; /gm, "")}</blockquote></div>`;
+				return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&#62; /gm, "")}</blockquote></div>`
 			})
 
 			/** Mentions */
-			.replace(/&#60;#\d+&#62;/g, () => "<span class=\"mention channel interactive\">channel</span>")
+			.replace(/&#60;#\d+&#62;/g, () => "<span class='mention channel interactive'>channel</span>")
 			.replace(/&#60;@(?:&#38;|!)?\d+&#62;|@(?:everyone|here)/g, match => {
-				if (match.startsWith("@")) return `<span class="mention">${match}</span>`
-				else return `<span class="mention interactive">@${match.includes("&#38;") ? "role" : "user"}</span>`
+				if (match.startsWith("@")) return "<span class='mention'>" + match + "</span>"
+				else return "<span class='mention interactive'>@" + match.includes("&#38;") ? "role" : "user" + "</span>"
 			})
 
 		if (inlineBlock)
@@ -427,7 +425,7 @@ addEventListener("DOMContentLoaded", () => {
 				else return `<pre><code class="hljs nohighlight">${x.trim()}</code></pre>`
 			})
 			// Inline code
-			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? `<code class="inline">${x}</code>` : y ? `<code class="inline">${y}</code>` : z ? `<code class="inline">${z}</code>` : m)
+			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? "<code class='inline'>" + x + "</code>" : y ? `<code class="inline">${y}</code>` : z ? `<code class="inline">${z}</code>` : m)
 		}
 
 		if (inEmbed)
@@ -529,7 +527,7 @@ addEventListener("DOMContentLoaded", () => {
 	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
 
 	// Renders the GUI editor with json data from 'jsonObject'.
-	const buildGui = (object = jsonObject, opts) => {
+	buildGui = (object = jsonObject, opts) => {
 		gui.innerHTML = ""
 		gui.appendChild(guiEmbedAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
@@ -766,9 +764,9 @@ addEventListener("DOMContentLoaded", () => {
 					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
 					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
-					const componentsObj = (jsonObject.embeds[indexOfGuiActionRow] ??= {}).fields ??= []
+					const componentsObj = (jsonObject.components[indexOfGuiActionRow] ??= {}).components ??= []
 					if (componentsObj.length >= 5) return error("Cannot have more than 5 components!")
-					componentsObj.push({ label: "Button label", type: 1, style: 1, disabled: false})
+					componentsObj.push({label: "Button label", custom_id: "", type: 1, style: 1, disabled: false})
 
 					const newComponent = guiActionRow?.querySelector(".guiComponent .edit")?.appendChild(fieldFragment.firstChild.cloneNode(true))
 
@@ -1160,7 +1158,7 @@ addEventListener("DOMContentLoaded", () => {
 
 				if (currentObj.author?.name) display(embedAuthor, `
 					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encodeHTML(url(currentObj.author.icon_url)) + '">' : ""}
-					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(currentObj.author.url)) + '" target="_blank">' + encodeHTML(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(currentObj.author.name) + "</span>"}`, "flex");
+					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(currentObj.author.url)) + '" target="_blank">' + encodeHTML(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(currentObj.author.name) + "</span>"}`, "flex")
 				else hide(embedAuthor)
 
 				const pre = embedGrid.querySelector(".markup pre")
@@ -1202,39 +1200,49 @@ addEventListener("DOMContentLoaded", () => {
 				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true))
 
 				if (actionRow.components) for (const component of actionRow.components) {
-					const buttonElement = document.createElement("button")
-					if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select")
-
-					if (component.style) {
+					if (component.style == 5 && component.url) {
+						const buttonElement = document.createElement("button")
 						buttonElement.classList.add("b-" + buttonStyles[component.style])
 						buttonElement.dataset.style = component.style
-					}
-					if (component.disabled) buttonElement.classList.add("disabled")
-					if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
-					if (component.url && component.style == 5) {
-						const urlElement = document.createElement("a")
-						urlElement.href = url(component.url)
-						urlElement.target = "_blank"
-						urlElement.innerHTML = component.label +
+						if (component.disabled) buttonElement.classList.add("disabled")
+						else buttonElement.onclick = () => window.open(url(component.url), "_blank", "noopener")
+
+						buttonElement.innerHTML = component.label +
 							// From Discord's client source code
 							"<svg aria-hidden='true' role='img' width='16' height='16' viewBox='0 0 24 24'>" +
 							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
 							"<path fill='currentColor' d='M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z'></path></svg>"
-						buttonElement.appendChild(urlElement)
-					}
-					if (component.label && !component.url) {
-						const label = document.createElement("span")
-						label.innerText = component.label
-						buttonElement.appendChild(label)
-					}
-					if (component.emoji) {
-						const emojiElement = document.createElement("span")
-						if (component.emoji.id) emojiElement.src = url(component.emoji.id)
-						else emojiElement.innerText = component.emoji.name
-						buttonElement.appendChild(emojiElement)
-					}
 
-					actionRowElement.appendChild(buttonElement)
+						actionRowElement.appendChild(buttonElement)
+					} else {
+						const buttonElement = document.createElement("button")
+						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select")
+
+						if (component.style) {
+							buttonElement.classList.add("b-" + buttonStyles[component.style])
+							buttonElement.dataset.style = component.style
+						}
+						if (component.disabled) buttonElement.classList.add("disabled")
+						if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
+						if (component.label && !component.url) {
+							const label = document.createElement("span")
+							label.innerText = component.label
+							buttonElement.appendChild(label)
+						}
+						if (component.emoji) {
+							let emojiElement
+							if (component.emoji.id && /^[0-9]{17,21}$/.test(component.emoji.id)) {
+								emojiElement = document.createElement("img")
+								emojiElement.src = "https://cdn.discordapp.com/emojis/" + component.emoji.id + ".webp?size=16"
+							} else if (component.emoji.name) {
+								emojiElement = document.createElement("span")
+								emojiElement.innerText = component.emoji.name
+							}
+							if (emojiElement) buttonElement.appendChild(emojiElement)
+						}
+
+						actionRowElement.appendChild(buttonElement)
+					}
 				}
 			}
 
@@ -1389,7 +1397,7 @@ addEventListener("DOMContentLoaded", () => {
 
 		for (const e of document.querySelectorAll(".gui .item")) e.classList.add("active")
 
-		if (!smallerScreen.matches) content.focus()
+		if (!smallerScreen.matches) document.getElementsByClassName("editContent")[0].focus()
 	})
 
 	document.querySelector(".top-btn.menu")?.addEventListener("click", async e => {
