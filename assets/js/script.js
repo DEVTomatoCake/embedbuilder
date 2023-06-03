@@ -266,7 +266,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	const notif = document.querySelector(".notification")
 
-	error = (msg, time = "5s") => {
+	const error = (msg, time = "5s") => {
 		notif.innerHTML = msg
 		notif.style.removeProperty("--startY")
 		notif.style.removeProperty("--startOpacity")
@@ -305,9 +305,8 @@ addEventListener("DOMContentLoaded", () => {
 			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
 			else if (wsjson.action == "result_getcode") {
 				alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel.")
-			} else if (wsjson.action == "result_import") {
-				json = wsjson.data
-			}
+			} else if (wsjson.action == "result_import") json = wsjson.data
+			else if (wsjson.action == "result_sent") error("The message was sent successfully!")
 		}
 	})
 
@@ -373,21 +372,17 @@ addEventListener("DOMContentLoaded", () => {
 			.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
 
 		if (replaceHeaders) txt = txt
-			.replace(/^### ([\S 	]+)/gm, '<span class="h3">$1</span>')
-			.replace(/^## ([\S 	]+)/gm, '<span class="h2">$1</span>')
-			.replace(/^# ([\S 	]+)/gm, '<span class="h1">$1</span>')
+			.replace(/^### ([\S 	]+)/gm, "<span class='h3'>$1</span>")
+			.replace(/^## ([\S 	]+)/gm, "<span class='h2'>$1</span>")
+			.replace(/^# ([\S 	]+)/gm, "<span class='h1'>$1</span>")
 
 		txt = txt
 			.replace(/^(-|\*|\d\.) ?([\S 	]+)/gm, (match, p1, p2) => {
 				let prefix = ""
 				if (!listType) {
-					if (p1 == "-" || p1 == "*") {
-						listType = "ul"
-						prefix += "<ul>"
-					} else {
-						listType = "ol"
-						prefix += "<ol>"
-					}
+					if (p1 == "-" || p1 == "*") listType = "ul"
+					else listType = "ol"
+					prefix += "<" + listType + ">"
 				}
 
 				let suffix = ""
@@ -412,12 +407,12 @@ addEventListener("DOMContentLoaded", () => {
 			.replace(/&#60;#\d+&#62;/g, () => "<span class='mention channel interactive'>channel</span>")
 			.replace(/&#60;@(?:&#38;|!)?\d+&#62;|@(?:everyone|here)/g, match => {
 				if (match.startsWith("@")) return "<span class='mention'>" + match + "</span>"
-				else return "<span class='mention interactive'>@" + match.includes("&#38;") ? "role" : "user" + "</span>"
+				else return "<span class='mention interactive'>@" + (match.includes("&#38;") ? "role" : "user") + "</span>"
 			})
 
 		if (inlineBlock)
 			// Treat both inline code and code blocks as inline code
-			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``|```((?:\n|.)+?)```/g, (m, x, y, z) => x ? `<code class="inline">${x}</code>` : y ? `<code class="inline">${y}</code>` : z ? `<code class="inline">${z}</code>` : m);
+			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``|```((?:\n|.)+?)```/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
 		else {
 			// Code block
 			txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
@@ -425,7 +420,7 @@ addEventListener("DOMContentLoaded", () => {
 				else return `<pre><code class="hljs nohighlight">${x.trim()}</code></pre>`
 			})
 			// Inline code
-			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? "<code class='inline'>" + x + "</code>" : y ? `<code class="inline">${y}</code>` : z ? `<code class="inline">${z}</code>` : m)
+			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
 		}
 
 		if (inEmbed)
@@ -441,8 +436,8 @@ addEventListener("DOMContentLoaded", () => {
 
 	const encodeHTML = str => str.replace(/[\u00A0-\u9999<>&]/g, i => "&#" + i.charCodeAt(0) + ";")
 	const createEmbedFields = (fields, embedFields) => {
-		embedFields.innerHTML = "";
-		let index, gridCol;
+		embedFields.innerHTML = ""
+		let index, gridCol
 
 		for (const [i, f] of fields.entries()) {
 			if (f.name && f.value) {
@@ -508,18 +503,19 @@ addEventListener("DOMContentLoaded", () => {
 		return today.toDateString() === date.toDateString() ? "Today at " + dateArray :
 			yesterday.toDateString() === date.toDateString() ? "Yesterday at " + dateArray :
 				tomorrow.toDateString() === date.toDateString() ? "Tomorrow at " + dateArray :
-					new Date().toLocaleDateString() + " " + dateArray;
+					new Date().toLocaleDateString() + " " + dateArray
 	}
 
 	const hide = el => el.style.removeProperty("display")
 	const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
 
-	const [guiFragment, fieldFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 6 }, () => document.createDocumentFragment())
+	const [guiFragment, fieldFragment, componentFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 7 }, () => document.createDocumentFragment())
+	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
+	componentFragment.appendChild(document.querySelector(".guiActionRow>.guiComponent>.edit").cloneNode(true))
 	embedFragment.appendChild(document.querySelector(".embed.markup").cloneNode(true))
 	actionRowFragment.appendChild(document.querySelector(".actionrow.markup").cloneNode(true))
 	guiEmbedAddFragment.appendChild(document.querySelector(".guiEmbedAdd").cloneNode(true))
 	guiActionRowAddFragment.appendChild(document.querySelector(".guiActionRowAdd").cloneNode(true))
-	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
 
 	document.querySelector(".embed.markup").remove()
 	gui.querySelector(".edit>.fields>.field").remove()
@@ -768,7 +764,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (componentsObj.length >= 5) return error("Cannot have more than 5 components!")
 					componentsObj.push({label: "Button label", custom_id: "", type: 1, style: 1, disabled: false})
 
-					const newComponent = guiActionRow?.querySelector(".guiComponent .edit")?.appendChild(fieldFragment.firstChild.cloneNode(true))
+					const newComponent = guiActionRow.appendChild(componentFragment.firstChild.cloneNode(true))
 
 					buildEmbed()
 					addGuiEventListeners()
@@ -794,6 +790,20 @@ addEventListener("DOMContentLoaded", () => {
 
 					buildEmbed()
 					e.closest(".field").remove()
+				}
+
+			for (const e of document.querySelectorAll(".guiActionRow .guiComponent .removeBtn"))
+				e.onclick = () => {
+					const rowIndex = guiActionRowIndex(e)
+					const componentIndex = Array.from(e.closest(".guiActionRow").children).indexOf(e.closest(".guiComponent"))
+
+					if (jsonObject.components[rowIndex]?.components[componentIndex] == -1)
+						return error("Failed to find the index of the field to remove.")
+
+					jsonObject.components[rowIndex].components.splice(componentIndex, 1)
+
+					buildEmbed()
+					e.closest(".guiComponent").remove()
 				}
 
 			for (const e of gui.querySelectorAll("textarea, input"))
@@ -1340,10 +1350,11 @@ addEventListener("DOMContentLoaded", () => {
 			const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex]
 			const embedObj = jsonObject.embeds[embedIndex]
 
-			picker.source.style.background = this.color(r, g, b)
-			embedObj.color = parseInt(this.color(r, g, b).slice(1), 16)
-			embed.style.borderColor = this.color(r, g, b)
-			hexInput.value = embedObj.color.toString(16).padStart(6, "0")
+			const hex = r.toString(16) + g.toString(16) + b.toString(16)
+			embedObj.color = parseInt(hex, 16)
+			picker.source.style.background = "#" + hex.padStart(6, "0")
+			embed.style.borderColor = "#" + hex.padStart(6, "0")
+			hexInput.value = "#" + hex.padStart(6, "0")
 		})
 	}, 1000)
 
@@ -1438,6 +1449,22 @@ addEventListener("DOMContentLoaded", () => {
 		}
 
 		if (e.target.closest(".item.import")) socket.send(JSON.stringify({action: "import"}))
+		if (e.target.closest(".item.sendwebhook")) {
+			const webhook = prompt("Enter webhook URL to send the message to.")
+
+			const webhookres = await fetch(webhook, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(json)
+			})
+			if (!webhookres.ok) {
+				const webhookjson = await webhookres.json()
+				console.error(webhookjson)
+				return error("Request failed with error: " + webhookres.statusText)
+			}
+		}
 
 		if (e.target.closest(".item.download"))
 			return createElement({ a: { download: "embed-" + new Date().toLocaleTimeString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click()
@@ -1611,8 +1638,8 @@ function cleanEmbed(obj, recursing = false) {
 			delete obj[key]
 		else if (val.constructor === Object) {
 			// Remove object (val) if it has no keys or recursively remove empty keys from objects.
-			if (!Object.keys(val).length) delete obj[key]
-			else obj[key] = cleanEmbed(val, true)
+			if (Object.keys(val).length) obj[key] = cleanEmbed(val, true)
+			else delete obj[key]
 		} else if (val.constructor === Array) {
 			// Remove array (val) if it has no keys or recursively remove empty keys from objects in array.
 			if (val.length) obj[key] = val.map(k => cleanEmbed(k, true))
