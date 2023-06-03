@@ -303,10 +303,14 @@ addEventListener("DOMContentLoaded", () => {
 			console.log(wsjson)
 
 			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
-			else if (wsjson.action == "result_getcode") {
-				alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel.")
-			} else if (wsjson.action == "result_import") json = wsjson.data
-			else if (wsjson.action == "result_sent") error("The message was sent successfully!")
+			else if (wsjson.action == "result_importcode") alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel!")
+			else if (wsjson.action == "result_sendcode") alert("Send the code " + wsjson.code + " in the channel you want to send the message in!")
+			else if (wsjson.action == "result_import") json = {
+				content: wsjson.content,
+				embeds: wsjson.embeds,
+				components: wsjson.components
+			}
+			else if (wsjson.action == "result_send") error(wsjson.success ? "The message was sent successfully!" : "The message couldn't be sent: " + wsjson.error)
 		}
 	})
 
@@ -1449,6 +1453,7 @@ addEventListener("DOMContentLoaded", () => {
 		}
 
 		if (e.target.closest(".item.import")) socket.send(JSON.stringify({action: "import"}))
+		if (e.target.closest(".item.sendbot")) socket.send(JSON.stringify({action: "send", content: json.content, embeds: json.embeds, components: json.components}))
 		if (e.target.closest(".item.sendwebhook")) {
 			const webhook = prompt("Enter webhook URL to send the message to.")
 
