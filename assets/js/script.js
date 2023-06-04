@@ -1414,6 +1414,8 @@ addEventListener("DOMContentLoaded", () => {
 
 		if (!smallerScreen.matches) document.getElementsByClassName("editContent")[0].focus()
 	})
+	document.querySelector(".import").addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
+	document.querySelector(".sendbot").addEventListener("click", () => socket.send(JSON.stringify({action: "send", content: json.content, embeds: json.embeds, components: json.components})))
 
 	document.querySelector(".top-btn.menu")?.addEventListener("click", async e => {
 		if (e.target.closest(".item.dataLink")) {
@@ -1452,22 +1454,36 @@ addEventListener("DOMContentLoaded", () => {
 			return
 		}
 
-		if (e.target.closest(".item.import")) socket.send(JSON.stringify({action: "import"}))
-		if (e.target.closest(".item.sendbot")) socket.send(JSON.stringify({action: "send", content: json.content, embeds: json.embeds, components: json.components}))
 		if (e.target.closest(".item.sendwebhook")) {
 			const webhook = prompt("Enter webhook URL to send the message to.")
 
-			const webhookres = await fetch(webhook, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify(json)
-			})
-			if (!webhookres.ok) {
-				const webhookjson = await webhookres.json()
-				console.error(webhookjson)
-				return error("Request failed with error: " + webhookres.statusText)
+			if (webhook) {
+				const webhookres = await fetch(webhook, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(json)
+				})
+				if (!webhookres.ok) {
+					const webhookjson = await webhookres.json()
+					console.error(webhookjson)
+					return error("Request failed with error: " + webhookres.statusText)
+				}
+			}
+		}
+
+		if (e.target.closest(".item.copy")) {
+			const jsonData = JSON.stringify(json, null, 4)
+
+			if (!navigator.clipboard?.writeText(jsonData).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
+				const textarea = document.body.appendChild(document.createElement("textarea"))
+
+				textarea.value = jsonData
+				textarea.select()
+				textarea.setSelectionRange(0, 50000)
+				document.execCommand("copy")
+				document.body.removeChild(textarea)
 			}
 		}
 
@@ -1545,31 +1561,6 @@ addEventListener("DOMContentLoaded", () => {
 	const menuMore = document.querySelector(".item.section .inner.more")
 	if (menuMore.childElementCount < 2) menuMore?.classList.add("invisible")
 	if (menuMore.parentElement.childElementCount < 1) menuMore?.parentElement.classList.add("invisible")
-
-	document.querySelector(".top-btn.copy").addEventListener("click", e => {
-		const mark = e.target.closest(".top-btn.copy").querySelector(".mark")
-		const jsonData = JSON.stringify(json, null, 4)
-		const next = () => {
-			mark?.classList.remove("hidden")
-			mark?.previousElementSibling?.classList.add("hidden")
-
-			setTimeout(() => {
-				mark?.classList.add("hidden")
-				mark?.previousElementSibling?.classList.remove("hidden")
-			}, 1500)
-		}
-
-		if (!navigator.clipboard?.writeText(jsonData).then(next).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
-			const textarea = document.body.appendChild(document.createElement("textarea"))
-
-			textarea.value = jsonData
-			textarea.select()
-			textarea.setSelectionRange(0, 50000)
-			document.execCommand("copy")
-			document.body.removeChild(textarea)
-			next()
-		}
-	})
 })
 
 // Don't assign to 'jsonObject', assign to 'json' instead.

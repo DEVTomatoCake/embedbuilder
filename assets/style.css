@@ -875,7 +875,6 @@ u {
 }
 
 /* Spinner */
-
 .spinner-container {
     position: relative;
     width: 80px;
@@ -1053,7 +1052,6 @@ u {
     background-color: rgb(173 192 212 / 3%) !important;
     color: #b9c3d6 !important;
     border-bottom: 1px solid #c2d6ff !important;
-    /* border: 1px solid #bacdf347; */
 }
 
 .notification {
@@ -1078,7 +1076,6 @@ u {
     white-space: pre-wrap;
     color: white;
     color: inherit;
-    /* border: 1px dashed; */
     padding: .3em 0em;
     border-radius: 2px;
     margin: -.2em 5px;
@@ -1229,14 +1226,6 @@ body:not(.gui) .pickerToggle {
     border-radius: 4px;
 }
 
-/* body.gui .chooser>.gui {
-    background: #41444a;
-}
-
-body:not(.gui) .chooser>.json {
-    background: #41444a;
-} */
-
 .chooser>.back {
     position: absolute;
     height: 26px;
@@ -1262,7 +1251,6 @@ body:not(.gui) .chooser>.back {
 }
 
 .bottom {
-    /* margin: 40px auto auto auto!important; */
     max-width: 90%;
 }
 
@@ -1956,7 +1944,6 @@ body {
     animation: hexAn .4s ease-in-out;
     box-shadow: 0px -2px 10px 0px #0000001f;
     right: 0px;
-    /* right: 50px; */
     width: 50%;
 }
 
@@ -2052,24 +2039,24 @@ span.h3 {
     cursor: pointer;
 }
 
-.top-btn.copy {
+.top-btn.import {
     left: 190px;
 }
 
-.top-btn.copy>svg {
+.top-btn.import>svg {
     width: 15px;
     left: 1px;
     top: -.5px;
 }
 
-.top-btn.copy>svg.mark {
-    width: 18px;
-    left: -1px;
+.top-btn.sendbot {
+    left: 240px;
 }
 
-.top-btn.copy>svg * {
-    fill: var(#fff);
-    transition: all .3s ease;
+.top-btn.sendbot>svg {
+    width: 15px;
+    left: 1px;
+    top: -.5px;
 }
 
 .top-btn>svg {
@@ -2099,7 +2086,6 @@ span.h3 {
     display: none;
     padding: 13px;
     min-width: 160px;
-    /* height: 200px; */
     background: var(--bgc);
     margin: 15px 0 0 0;
     border-radius: 10px;
@@ -2279,7 +2265,6 @@ body:is(.no-preview, .no-editor) .main {
 }
 
 body.no-editor .side1 .chooser :is(.back, .opt) {
-    /* display: none; */
     opacity: .25;
     pointer-events: none;
 }
@@ -2292,23 +2277,9 @@ body.no-editor .side1 {
     position: absolute;
 }
 
-/* body.no-editor .side1 .chooser {
-    background: transparent;
-} */
-
-/* body.no-editor .side1 {
-	display: none !important;
-} */
-
 body.no-preview .side2 {
     display: none !important;
 }
-
-/* body.no-editor .bottom .colors {
-    left: 20px;
-    top: 90px;
-    bottom: 0;
-} */
 
 body.no-editor .bottom .colors {
     left: 20px;
@@ -2384,7 +2355,6 @@ body.toHook .done {
     cursor: pointer;
     width: 105px;
     max-width: 150px;
-    /* transition: max-width .50s ease-out; */
     overflow: hidden;
     color: #dcdddec7;
 }
@@ -2584,8 +2554,6 @@ body.toHook .done .channels .selectOptions .hook {
     }
 }
 
-/* Send button and components **/
-
 .invisible {
     display: none !important;
 }
@@ -2757,9 +2725,7 @@ body.toHook .done .channels .selectOptions .hook {
     background: none;
     height: auto;
     font-size: 13px;
-    /* margin: 18px auto 18px auto; */
     left: 19px;
-    /* padding: 18px 0; */
     margin: auto;
     padding: 10px 0 10px 0;
     z-index: 1;
@@ -2768,7 +2734,6 @@ body.toHook .done .channels .selectOptions .hook {
 .top>.gui .item.guiEmbedName::before, .top>.gui .item.guiActionRowName::before {
     content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' viewBox='0 0 24 24' height='30'%3E%3Cpath clip-rule='evenodd' fill='%23fff' d='M16.59 8.59004L12 13.17L7.41 8.59004L6 10L12 16L18 10L16.59 8.59004Z'%3E%3C/path%3E%3C/svg%3E");
     position: absolute;
-    /* transform: scale(.8) translate(-40px, -13px); */
     transform: scale(.7) translate(-40px, -13.5px) rotate(-90deg);
     opacity: .5;
     pointer-events: none;
