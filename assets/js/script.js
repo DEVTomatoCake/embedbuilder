@@ -6,13 +6,12 @@
  */
 
 window.options ??= {}
-window.inIframe ??= top !== self
 
 let params = new URLSearchParams(location.search),
 	hasParam = param => params.get(param) !== null,
 	dataSpecified = options.data || params.get("data"),
-	username = "TomatenKuchen",
-	avatar = "https://tomatenkuchen.eu/assets/images/background_192.webp",
+	username = params.has("mb") ? "Manage Bot" : "TomatenKuchen",
+	avatar = params.has("mb") ? "https://cdn.discordapp.com/avatars/856203974994952192/9d22da33fd916b30f4f5c9499b86d65b.webp?size=40" : "https://tomatenkuchen.eu/assets/images/background_192.webp",
 	guiTabs = params.get("guitabs") || options.guiTabs,
 	useJsonEditor = params.get("editor") === "json" || options.useJsonEditor,
 	reverseColumns = hasParam("reverse") || options.reverseColumns,
