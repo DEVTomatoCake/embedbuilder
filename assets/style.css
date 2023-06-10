@@ -2868,7 +2868,10 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 }
 
 .actionrow .select {
+    padding: 8px;
+    margin: 0 16px 0 0;
     background-color: #1E1F22;
+    color: #9A9BB4;
 	width: 400px;
 	text-align: start;
 }

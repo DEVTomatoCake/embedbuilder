@@ -1229,7 +1229,6 @@ addEventListener("DOMContentLoaded", () => {
 						actionRowElement.appendChild(buttonElement)
 					} else {
 						const buttonElement = document.createElement("button")
-						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) buttonElement.classList.add("select")
 
 						if (component.style) {
 							buttonElement.classList.add("b-" + buttonStyles[component.style])
@@ -1237,7 +1236,7 @@ addEventListener("DOMContentLoaded", () => {
 						}
 						if (component.disabled) buttonElement.classList.add("disabled")
 						if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
-						if (component.label && !component.url) {
+						if (component.label) {
 							const label = document.createElement("span")
 							label.innerText = component.label
 							buttonElement.appendChild(label)
@@ -1252,6 +1251,14 @@ addEventListener("DOMContentLoaded", () => {
 								emojiElement.innerText = component.emoji.name
 							}
 							if (emojiElement) buttonElement.appendChild(emojiElement)
+						}
+
+						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) {
+							buttonElement.classList.add("select")
+
+							const svgSelect = document.createElement("div")
+							svgSelect.innerHTML = "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M16.59 8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z'></path></svg>"
+							buttonElement.appendChild(svgSelect)
 						}
 
 						actionRowElement.appendChild(buttonElement)
