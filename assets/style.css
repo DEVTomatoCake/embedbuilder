@@ -42,11 +42,9 @@
     --link: #00b0f4;
     --embedTextColor: #dcddde;
     --embedTextColor2: #72767d;
-    --embedBackground: #2f3136;
-    --fullEmbedBackground: #36393f;
-    --side1Background: #2c2e33;
-    --side1Background: #2f3136;
-    --background-secondary: #2f3136;
+    --embedBackground: #2B2D31;
+    --fullEmbedBackground: #313338;
+    --side1Background: #2B2D31;
     --background-tertiary: #202225;
     --header-secondary: #b9bbbe;
     --interactive-muted: #4f545c;
@@ -57,8 +55,7 @@
     box-sizing: border-box;
 }
 
-html,
-body {
+html, body {
     height: 100%;
 }
 
@@ -170,7 +167,7 @@ body:not(.no-preview):not(.no-editor) .main {
     justify-content: center;
     vertical-align: center;
     overflow: auto;
-    scrollbar-color: #26272d #36393f;
+    scrollbar-color: #26272d #313338;
     scrollbar-width: thin;
     font-family: DsWhitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
     background-color: var(--fullEmbedBackground);
@@ -178,7 +175,7 @@ body:not(.no-preview):not(.no-editor) .main {
 
 ::-webkit-scrollbar {
     width: 7px;
-    background: #36393f;
+    background: #313338;
 }
 
 .main .side2::-webkit-scrollbar-thumb {
@@ -786,7 +783,7 @@ u {
     text-indent: 0;
     white-space: pre-wrap;
     scrollbar-width: thin;
-    scrollbar-color: var(--background-tertiary) var(--background-secondary);
+    scrollbar-color: var(--background-tertiary) var(--side1Background);
     background: #2f3136;
     border: 1px solid #202225;
 }
@@ -848,7 +845,7 @@ u {
     line-height: 1.125rem;
     text-indent: 0;
     white-space: pre-wrap;
-    background: var(--background-secondary);
+    background: var(--side1Background);
     border: 1px solid var(--background-tertiary);
 }
 
@@ -2404,7 +2401,6 @@ body.toHook .done {
 .done:not(.sent):hover .item {
     max-height: 500px;
     transition: max-height .50s ease-in;
-    scrollbar-color: #36393f #202225;
     scrollbar-color: #2c2d33 #202225;
 }
 
@@ -2868,10 +2864,12 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 }
 
 .actionrow .select {
+    display: flex;
+	justify-content: space-between;
+	align-items: center;
     padding: 8px;
     margin: 0 16px 0 0;
     background-color: #1E1F22;
     color: #9A9BB4;
 	width: 400px;
-	text-align: start;
 }

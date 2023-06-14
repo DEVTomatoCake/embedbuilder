@@ -336,15 +336,15 @@ addEventListener("DOMContentLoaded", () => {
 			if (!/\w+:|\/\/|^\//g.exec(re[2]) && re[2].includes(".")) {
 				let activeInput = document.querySelector('input[class$="link" i]:focus')
 				if (activeInput && !allowPlaceholders) {
-					lastPos = activeInput.selectionStart + 7
-					activeInput.value = `http://${re[2]}`
+					lastPos = activeInput.selectionStart + 8
+					activeInput.value = `https://${re[2]}`
 					activeInput.setSelectionRange(lastPos, lastPos)
 					return true
 				}
 			}
 			if (allowPlaceholders !== 2) {
 				invalid = true
-				err = (`URL should have a protocol. Did you mean <span class="inline full short">https://${makeShort(re[2], 30, 600)}</span>?`)
+				err = `URL should have a protocol. Did you mean <span class="inline full short">https://${makeShort(re[2], 30, 600)}</span>?`
 			}
 		}
 
@@ -407,7 +407,8 @@ addEventListener("DOMContentLoaded", () => {
 			})
 
 			/** Mentions */
-			.replace(/&#60;#\d+&#62;/g, () => "<span class='mention channel interactive'>channel</span>")
+			.replace(/&#60;\d{17,21}:(customize|home|browse)&#62;/g, "<span class='mention channel interactive'>$1</span>")
+			.replace(/&#60;#\d{17,21}&#62;/g, "<span class='mention channel interactive'>channel</span>")
 			.replace(/&#60;@(?:&#38;|!)?\d+&#62;|@(?:everyone|here)/g, match => {
 				if (match.startsWith("@")) return "<span class='mention'>" + match + "</span>"
 				else return "<span class='mention interactive'>@" + (match.includes("&#38;") ? "role" : "user") + "</span>"
@@ -419,8 +420,8 @@ addEventListener("DOMContentLoaded", () => {
 		else {
 			// Code block
 			txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
-				if (w) return `<pre><code class="${w}">${x.trim()}</code></pre>`
-				else return `<pre><code class="hljs nohighlight">${x.trim()}</code></pre>`
+				if (w) return "<pre><code class='" + w + "'>" + x.trim() + "</code></pre>"
+				else return "<pre><code class='hljs nohighlight'>" + x.trim() + "</code></pre>"
 			})
 			// Inline code
 			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
@@ -633,52 +634,50 @@ addEventListener("DOMContentLoaded", () => {
 					const guiActionRowTemplate = child.nextElementSibling
 
 					for (const child2 of Array.from(guiActionRowTemplate.children)) {
-						if (!child2?.classList.contains("edit")) {
+						if (child2 && child2.querySelector(".edit")) {
 							guiActionRow.appendChild(child2.cloneNode(true))
-							const edit = child2.nextElementSibling?.cloneNode(true)
+							const edit = child2.querySelector(".edit").cloneNode(true)
 							if (edit?.classList.contains("edit")) guiActionRow.appendChild(edit)
 
-							switch (child2.classList[1]) {
-								case "button":
-									for (const f of component?.components || []) {
-										const actionRow = edit.querySelector(".component")
-										const componentElem = actionRow.appendChild(createElement({ div: { className: "button" } }))
+							//case "button":
+								for (const f of component?.components || []) {
+									const editRow = edit.querySelector(".componentInner")
+									const componentElem = editRow.appendChild(createElement({ div: { className: "button" } }))
 
-										for (const child3 of Array.from(fieldFragment.firstChild.children)) {
-											const newChild = componentElem.appendChild(child3.cloneNode(true))
+									for (const child3 of Array.from(componentFragment.querySelector(".edit .componentInner").children)) {
+										const newChild = componentElem.appendChild(child3.cloneNode(true))
 
-											if (child3.classList.contains("disableCheck"))
-												newChild.querySelector("input").checked = Boolean(f.disabled)
+										if (child3.classList.contains("disableCheck"))
+											newChild.querySelector("input").checked = Boolean(f.disabled)
 
-											else if (f.value && child3.classList?.contains("fieldInner"))
-												newChild.querySelector(".editButtonLabel input").value = f?.label || ""
-												newChild.querySelector(".editButtonStyle select").value = f?.style || 1
-												newChild.querySelector(".editButtonURL input").value = f?.url || ""
-												newChild.querySelector(".editButtonEmoji input").value = f?.emoji?.id || ""
-												//newChild.querySelector(".editButtonEmojiName input").value = f?.emoji?.name || ""
-												newChild.querySelector(".editButtonCustomId input").value = f?.custom_id || ""
+										else if (f.value && child3.classList?.contains("fieldInner")) {
+											newChild.querySelector(".custom_id input").value = f?.custom_id || ""
+											newChild.querySelector(".label input").value = f?.label || ""
+											newChild.querySelector(".style select").value = f?.style || 1
+											newChild.querySelector(".url input").value = f?.url || ""
+											newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
 										}
 									}
-									break
-								case "selectMenu":
-									edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || ""
-									edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || ""
-									edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
-									edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
-									edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
-									break
-							}
+								}
+							/*	break
+							case "selectMenu":
+								edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || ""
+								edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || ""
+								edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
+								edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
+								edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
+								break*/
 						}
 					}
 				}
 			}
 
 			// Expand last embed in GUI
-			const embedList = gui.querySelectorAll(".guiEmbedName")
+			/*const embedList = gui.querySelectorAll(".guiEmbedName")
 			embedList[embedList.length - 1]?.classList.add("active")
 
 			const componentList = gui.querySelectorAll(".guiActionRowName")
-			componentList[componentList.length - 1]?.classList.add("active")
+			componentList[componentList.length - 1]?.classList.add("active")*/
 		}
 
 		for (const e of document.querySelectorAll(".top>.gui .item"))

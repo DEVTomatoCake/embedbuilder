@@ -31,27 +31,27 @@ json = {
 			components: [
 				{
 					type: 2,
-					label: "Button Stil 1",
+					label: "Primary Button",
 					style: 1,
 					custom_id: "button1"
 				},{
 					type: 2,
-					label: "Button Stil 2",
+					label: "Secondary Button",
 					style: 2,
 					custom_id: "button2"
 				},{
 					type: 2,
-					label: "Button Stil 3",
+					label: "Success Button",
 					style: 3,
 					custom_id: "button3"
 				},{
 					type: 2,
-					label: "Button Stil 4",
+					label: "Danger Button",
 					style: 4,
 					custom_id: "button4"
 				},{
 					type: 2,
-					label: "Button Stil 5",
+					label: "URL Button",
 					style: 5,
 					url: "https://tomatenkuchen.eu"
 				}
