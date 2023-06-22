@@ -664,13 +664,6 @@ addEventListener("DOMContentLoaded", () => {
 					}
 				}
 			}
-
-			// Expand last embed in GUI
-			/*const embedList = gui.querySelectorAll(".guiEmbedName")
-			embedList[embedList.length - 1]?.classList.add("active")
-
-			const componentList = gui.querySelectorAll(".guiActionRowName")
-			componentList[componentList.length - 1]?.classList.add("active")*/
 		}
 
 		for (const e of document.querySelectorAll(".top>.gui .item"))
