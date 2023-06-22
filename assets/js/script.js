@@ -620,7 +620,6 @@ addEventListener("DOMContentLoaded", () => {
 				}
 			} else if (child.classList?.[1] == "guiActionRowName") {
 				for (const [i, component] of (object.components && object.components.length ? object.components : [{}]).entries()) {
-					if (!component) console.warn("component is undefined", i, object.components)
 					const guiActionRowName = gui.appendChild(child.cloneNode(true))
 
 					guiActionRowName.querySelector(".text").innerHTML = `Action Row ${i + 1}${component.custom_id ? `: <span>${component.custom_id}</span>` : ""}`
@@ -634,39 +633,33 @@ addEventListener("DOMContentLoaded", () => {
 					const guiActionRowTemplate = child.nextElementSibling
 
 					for (const child2 of Array.from(guiActionRowTemplate.children)) {
-						if (child2 && child2.querySelector(".edit")) {
-							guiActionRow.appendChild(child2.cloneNode(true))
-							const edit = child2.querySelector(".edit").cloneNode(true)
-							if (edit?.classList.contains("edit")) guiActionRow.appendChild(edit)
+						if (child2 && child2.classList.contains("guiComponent")) {
+							for (const f of component?.components || []) {
+								const edit = child2.cloneNode(true)
+								guiActionRow.appendChild(edit)
 
-							//case "button":
-								for (const f of component?.components || []) {
-									const editRow = edit.querySelector(".componentInner")
-									const componentElem = editRow.appendChild(createElement({ div: { className: "button" } }))
+								const editRow = edit.querySelector(".componentInner")
+								const componentElem = editRow.appendChild(createElement({ div: { className: "button" } }))
 
-									for (const child3 of Array.from(componentFragment.querySelector(".edit .componentInner").children)) {
-										const newChild = componentElem.appendChild(child3.cloneNode(true))
+								for (const child3 of Array.from(componentFragment.querySelector(".edit .componentInnerTemplate").children)) {
+									const newChild = componentElem.appendChild(child3.cloneNode(true))
 
-										if (child3.classList.contains("disableCheck"))
-											newChild.querySelector("input").checked = Boolean(f.disabled)
-
-										else if (f.value && child3.classList?.contains("fieldInner")) {
-											newChild.querySelector(".custom_id input").value = f?.custom_id || ""
-											newChild.querySelector(".label input").value = f?.label || ""
-											newChild.querySelector(".style select").value = f?.style || 1
-											newChild.querySelector(".url input").value = f?.url || ""
-											newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
-										}
-									}
+									if (newChild.classList.contains("disableCheck")) newChild.querySelector("input").checked = Boolean(f.disabled)
+									else if (newChild.classList?.contains("custom_id")) newChild.querySelector(".custom_id input").value = f?.custom_id || ""
+									else if (newChild.classList?.contains("label")) newChild.querySelector(".label input").value = f?.label || ""
+									else if (newChild.classList?.contains("style")) newChild.querySelector(".style select").value = f?.style || 1
+									else if (newChild.classList?.contains("url")) newChild.querySelector(".url input").value = f?.url || ""
+									else if (newChild.classList?.contains("emoji")) newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
 								}
-							/*	break
-							case "selectMenu":
+							}
+
+							/*case "selectMenu":
 								edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || ""
 								edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || ""
 								edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
 								edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
 								edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
-								break*/
+							*/
 						}
 					}
 				}
@@ -686,7 +679,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (getSelection().anchorNode != e) e.classList.remove("active")
 				} else if (e) {
 					const inlineField = e.closest(".inlineField")
-					const input = e.nextElementSibling?.querySelector('input[type="text"]')
+					const input = e.nextElementSibling?.querySelector("input[type='text']")
 					const txt = e.nextElementSibling?.querySelector("textarea")
 
 					e.classList.add("active")
