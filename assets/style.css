@@ -479,12 +479,9 @@ ol {
     border-radius: 0.1875rem;
     background: #5961ec;
     font-size: 0.625rem;
-    text-transform: uppercase;
     vertical-align: top;
     display: inline-flex;
     align-items: center;
-    flex-shrink: 0;
-    text-indent: 0px;
     position: relative;
     top: 0.1rem;
     margin-left: 0.25rem;
@@ -497,9 +494,8 @@ ol {
     position: relative;
     font-size: 10px;
     line-height: 15px;
-    text-transform: uppercase;
     text-indent: 0px;
-    color: rgb(255, 255, 255);
+    color: #FFFFFF;
     font-weight: 500;
 }
 
