@@ -209,6 +209,14 @@ if (!jsonObject.components?.length) jsonObject.components = []
 
 delete jsonObject.embed
 
+const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
+
+const makeShort = (txt, length, mediaWidth) => {
+	if (mediaWidth && matchMedia(`(max-width:${mediaWidth}px)`).matches)
+		return txt.length > (length - 3) ? txt.substring(0, length - 3) + "..." : txt
+	return txt
+}
+
 addEventListener("DOMContentLoaded", () => {
 	if (reverseColumns || localStorage.getItem("reverseColumns")) reverse()
 
@@ -313,27 +321,19 @@ addEventListener("DOMContentLoaded", () => {
 		}
 	})
 
-	const url = str => /^(https?:)?\/\//g.exec(str) ? str : "//" + str
-
-	const makeShort = (txt, length, mediaWidth) => {
-		if (mediaWidth && matchMedia(`(max-width:${mediaWidth}px)`).matches)
-			return txt.length > (length - 3) ? txt.substring(0, length - 3) + "..." : txt
-		return txt
-	}
-
 	const allGood = embedObj => {
 		let invalid, err
 		let str = JSON.stringify(embedObj, null, 4)
 		let re = /("(?:icon_)?url": *")((?!\w+?:\/\/).+)"/g.exec(str)
 
 		if (embedObj.timestamp && new Date(embedObj.timestamp).toString() === "Invalid Date") {
-			if (allowPlaceholders === 2) return true
+			if (allowPlaceholders == 2) return true
 			if (!allowPlaceholders) {
 				invalid = true
 				err = "Timestamp is invalid"
 			}
 		} else if (re) { // If a URL is found without a protocol
-			if (!/\w+:|\/\/|^\//g.exec(re[2]) && re[2].includes(".")) {
+			if (!/\w+:|\/\/|^\//g.test(re[2]) && re[2].includes(".")) {
 				let activeInput = document.querySelector('input[class$="link" i]:focus')
 				if (activeInput && !allowPlaceholders) {
 					lastPos = activeInput.selectionStart + 8
@@ -392,7 +392,7 @@ addEventListener("DOMContentLoaded", () => {
 				const splitted = txt.split("\n")
 				if (
 					(listType == "ul" && splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].startsWith("-") && !splitted[splitted.indexOf(match) + 1].startsWith("*")) ||
-					(listType == "ol" && splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].split(" ")[0].match(/^\d+\./)) ||
+					(listType == "ol" && splitted[splitted.indexOf(match) + 1] && !/^\d+\./.test(splitted[splitted.indexOf(match) + 1].split(" ")[0])) ||
 					!splitted[splitted.indexOf(match) + 1]
 				) {
 					suffix += "</" + listType + ">"
@@ -996,7 +996,7 @@ addEventListener("DOMContentLoaded", () => {
 				changeLastActiveGuiEmbed(
 					jsonObject.embeds[lastActiveGuiEmbedIndex - 1] ?
 						lastActiveGuiEmbedIndex - 1 :
-						jsonObject.embeds.length ? 0 : -1
+						(jsonObject.embeds.length ? 0 : -1)
 				)
 		}
 
@@ -1278,12 +1278,12 @@ addEventListener("DOMContentLoaded", () => {
 			if (dataKeys.length && !allJsonKeys.some(key => dataKeys.includes(key))) {
 				const usedKeys = dataKeys.filter(key => !allJsonKeys.includes(key))
 				if (usedKeys.length > 2)
-					return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, usedKeys.length - 1).join("', '")}', and '${usedKeys[usedKeys.length - 1]}' are invalid keys.`)
-				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys[usedKeys.length - 1] + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`)
+					return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, usedKeys.length - 1).join("', '")}', and '${usedKeys.at(-1)}' are invalid keys.`)
+				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys.at(-1) + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`)
 			}
 
 			buildEmbed()
-		} catch (e) {
+		} catch {
 			if (editor.getValue()) return
 			document.body.classList.add("emptyEmbed")
 			embedContent.innerHTML = ""
@@ -1578,7 +1578,7 @@ Object.defineProperty(window, "json", {
 		// Filter out items which are not objects and not empty objects.
 		const embedObjects = val.embeds?.filter(j => j.constructor === Object && 0 in Object.keys(j))
 		// Convert 'embed' to 'embeds' and delete 'embed' or validate and use 'embeds' if provided.
-		const embeds = val.embed ? [val.embed] : embedObjects?.length ? embedObjects : []
+		const embeds = val.embed ? [val.embed] : (embedObjects?.length ? embedObjects : [])
 		// Convert objects used as values to string and trim whitespace.
 		const content = val.content?.toString().trim()
 
