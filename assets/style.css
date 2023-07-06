@@ -1437,8 +1437,7 @@ body:not(.gui) .chooser>.back {
     display: none;
 }
 
-.ttle,
-.ttle~input {
+.ttle, .ttle~input {
     font-size: 12px;
     font-weight: 900;
     text-transform: uppercase;
@@ -1454,8 +1453,7 @@ body:not(.gui) .chooser>.back {
     font-size: 12px;
 }
 
-input,
-textarea {
+input, textarea {
     background: transparent;
     border: none;
     color: inherit;
@@ -1527,10 +1525,7 @@ textarea {
     display: flex;
 }
 
-.editIcon,
-.editName,
-.editIcon input,
-.editName input {
+.editIcon, .editName, .editIcon input, .editName input {
     width: 100%;
     overflow: hidden;
 }
@@ -1564,8 +1559,8 @@ textarea {
     font-size: 13px;
     min-width: 100%;
     max-width: 100% !important;
-    height: 75px;
-    max-height: 230px;
+    height: 80px;
+    max-height: 450px;
 }
 
 .top>.gui .item.description+.edit,

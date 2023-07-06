@@ -650,16 +650,16 @@ addEventListener("DOMContentLoaded", () => {
 									else if (newChild.classList?.contains("style")) newChild.querySelector(".style select").value = f?.style || 1
 									else if (newChild.classList?.contains("url")) newChild.querySelector(".url input").value = f?.url || ""
 									else if (newChild.classList?.contains("emoji")) newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
+
+									/*
+									edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || ""
+									edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || ""
+									edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
+									edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
+									edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
+									*/
 								}
 							}
-
-							/*case "selectMenu":
-								edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || ""
-								edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || ""
-								edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
-								edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
-								edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
-							*/
 						}
 					}
 				}
