@@ -276,7 +276,10 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) =>
 
 	if (inlineBlock)
 		// Treat both inline code and code blocks as inline code
-		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``|```((?:\n|.)+?)```/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
+		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``|```((?:\n|.)+?)```/g, (m, x, y, z) => {
+			if (x || y || z) return "<code class='inline'>" + (x || y || z) + "</code>"
+			return m
+		})
 	else {
 		// Code block
 		txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
@@ -284,8 +287,8 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) =>
 			else return "<pre><code class='hljs nohighlight'>" + x.trim() + "</code></pre>"
 		})
 		// Inline code
-		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => {
-			if (x || y || z) return "<code class='inline'>" + (x || y || z) + "</code>"
+		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y) => {
+			if (x || y) return "<code class='inline'>" + (x || y) + "</code>"
 			return m
 		})
 	}
