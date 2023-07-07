@@ -1192,7 +1192,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (component.style == 5 && component.url) {
 						const buttonElement = document.createElement("button")
 						buttonElement.classList.add("b-" + buttonStyles[component.style])
-						buttonElement.dataset.style = encode(component.style)
+						buttonElement.dataset.style = component.style
 						if (component.disabled) buttonElement.classList.add("disabled")
 						else buttonElement.onclick = () => window.open(url(component.url), "_blank", "noopener")
 
@@ -1208,7 +1208,7 @@ addEventListener("DOMContentLoaded", () => {
 
 						if (component.style) {
 							buttonElement.classList.add("b-" + buttonStyles[component.style])
-							buttonElement.dataset.style = encode(component.style)
+							buttonElement.dataset.style = component.style
 						}
 						if (component.disabled) buttonElement.classList.add("disabled")
 						if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
