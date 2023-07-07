@@ -203,6 +203,19 @@ const makeShort = (txt, length, mediaWidth) => {
 	return txt
 }
 
+const timestamp = stringISO => {
+	const date = stringISO ? new Date(stringISO) : new Date()
+	const dateArray = date.toLocaleString(void 0, { hour: "numeric", hour12: false, minute: "numeric" })
+	const today = new Date()
+	const yesterday = new Date(new Date().setDate(today.getDate() - 1))
+	const tomorrow = new Date(new Date().setDate(today.getDate() + 1))
+
+	if (today.toDateString() == date.toDateString()) return "Today at " + dateArray
+	if (yesterday.toDateString() == date.toDateString()) return "Yesterday at " + dateArray
+	if (tomorrow.toDateString() == date.toDateString()) return "Tomorrow at " + dateArray
+	return new Date().toLocaleDateString() + " " + dateArray
+}
+
 const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) => {
 	if (replaceEmojis)
 		txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
@@ -271,7 +284,10 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) =>
 			else return "<pre><code class='hljs nohighlight'>" + x.trim() + "</code></pre>"
 		})
 		// Inline code
-		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
+		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => {
+			if (x || y || z) return "<code class='inline'>" + (x || y || z) + "</code>"
+			return m
+		})
 	}
 
 	if (inEmbed)
@@ -283,6 +299,19 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) =>
 const display = (el, data, displayType) => {
 	if (data) el.innerHTML = data
 	el.style.display = displayType || "unset"
+}
+
+const uploadError = (message, browse, sleepTime = 7000) => {
+	browse.classList.remove("loading")
+	browse.classList.add("error")
+
+	const p = browse.parentElement.querySelector(".browse.error>p")
+	p.dataset.error = encode(message)
+
+	setTimeout(() => {
+		browse.classList.remove("error")
+		delete p.dataset.error
+	}, sleepTime)
 }
 
 let embedKeys = ["author", "footer", "color", "thumbnail", "image", "fields", "title", "description", "url", "timestamp"]
@@ -353,13 +382,12 @@ addEventListener("DOMContentLoaded", () => {
 			}
 		}
 	})
-
 	editor.focus()
 
 	const notif = document.querySelector(".notification")
 
 	const error = (msg, time = "5s") => {
-		notif.innerHTML = msg
+		notif.innerText = msg
 		notif.style.removeProperty("--startY")
 		notif.style.removeProperty("--startOpacity")
 		notif.style.setProperty("--time", time)
@@ -380,20 +408,7 @@ addEventListener("DOMContentLoaded", () => {
 	const socket = sockette("wss://api.tomatenkuchen.eu/embedbuilder", {
 		onClose: event => console.log("Disconnected!", event),
 		onOpen: event => console.log("Connected!", event),
-		onMessage: event => {
-			let wsjson
-			try {
-				wsjson = JSON.parse(event.data)
-			} catch (e) {
-				console.warn(e, event)
-				return socket.send({
-					status: "error",
-					message: "Invalid json",
-					debug: event.data
-				})
-			}
-			console.log(wsjson)
-
+		onMessage: wsjson => {
 			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
 			else if (wsjson.action == "result_importcode") alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel!")
 			else if (wsjson.action == "result_sendcode") alert("Send the code " + wsjson.code + " in the channel you want to send the message in!")
@@ -498,19 +513,6 @@ addEventListener("DOMContentLoaded", () => {
 	}
 
 	const smallerScreen = matchMedia("(max-width: 1015px)")
-
-	const timestamp = stringISO => {
-		const date = stringISO ? new Date(stringISO) : new Date()
-		const dateArray = date.toLocaleString("en-US", { hour: "numeric", hour12: false, minute: "numeric" })
-		const today = new Date()
-		const yesterday = new Date(new Date().setDate(today.getDate() - 1))
-		const tomorrow = new Date(new Date().setDate(today.getDate() + 1))
-
-		return today.toDateString() === date.toDateString() ? "Today at " + dateArray :
-			yesterday.toDateString() === date.toDateString() ? "Yesterday at " + dateArray :
-				tomorrow.toDateString() === date.toDateString() ? "Tomorrow at " + dateArray :
-					new Date().toLocaleDateString() + " " + dateArray
-	}
 
 	const [guiFragment, fieldFragment, componentFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 7 }, () => document.createDocumentFragment())
 	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
@@ -915,19 +917,6 @@ addEventListener("DOMContentLoaded", () => {
 					document.querySelectorAll(".msgEmbed>.container")[guiEmbedIndex(el.target)]?.querySelector(".emptyEmbed")?.classList.remove("emptyEmbed")
 				}
 
-			const uploadError = (message, browse, sleepTime) => {
-				browse.classList.remove("loading")
-				browse.classList.add("error")
-
-				const p = browse.parentElement.querySelector(".browse.error>p")
-				p.dataset.error = message
-
-				setTimeout(() => {
-					browse.classList.remove("error")
-					delete p.dataset.error
-				}, sleepTime ?? 7000)
-			}
-
 			for (const browse of document.querySelectorAll(".browse"))
 				browse.onclick = () => {
 					const formData = new FormData()
@@ -1097,7 +1086,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedThumbnailLink) return buildEmbed()
 					const pre = embed.querySelector(".embedGrid .markup pre")
 					if (embedObj.thumbnail?.url) {
-						embedThumbnailLink.src = encode(embedObj.thumbnail.url)
+						embedThumbnailLink.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(embedObj.thumbnail.url))
 						embedThumbnailLink.parentElement.style.display = "block"
 						if (pre) pre.style.maxWidth = "90%"
 					} else {
@@ -1110,7 +1099,7 @@ addEventListener("DOMContentLoaded", () => {
 					const embedImageLink = embed?.querySelector(".embedImageLink")
 					if (!embedImageLink) return buildEmbed()
 					if (embedObj.image?.url) {
-						embedImageLink.src = encode(embedObj.image.url)
+						embedImageLink.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(embedObj.image.url))
 						embedImageLink.parentElement.style.display = "block"
 					} else hide(embedImageLink.parentElement)
 
@@ -1160,7 +1149,7 @@ addEventListener("DOMContentLoaded", () => {
 
 				const pre = embedGrid.querySelector(".markup pre")
 				if (currentObj.thumbnail?.url) {
-					embedThumbnail.src = encode(currentObj.thumbnail.url)
+					embedThumbnail.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(currentObj.thumbnail.url))
 					embedThumbnail.parentElement.style.display = "block"
 					if (pre) pre.style.maxWidth = "90%"
 				} else {
@@ -1169,12 +1158,12 @@ addEventListener("DOMContentLoaded", () => {
 				}
 
 				if (currentObj.image?.url) {
-					embedImage.src = encode(currentObj.image.url)
+					embedImage.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(currentObj.image.url))
 					embedImage.parentElement.style.display = "block"
 				} else hide(embedImage.parentElement)
 
 				if (currentObj.footer?.text) display(embedFooter, `
-					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encode(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
+					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.eu/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
 						${encode(currentObj.footer.text)}
 					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
 				else if (currentObj.timestamp)
@@ -1200,11 +1189,11 @@ addEventListener("DOMContentLoaded", () => {
 					if (component.style == 5 && component.url) {
 						const buttonElement = document.createElement("button")
 						buttonElement.classList.add("b-" + buttonStyles[component.style])
-						buttonElement.dataset.style = component.style
+						buttonElement.dataset.style = encode(component.style)
 						if (component.disabled) buttonElement.classList.add("disabled")
 						else buttonElement.onclick = () => window.open(url(component.url), "_blank", "noopener")
 
-						buttonElement.innerHTML = component.label +
+						buttonElement.innerHTML = encode(component.label) +
 							// From Discord's client source code
 							"<svg aria-hidden='true' role='img' width='16' height='16' viewBox='0 0 24 24'>" +
 							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
@@ -1216,7 +1205,7 @@ addEventListener("DOMContentLoaded", () => {
 
 						if (component.style) {
 							buttonElement.classList.add("b-" + buttonStyles[component.style])
-							buttonElement.dataset.style = component.style
+							buttonElement.dataset.style = encode(component.style)
 						}
 						if (component.disabled) buttonElement.classList.add("disabled")
 						if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
@@ -1440,7 +1429,7 @@ addEventListener("DOMContentLoaded", () => {
 				document.body.removeChild(input)
 			}
 
-			setTimeout(() => alert("Copied to clipboard." + (data.startsWith("https://shorter.cf") ? " URL was shortened to work in the embed command." : "")), 1)
+			setTimeout(() => alert("Copied to clipboard." + (data.length > 2000 ? " URL was shortened to work in the embed command." : "")), 1)
 			return
 		}
 
