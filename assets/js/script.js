@@ -192,6 +192,99 @@ const externalParsing = ({ noEmojis, element } = {}) => {
 	afterBuilding()
 }
 
+const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
+const hide = el => el.style.removeProperty("display")
+const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
+const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
+
+const makeShort = (txt, length, mediaWidth) => {
+	if (mediaWidth && matchMedia(`(max-width:${mediaWidth}px)`).matches)
+		return txt.length > (length - 3) ? txt.substring(0, length - 3) + "..." : txt
+	return txt
+}
+
+const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) => {
+	if (replaceEmojis)
+		txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
+
+	let listType
+	txt = txt
+		/** Markdown */
+		.replace(/&#60;:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp"/>')
+		.replace(/&#60;a:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif"/>')
+		.replace(/~~(.+?)~~/g, "<s>$1</s>")
+		.replace(/\*\*\*(.+?)\*\*\*/g, "<em><strong>$1</strong></em>")
+		.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+		.replace(/__(.+?)__/g, "<u>$1</u>")
+		.replace(/\*(.+?)\*/g, "<em>$1</em>")
+		.replace(/_(.+?)_/g, "<em>$1</em>")
+		// Replace non-markdown links
+		.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
+
+	if (replaceHeaders) txt = txt
+		.replace(/^### ([\S 	]+)/gm, "<span class='h3'>$1</span>")
+		.replace(/^## ([\S 	]+)/gm, "<span class='h2'>$1</span>")
+		.replace(/^# ([\S 	]+)/gm, "<span class='h1'>$1</span>")
+
+	txt = txt
+		.replace(/^(-|\*|\d\.) ?([\S 	]+)/gm, (match, p1, p2) => {
+			let prefix = ""
+			if (!listType) {
+				if (p1 == "-" || p1 == "*") listType = "ul"
+				else listType = "ol"
+				prefix += "<" + listType + ">"
+			}
+
+			let suffix = ""
+			const splitted = txt.split("\n")
+			if (
+				(listType == "ul" && splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].startsWith("-") && !splitted[splitted.indexOf(match) + 1].startsWith("*")) ||
+				(listType == "ol" && splitted[splitted.indexOf(match) + 1] && !/^\d+\./.test(splitted[splitted.indexOf(match) + 1].split(" ")[0])) ||
+				!splitted[splitted.indexOf(match) + 1]
+			) {
+				suffix += "</" + listType + ">"
+				listType = void 0
+			}
+
+			return prefix + "<li>" + p2 + "</li>" + suffix
+		})
+		// Replace >>> and > with block-quotes. &#62; is HTML code for >
+		.replace(/^(?: *&#62;&#62;&#62; ([\s\S]*))|(?:^ *&#62;(?!&#62;&#62;) +.+\n)+(?:^ *&#62;(?!&#62;&#62;) .+\n?)+|^(?: *&#62;(?!&#62;&#62;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) => {
+			return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&#62; /gm, "")}</blockquote></div>`
+		})
+
+		/** Mentions */
+		.replace(/&#60;\d{17,21}:(customize|home|browse)&#62;/g, "<span class='mention channel interactive'>$1</span>")
+		.replace(/&#60;#\d{17,21}&#62;/g, "<span class='mention channel interactive'>channel</span>")
+		.replace(/&#60;@(?:&#38;|!)?\d+&#62;|@(?:everyone|here)/g, match => {
+			if (match.startsWith("@")) return "<span class='mention'>" + match + "</span>"
+			else return "<span class='mention interactive'>@" + (match.includes("&#38;") ? "role" : "user") + "</span>"
+		})
+
+	if (inlineBlock)
+		// Treat both inline code and code blocks as inline code
+		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``|```((?:\n|.)+?)```/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
+	else {
+		// Code block
+		txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
+			if (w) return "<pre><code class='" + w + "'>" + x.trim() + "</code></pre>"
+			else return "<pre><code class='hljs nohighlight'>" + x.trim() + "</code></pre>"
+		})
+		// Inline code
+		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
+	}
+
+	if (inEmbed)
+		txt = txt.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
+
+	return txt
+}
+
+const display = (el, data, displayType) => {
+	if (data) el.innerHTML = data
+	el.style.display = displayType || "unset"
+}
+
 let embedKeys = ["author", "footer", "color", "thumbnail", "image", "fields", "title", "description", "url", "timestamp"]
 let componentKeys = ["label", "style", "emoji", "options", "placeholder", "custom_id", "url", "disabled", "type", "value", "min_values", "max_values"]
 let mainKeys = ["embed", "embeds", "content", "components"]
@@ -208,14 +301,6 @@ if (!jsonObject.embeds?.length) jsonObject.embeds = []
 if (!jsonObject.components?.length) jsonObject.components = []
 
 delete jsonObject.embed
-
-const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
-
-const makeShort = (txt, length, mediaWidth) => {
-	if (mediaWidth && matchMedia(`(max-width:${mediaWidth}px)`).matches)
-		return txt.length > (length - 3) ? txt.substring(0, length - 3) + "..." : txt
-	return txt
-}
 
 addEventListener("DOMContentLoaded", () => {
 	if (reverseColumns || localStorage.getItem("reverseColumns")) reverse()
@@ -356,89 +441,6 @@ addEventListener("DOMContentLoaded", () => {
 		return true
 	}
 
-	const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) => {
-		if (replaceEmojis)
-			txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
-
-		let listType
-		txt = txt
-			/** Markdown */
-			.replace(/&#60;:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp"/>')
-			.replace(/&#60;a:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif"/>')
-			.replace(/~~(.+?)~~/g, "<s>$1</s>")
-			.replace(/\*\*\*(.+?)\*\*\*/g, "<em><strong>$1</strong></em>")
-			.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-			.replace(/__(.+?)__/g, "<u>$1</u>")
-			.replace(/\*(.+?)\*/g, "<em>$1</em>")
-			.replace(/_(.+?)_/g, "<em>$1</em>")
-			// Replace non-markdown links
-			.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
-
-		if (replaceHeaders) txt = txt
-			.replace(/^### ([\S 	]+)/gm, "<span class='h3'>$1</span>")
-			.replace(/^## ([\S 	]+)/gm, "<span class='h2'>$1</span>")
-			.replace(/^# ([\S 	]+)/gm, "<span class='h1'>$1</span>")
-
-		txt = txt
-			.replace(/^(-|\*|\d\.) ?([\S 	]+)/gm, (match, p1, p2) => {
-				let prefix = ""
-				if (!listType) {
-					if (p1 == "-" || p1 == "*") listType = "ul"
-					else listType = "ol"
-					prefix += "<" + listType + ">"
-				}
-
-				let suffix = ""
-				const splitted = txt.split("\n")
-				if (
-					(listType == "ul" && splitted[splitted.indexOf(match) + 1] && !splitted[splitted.indexOf(match) + 1].startsWith("-") && !splitted[splitted.indexOf(match) + 1].startsWith("*")) ||
-					(listType == "ol" && splitted[splitted.indexOf(match) + 1] && !/^\d+\./.test(splitted[splitted.indexOf(match) + 1].split(" ")[0])) ||
-					!splitted[splitted.indexOf(match) + 1]
-				) {
-					suffix += "</" + listType + ">"
-					listType = void 0
-				}
-
-				return prefix + "<li>" + p2 + "</li>" + suffix
-			})
-			// Replace >>> and > with block-quotes. &#62; is HTML code for >
-			.replace(/^(?: *&#62;&#62;&#62; ([\s\S]*))|(?:^ *&#62;(?!&#62;&#62;) +.+\n)+(?:^ *&#62;(?!&#62;&#62;) .+\n?)+|^(?: *&#62;(?!&#62;&#62;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) => {
-				return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&#62; /gm, "")}</blockquote></div>`
-			})
-
-			/** Mentions */
-			.replace(/&#60;\d{17,21}:(customize|home|browse)&#62;/g, "<span class='mention channel interactive'>$1</span>")
-			.replace(/&#60;#\d{17,21}&#62;/g, "<span class='mention channel interactive'>channel</span>")
-			.replace(/&#60;@(?:&#38;|!)?\d+&#62;|@(?:everyone|here)/g, match => {
-				if (match.startsWith("@")) return "<span class='mention'>" + match + "</span>"
-				else return "<span class='mention interactive'>@" + (match.includes("&#38;") ? "role" : "user") + "</span>"
-			})
-
-		if (inlineBlock)
-			// Treat both inline code and code blocks as inline code
-			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``|```((?:\n|.)+?)```/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
-		else {
-			// Code block
-			txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
-				if (w) return "<pre><code class='" + w + "'>" + x.trim() + "</code></pre>"
-				else return "<pre><code class='hljs nohighlight'>" + x.trim() + "</code></pre>"
-			})
-			// Inline code
-			txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y, z) => x ? ("<code class='inline'>" + x + "</code>") : y ? ("<code class='inline'>" + y + "</code>") : z ? ("<code class='inline'>" + z + "</code>") : m)
-		}
-
-		if (inEmbed)
-			txt = txt.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
-
-		return txt
-	}
-
-	const display = (el, data, displayType) => {
-		if (data) el.innerHTML = data
-		el.style.display = displayType || "unset"
-	}
-
-	const encodeHTML = str => str.replace(/[\u00A0-\u9999<>&]/g, i => "&#" + i.charCodeAt(0) + ";")
 	const createEmbedFields = (fields, embedFields) => {
 		embedFields.innerHTML = ""
 		let index, gridCol
@@ -471,15 +473,15 @@ addEventListener("DOMContentLoaded", () => {
 
 					fieldElement.outerHTML = `
 						<div class="embedField ${num}${gridCol ? " colNum-2" : ""}" style="grid-column: ${gridCol || (colNum + " / " + (colNum + 4))};">
-							<div class="embedFieldName">${markup(encodeHTML(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
-							<div class="embedFieldValue">${markup(encodeHTML(f.value), { inEmbed: true, replaceEmojis: true })}</div>
+							<div class="embedFieldName">${markup(encode(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
+							<div class="embedFieldValue">${markup(encode(f.value), { inEmbed: true, replaceEmojis: true })}</div>
 						</div>`
 
 					if (index != i) gridCol = false
 				} else fieldElement.outerHTML = `
 					<div class="embedField" style="grid-column: 1 / 13;">
-						<div class="embedFieldName">${markup(encodeHTML(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
-						<div class="embedFieldValue">${markup(encodeHTML(f.value), { inEmbed: true, replaceEmojis: true })}</div>
+						<div class="embedFieldName">${markup(encode(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
+						<div class="embedFieldValue">${markup(encode(f.value), { inEmbed: true, replaceEmojis: true })}</div>
 					</div>`
 
 				colNum = (colNum == 9 ? 1 : colNum + 4)
@@ -509,9 +511,6 @@ addEventListener("DOMContentLoaded", () => {
 				tomorrow.toDateString() === date.toDateString() ? "Tomorrow at " + dateArray :
 					new Date().toLocaleDateString() + " " + dateArray
 	}
-
-	const hide = el => el.style.removeProperty("display")
-	const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
 
 	const [guiFragment, fieldFragment, componentFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 7 }, () => document.createDocumentFragment())
 	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
@@ -568,7 +567,7 @@ addEventListener("DOMContentLoaded", () => {
 								case "author":
 									const authorURL = embed?.author?.icon_url || ""
 									if (authorURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(authorURL) + ")"
+										edit.querySelector(".imgParent").style.content = "url(" + encode(authorURL) + ")"
 									edit.querySelector(".editAuthorLink").value = authorURL
 									edit.querySelector(".editAuthorName").value = embed?.author?.name || ""
 									break
@@ -581,19 +580,19 @@ addEventListener("DOMContentLoaded", () => {
 								case "thumbnail":
 									const thumbnailURL = embed?.thumbnail?.url || ""
 									if (thumbnailURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(thumbnailURL) + ")"
+										edit.querySelector(".imgParent").style.content = "url(" + encode(thumbnailURL) + ")"
 									edit.querySelector(".editThumbnailLink").value = thumbnailURL
 									break
 								case "image":
 									const imageURL = embed?.image?.url || ""
 									if (imageURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(imageURL) + ")"
+										edit.querySelector(".imgParent").style.content = "url(" + encode(imageURL) + ")"
 									edit.querySelector(".editImageLink").value = imageURL
 									break
 								case "footer":
 									const footerURL = embed?.footer?.icon_url || ""
 									if (footerURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encodeHTML(footerURL) + ")"
+										edit.querySelector(".imgParent").style.content = "url(" + encode(footerURL) + ")"
 									edit.querySelector(".editFooterLink").value = footerURL
 									edit.querySelector(".editFooterText").value = embed?.footer?.text || ""
 									break
@@ -705,12 +704,12 @@ addEventListener("DOMContentLoaded", () => {
 			})
 
 		// Scroll into view when tabs are opened in the GUI.
-		const lastTabs = Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg"))
+		const lastTabs = new Set(Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg")))
 		const requiresView = matchMedia(`${smallerScreen.media}, (max-height: 845px)`)
 		const addGuiEventListeners = () => {
 			for (const e of document.querySelectorAll(".gui .item:not(.fields)"))
 				e.onclick = () => {
-					if (lastTabs.includes(e) || requiresView.matches) {
+					if (lastTabs.has(e) || requiresView.matches) {
 						if (!reverseColumns || !smallerScreen.matches)
 							e.scrollIntoView({ behavior: "smooth", block: "center" })
 						else if (e.nextElementSibling.classList.contains("edit") && e.classList.contains("active"))
@@ -1022,8 +1021,8 @@ addEventListener("DOMContentLoaded", () => {
 
 		else if (opts?.guiTabs) {
 			const tabs = opts.guiTabs.split?.(/, */) || opts.guiTabs
-			const bottomKeys = ["footer", "image"]
-			const topKeys = ["author", "content"]
+			const bottomKeys = new Set(["footer", "image"])
+			const topKeys = new Set(["author", "content"])
 
 			// Deactivate the default activated GUI fields
 			for (const e of gui.querySelectorAll(".item:not(.guiEmbedName).active")) e.classList.remove("active")
@@ -1032,7 +1031,7 @@ addEventListener("DOMContentLoaded", () => {
 			for (const e of document.querySelectorAll(`.${tabs.join(", .")}`)) e.classList.add("active")
 
 			// Autoscroll GUI to the bottom if necessary.
-			if (!tabs.some(item => topKeys.includes(item)) && tabs.some(item => bottomKeys.includes(item))) {
+			if (!tabs.some(item => topKeys.has(item)) && tabs.some(item => bottomKeys.has(item))) {
 				const gui2 = document.querySelector(".top .gui")
 				gui2.scrollTo({ top: gui2.scrollHeight })
 			}
@@ -1057,7 +1056,7 @@ addEventListener("DOMContentLoaded", () => {
 			// If there's no message content, hide the message content HTML element.
 			if (jsonObject.content) {
 				// Update embed content in render
-				embedContent.innerHTML = markup(encodeHTML(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
+				embedContent.innerHTML = markup(encode(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
 				document.body.classList.remove("emptyContent")
 			} else document.body.classList.add("emptyContent")
 
@@ -1072,7 +1071,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedTitle":
 					const embedTitle = embed?.querySelector(".embedTitle")
 					if (!embedTitle) return buildEmbed()
-					if (embedObj.title) display(embedTitle, markup(`${embedObj.url ? '<a class="anchor" target="_blank" href="' + encodeHTML(url(embedObj.url)) + '">' + encodeHTML(embedObj.title) + "</a>" : encodeHTML(embedObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
+					if (embedObj.title) display(embedTitle, markup(`${embedObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(embedObj.url)) + '">' + encode(embedObj.title) + "</a>" : encode(embedObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
 					else hide(embedTitle)
 
 					return externalParsing({ element: embedTitle })
@@ -1081,15 +1080,15 @@ addEventListener("DOMContentLoaded", () => {
 					const embedAuthor = embed?.querySelector(".embedAuthor")
 					if (!embedAuthor) return buildEmbed()
 					if (embedObj.author?.name) display(embedAuthor, `
-						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encodeHTML(url(embedObj.author.icon_url)) + '">' : ""}
-						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(embedObj.author.url)) + '" target="_blank">' + encodeHTML(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(embedObj.author.name) + "</span>"}`, "flex")
+						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(embedObj.author.icon_url)) + '">' : ""}
+						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(embedObj.author.url)) + '" target="_blank">' + encode(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(embedObj.author.name) + "</span>"}`, "flex")
 					else hide(embedAuthor)
 
 					return externalParsing({ element: embedAuthor })
 				case "embedDescription":
 					const embedDescription = embed?.querySelector(".embedDescription")
 					if (!embedDescription) return buildEmbed()
-					if (embedObj.description) display(embedDescription, markup(encodeHTML(embedObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
+					if (embedObj.description) display(embedDescription, markup(encode(embedObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
 					else hide(embedDescription)
 
 					return externalParsing({ element: embedDescription })
@@ -1098,7 +1097,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedThumbnailLink) return buildEmbed()
 					const pre = embed.querySelector(".embedGrid .markup pre")
 					if (embedObj.thumbnail?.url) {
-						embedThumbnailLink.src = embedObj.thumbnail.url
+						embedThumbnailLink.src = encode(embedObj.thumbnail.url)
 						embedThumbnailLink.parentElement.style.display = "block"
 						if (pre) pre.style.maxWidth = "90%"
 					} else {
@@ -1111,7 +1110,7 @@ addEventListener("DOMContentLoaded", () => {
 					const embedImageLink = embed?.querySelector(".embedImageLink")
 					if (!embedImageLink) return buildEmbed()
 					if (embedObj.image?.url) {
-						embedImageLink.src = embedObj.image.url
+						embedImageLink.src = encode(embedObj.image.url)
 						embedImageLink.parentElement.style.display = "block"
 					} else hide(embedImageLink.parentElement)
 
@@ -1122,9 +1121,9 @@ addEventListener("DOMContentLoaded", () => {
 					const embedFooter = embed?.querySelector(".embedFooter")
 					if (!embedFooter) return buildEmbed()
 					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter, `
-						${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encodeHTML(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
-						${encodeHTML(embedObj.footer.text)}
-						${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encodeHTML(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex")
+						${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encode(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
+						${encode(embedObj.footer.text)}
+						${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex")
 					else hide(embedFooter)
 
 					return externalParsing({ element: embedFooter })
@@ -1145,23 +1144,23 @@ addEventListener("DOMContentLoaded", () => {
 				const embedThumbnail = embedElement.querySelector(".embedThumbnail > img")
 				const embedFields = embedElement.querySelector(".embedFields")
 
-				if (currentObj.title) display(embedTitle, markup(`${currentObj.url ? '<a class="anchor" target="_blank" href="' + encodeHTML(url(currentObj.url)) + '">' + encodeHTML(currentObj.title) + "</a>" : encodeHTML(currentObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
+				if (currentObj.title) display(embedTitle, markup(`${currentObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(currentObj.url)) + '">' + encode(currentObj.title) + "</a>" : encode(currentObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
 				else hide(embedTitle)
 
-				if (currentObj.description) display(embedDescription, markup(encodeHTML(currentObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
+				if (currentObj.description) display(embedDescription, markup(encode(currentObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
 				else hide(embedDescription)
 
 				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = (typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color)
 				else embedGrid.closest(".embed").style.removeProperty("border-color")
 
 				if (currentObj.author?.name) display(embedAuthor, `
-					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encodeHTML(url(currentObj.author.icon_url)) + '">' : ""}
-					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encodeHTML(url(currentObj.author.url)) + '" target="_blank">' + encodeHTML(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encodeHTML(currentObj.author.name) + "</span>"}`, "flex")
+					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(currentObj.author.icon_url)) + '">' : ""}
+					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(currentObj.author.url)) + '" target="_blank">' + encode(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(currentObj.author.name) + "</span>"}`, "flex")
 				else hide(embedAuthor)
 
 				const pre = embedGrid.querySelector(".markup pre")
 				if (currentObj.thumbnail?.url) {
-					embedThumbnail.src = currentObj.thumbnail.url
+					embedThumbnail.src = encode(currentObj.thumbnail.url)
 					embedThumbnail.parentElement.style.display = "block"
 					if (pre) pre.style.maxWidth = "90%"
 				} else {
@@ -1170,16 +1169,16 @@ addEventListener("DOMContentLoaded", () => {
 				}
 
 				if (currentObj.image?.url) {
-					embedImage.src = currentObj.image.url
+					embedImage.src = encode(currentObj.image.url)
 					embedImage.parentElement.style.display = "block"
 				} else hide(embedImage.parentElement)
 
 				if (currentObj.footer?.text) display(embedFooter, `
-					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encodeHTML(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
-						${encodeHTML(currentObj.footer.text)}
-					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encodeHTML(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
+					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encode(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
+						${encode(currentObj.footer.text)}
+					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
 				else if (currentObj.timestamp)
-					display(embedFooter, `<span class="embedFooterText">${encodeHTML(timestamp(currentObj.timestamp))}</span></div>`, "flex")
+					display(embedFooter, `<span class="embedFooterText">${encode(timestamp(currentObj.timestamp))}</span></div>`, "flex")
 				else hide(embedFooter)
 
 				if (currentObj.fields) createEmbedFields(currentObj.fields, embedFields)
@@ -1230,7 +1229,7 @@ addEventListener("DOMContentLoaded", () => {
 							let emojiElement
 							if (component.emoji.id && /^[0-9]{17,21}$/.test(component.emoji.id)) {
 								emojiElement = document.createElement("img")
-								emojiElement.src = "https://cdn.discordapp.com/emojis/" + component.emoji.id + ".webp?size=16"
+								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(component.emoji.id) + ".webp?size=16"
 							} else if (component.emoji.name) {
 								emojiElement = document.createElement("span")
 								emojiElement.innerText = component.emoji.name
@@ -1278,7 +1277,7 @@ addEventListener("DOMContentLoaded", () => {
 			if (dataKeys.length && !allJsonKeys.some(key => dataKeys.includes(key))) {
 				const usedKeys = dataKeys.filter(key => !allJsonKeys.includes(key))
 				if (usedKeys.length > 2)
-					return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, usedKeys.length - 1).join("', '")}', and '${usedKeys.at(-1)}' are invalid keys.`)
+					return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, -1).join("', '")}', and '${usedKeys.at(-1)}' are invalid keys.`)
 				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys.at(-1) + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`)
 			}
 
