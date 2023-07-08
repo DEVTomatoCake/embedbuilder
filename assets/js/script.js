@@ -798,7 +798,7 @@ addEventListener("DOMContentLoaded", () => {
 					e.closest(".guiComponent").remove()
 				}
 
-			for (const e of gui.querySelectorAll("textarea, input"))
+			for (const e of gui.querySelectorAll("textarea, input, select"))
 				e.oninput = el => {
 					const value = el.target.value
 					const index = guiEmbedIndex(el.target)
@@ -902,8 +902,8 @@ addEventListener("DOMContentLoaded", () => {
 								componentObj.url = value
 								buildEmbed({ only: "componentURL", index: guiComponentIndex(el.target) })
 								break
-							case "editComponentDisabled":
-								componentObj.disabled = value
+							case "disableCheck":
+								componentObj.disabled = el.target.checked
 								buildEmbed({ only: "componentDisabled", index: guiComponentIndex(el.target) })
 								break
 						}
