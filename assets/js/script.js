@@ -223,8 +223,8 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) =>
 	let listType
 	txt = txt
 		/** Markdown */
-		.replace(/&#60;:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp"/>')
-		.replace(/&#60;a:\w+:(\d{17,21})&#62;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif"/>')
+		.replace(/&lt;:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp"/>')
+		.replace(/&lt;a:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif"/>')
 		.replace(/~~(.+?)~~/g, "<s>$1</s>")
 		.replace(/\*\*\*(.+?)\*\*\*/g, "<em><strong>$1</strong></em>")
 		.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
@@ -1212,21 +1212,22 @@ addEventListener("DOMContentLoaded", () => {
 						}
 						if (component.disabled) buttonElement.classList.add("disabled")
 						if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
-						if (component.label) {
-							const label = document.createElement("span")
-							label.innerText = component.label
-							buttonElement.appendChild(label)
-						}
 						if (component.emoji) {
+							const id = component.emoji.id || component.emoji
 							let emojiElement
-							if (component.emoji.id && /^[0-9]{17,21}$/.test(component.emoji.id)) {
+							if (/^[0-9]{17,21}$/.test(id)) {
 								emojiElement = document.createElement("img")
-								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(component.emoji.id) + ".webp?size=16"
+								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(id) + ".webp?size=16"
 							} else if (component.emoji.name) {
 								emojiElement = document.createElement("span")
 								emojiElement.innerText = component.emoji.name
 							}
 							if (emojiElement) buttonElement.appendChild(emojiElement)
+						}
+						if (component.label) {
+							const label = document.createElement("span")
+							label.innerText = component.label
+							buttonElement.appendChild(label)
 						}
 
 						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) {
