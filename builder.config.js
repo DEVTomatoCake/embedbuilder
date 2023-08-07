@@ -22,7 +22,7 @@ json = {
 	embeds: [
 		{
 			title: "Next steps",
-			description: "1. https://tomatenkuchen.eu/invite\n2. Use the bot to import a message\n3. Send it using TomatenKuchen or a webhook!"
+			description: "1. https://tomatenkuchen.com/invite\n2. Use the bot to import a message\n3. Send it using TomatenKuchen or a webhook!"
 		}
 	],
 	components: [
@@ -53,7 +53,7 @@ json = {
 					type: 2,
 					label: "URL Button",
 					style: 5,
-					url: "https://tomatenkuchen.eu"
+					url: "https://tomatenkuchen.com"
 				}
 			]
 		},{
