@@ -408,7 +408,7 @@ addEventListener("DOMContentLoaded", () => {
 		return false
 	}
 
-	const socket = sockette("wss://api.tomatenkuchen.eu/embedbuilder", {
+	const socket = sockette("wss://api.tomatenkuchen.com/embedbuilder", {
 		onClose: event => console.log("Disconnected!", event),
 		onOpen: event => console.log("Connected!", event),
 		onMessage: wsjson => {
@@ -1089,7 +1089,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedThumbnailLink) return buildEmbed()
 					const pre = embed.querySelector(".embedGrid .markup pre")
 					if (embedObj.thumbnail?.url) {
-						embedThumbnailLink.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(embedObj.thumbnail.url))
+						embedThumbnailLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.thumbnail.url))
 						embedThumbnailLink.parentElement.style.display = "block"
 						if (pre) pre.style.maxWidth = "90%"
 					} else {
@@ -1102,7 +1102,7 @@ addEventListener("DOMContentLoaded", () => {
 					const embedImageLink = embed?.querySelector(".embedImageLink")
 					if (!embedImageLink) return buildEmbed()
 					if (embedObj.image?.url) {
-						embedImageLink.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(embedObj.image.url))
+						embedImageLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.image.url))
 						embedImageLink.parentElement.style.display = "block"
 					} else hide(embedImageLink.parentElement)
 
@@ -1152,7 +1152,7 @@ addEventListener("DOMContentLoaded", () => {
 
 				const pre = embedGrid.querySelector(".markup pre")
 				if (currentObj.thumbnail?.url) {
-					embedThumbnail.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(currentObj.thumbnail.url))
+					embedThumbnail.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.thumbnail.url))
 					embedThumbnail.parentElement.style.display = "block"
 					if (pre) pre.style.maxWidth = "90%"
 				} else {
@@ -1161,12 +1161,12 @@ addEventListener("DOMContentLoaded", () => {
 				}
 
 				if (currentObj.image?.url) {
-					embedImage.src = "https://api.tomatenkuchen.eu/image-proxy?url=" + encode(url(currentObj.image.url))
+					embedImage.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.image.url))
 					embedImage.parentElement.style.display = "block"
 				} else hide(embedImage.parentElement)
 
 				if (currentObj.footer?.text) display(embedFooter, `
-					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.eu/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
+					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.com/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
 						${encode(currentObj.footer.text)}
 					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
 				else if (currentObj.timestamp)
