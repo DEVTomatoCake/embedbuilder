@@ -1,41 +1,27 @@
 @font-face {
-    font-family: DsWhitney;
-    src: local("Whitney"), url("./fonts/whitney-300.woff");
-    font-style: normal;
-    font-weight: 300;
-    font-display: swap;
+	font-family: ggSans;
+	src: url("./fonts/ggsans-Normal.ttf");
+	font-weight: 300;
 }
-
 @font-face {
-    font-family: DsWhitney;
-    src: local("Whitney"), url("./fonts/whitney-400.woff");
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
+	font-family: ggSans;
+	src: url("./fonts/ggsans-Medium.ttf");
+	font-weight: 400;
 }
-
 @font-face {
-    font-family: DsWhitney;
-    src: local("Whitney"), url("./fonts/whitney-500.woff");
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
+	font-family: ggSans;
+	src: url("./fonts/ggsans-Bold.ttf");
+	font-weight: 500;
 }
-
 @font-face {
-    font-family: DsWhitney;
-    src: local("Whitney"), url("./fonts/whitney-600.woff");
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
+	font-family: ggSans;
+	src: url("./fonts/ggsans-Semibold.ttf");
+	font-weight: 600;
 }
-
 @font-face {
-    font-family: DsWhitney;
-    src: local("Whitney"), url("./fonts/whitney-700.woff");
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
+	font-family: ggSans;
+	src: url("./fonts/ggsans-ExtraBold.ttf");
+	font-weight: 700;
 }
 
 :root {
@@ -169,7 +155,7 @@ body:not(.no-preview):not(.no-editor) .main {
     overflow: auto;
     scrollbar-color: #26272d #313338;
     scrollbar-width: thin;
-    font-family: DsWhitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: ggSans, "Helvetica Neue", Helvetica, Arial, sans-serif;
     background-color: var(--fullEmbedBackground);
 }
 
@@ -469,7 +455,6 @@ ol {
     height: 1.25rem;
     cursor: default;
     pointer-events: none;
-    font-weight: 500;
 }
 
 .botTag {
@@ -495,8 +480,7 @@ ol {
     font-size: 10px;
     line-height: 15px;
     text-indent: 0px;
-    color: #FFFFFF;
-    font-weight: 500;
+    color: #FFF;
 }
 
 .username {
@@ -1416,7 +1400,8 @@ body:not(.gui) .chooser>.back {
     background: #212226;
     height: 40px;
     width: 90%;
-    margin: 8px auto;
+    margin: 8px 4px;
+    /*margin: 8px auto;*/
     border-radius: 7px;
     background: linear-gradient(90deg, #212226, #21222600);
     background: #2122269c;
@@ -1460,7 +1445,7 @@ input, textarea {
 }
 
 .ttle~input {
-    width: 100%;
+    width: 95%;
 }
 
 .ttle::after {
@@ -1772,7 +1757,7 @@ button[type="submit"] {
 }
 
 .gui .item.fields+.edit .field {
-    animation: lastFieldSlide .5s ease;
+    animation: lastFieldSlide .3s ease;
 }
 
 .fields+.edit .fieldInner .designerFieldName {
@@ -1902,16 +1887,6 @@ body {
     transform: scale(2);
 }
 
-@keyframes addFieldFade {
-    0% {
-        opacity: 0;
-    }
-
-    50% {
-        opacity: 0;
-    }
-}
-
 @keyframes hexAn {
     0% {
         opacity: 0;
@@ -1961,13 +1936,11 @@ body {
 }
 
 .addField, .addComponent {
-    animation: addFieldFade .5s ease;
     font-size: 13px;
     display: flex;
     cursor: pointer;
     opacity: .5;
     padding-top: 20px;
-    transition: .5s ease;
 }
 
 .addField>*, .addComponent>* {
@@ -2176,7 +2149,7 @@ body.reversed .top-btn.menu>.box .item.reverse>.icon::after {
 }
 
 .emptyTxt {
-    animation: emptyTxtAn 1s ease;
+    animation: emptyTxtAn .8s ease;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 30px;
@@ -2214,7 +2187,7 @@ body.reversed .top-btn.menu>.box .item.reverse>.icon::after {
 }
 
 .top-btn.clear:hover>svg {
-    animation: clearAn 1s ease-in-out forwards;
+    animation: clearAn 1.1s ease-in-out forwards;
     transform-origin: top right;
 }
 
@@ -2751,7 +2724,6 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
     0% {
         opacity: 0;
     }
-
     50% {
         opacity: .5;
     }
@@ -2762,7 +2734,7 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
     opacity: 0;
     margin-left: 7px;
     font-style: italic;
-    animation: guiEmbedNameEmptyAn 3s ease;
+    animation: guiEmbedNameEmptyAn 2s ease;
     position: absolute;
     transform: translateY(-1px);
 }

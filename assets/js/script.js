@@ -216,7 +216,7 @@ const timestamp = stringISO => {
 	return new Date().toLocaleDateString() + " " + dateArray
 }
 
-const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) => {
+const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 	if (replaceEmojis)
 		txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
@@ -261,17 +261,22 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) =>
 
 			return prefix + "<li>" + p2 + "</li>" + suffix
 		})
-		// Replace >>> and > with block-quotes. &#62; is HTML code for >
-		.replace(/^(?: *&#62;&#62;&#62; ([\s\S]*))|(?:^ *&#62;(?!&#62;&#62;) +.+\n)+(?:^ *&#62;(?!&#62;&#62;) .+\n?)+|^(?: *&#62;(?!&#62;&#62;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) => {
-			return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&#62; /gm, "")}</blockquote></div>`
+		// Replace >>> and > with block-quotes. &gt; is HTML code for >
+		.replace(/^(?: *&gt;&gt;&gt; ([\s\S]*))|(?:^ *&gt;(?!&gt;&gt;) +.+\n)+(?:^ *&gt;(?!&gt;&gt;) .+\n?)+|^(?: *&gt;(?!&gt;&gt;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) => {
+			return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&gt; /gm, "")}</blockquote></div>`
 		})
 
 		/** Mentions */
-		.replace(/&#60;\d{17,21}:(customize|home|browse)&#62;/g, "<span class='mention channel interactive'>$1</span>")
-		.replace(/&#60;#\d{17,21}&#62;/g, "<span class='mention channel interactive'>channel</span>")
-		.replace(/&#60;@(?:&#38;|!)?\d+&#62;|@(?:everyone|here)/g, match => {
-			if (match.startsWith("@")) return "<span class='mention'>" + match + "</span>"
-			else return "<span class='mention interactive'>@" + (match.includes("&#38;") ? "role" : "user") + "</span>"
+		.replace(/&lt;id:(customize|home|browse)&gt;/g, "<span class='mention channel'>$1</span>")
+		.replace(/&lt;#(\d{17,21})&gt;/g, "<span class='mention channel interactive'>channel: $1</span>")
+		.replace(/&lt;@&amp;(\d{17,21})&gt;/g, "<span class='mention interactive'>@role: $1</span>")
+		.replace(/&lt;@(\d+)&gt;|@(?:everyone|here)/g, (all, match1) => {
+			if (all.startsWith("@")) return "<span class='mention'>" + all + "</span>"
+			return "<span class='mention interactive'>@user: " + match1 + "</span>"
+		})
+		.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
+		.replace(/&lt;t:([0-9]{1,13})(:[a-z])?&gt;/gi, (all, match1) => {
+			return "<span class='spoiler'>" + new Date(parseInt(match1) * 1000).toLocaleString() + "</span>"
 		})
 
 	if (inlineBlock)
@@ -292,9 +297,6 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock, inEmbed }) =>
 			return m
 		})
 	}
-
-	if (inEmbed)
-		txt = txt.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
 
 	return txt
 }
@@ -491,15 +493,15 @@ addEventListener("DOMContentLoaded", () => {
 
 					fieldElement.outerHTML = `
 						<div class="embedField ${num}${gridCol ? " colNum-2" : ""}" style="grid-column: ${gridCol || (colNum + " / " + (colNum + 4))};">
-							<div class="embedFieldName">${markup(encode(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
-							<div class="embedFieldValue">${markup(encode(f.value), { inEmbed: true, replaceEmojis: true })}</div>
+							<div class="embedFieldName">${markup(encode(f.name), { replaceEmojis: true, inlineBlock: true })}</div>
+							<div class="embedFieldValue">${markup(encode(f.value), { replaceEmojis: true })}</div>
 						</div>`
 
 					if (index != i) gridCol = false
 				} else fieldElement.outerHTML = `
 					<div class="embedField" style="grid-column: 1 / 13;">
-						<div class="embedFieldName">${markup(encode(f.name), { inEmbed: true, replaceEmojis: true, inlineBlock: true })}</div>
-						<div class="embedFieldValue">${markup(encode(f.value), { inEmbed: true, replaceEmojis: true })}</div>
+						<div class="embedFieldName">${markup(encode(f.name), { replaceEmojis: true, inlineBlock: true })}</div>
+						<div class="embedFieldValue">${markup(encode(f.value), { replaceEmojis: true })}</div>
 					</div>`
 
 				colNum = (colNum == 9 ? 1 : colNum + 4)
@@ -651,7 +653,7 @@ addEventListener("DOMContentLoaded", () => {
 									if (newChild.classList.contains("disableCheck")) newChild.querySelector("input").checked = Boolean(f.disabled)
 									else if (newChild.classList?.contains("custom_id")) newChild.querySelector(".custom_id input").value = f?.custom_id || ""
 									else if (newChild.classList?.contains("label")) newChild.querySelector(".label input").value = f?.label || ""
-									else if (newChild.classList?.contains("style")) newChild.querySelector(".style select").value = f?.style || 1
+									else if (newChild.classList?.contains("editComponentStyle")) newChild.value = f?.style || 1
 									else if (newChild.classList?.contains("url")) newChild.querySelector(".url input").value = f?.url || ""
 									else if (newChild.classList?.contains("emoji")) newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
 
@@ -666,6 +668,8 @@ addEventListener("DOMContentLoaded", () => {
 							}
 						}
 					}
+
+					guiActionRow.appendChild(guiActionRowTemplate.querySelector(".addComponent").cloneNode(true))
 				}
 			}
 		}
@@ -729,7 +733,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (indexOfGuiEmbed == -1) return error("Could not find the embed to add the field to.")
 
 					const fieldsObj = (jsonObject.embeds[indexOfGuiEmbed] ??= {}).fields ??= []
-					if (fieldsObj.length >= 25) return error("Cannot have more than 25 fields!")
+					if (fieldsObj.length >= 25) return error("An embed cannot have more than 25 fields!")
 					fieldsObj.push({ name: "Field name", value: "Field value", inline: false })
 
 					const newField = guiEmbed?.querySelector(".item.fields+.edit>.fields")?.appendChild(fieldFragment.firstChild.cloneNode(true))
@@ -753,10 +757,11 @@ addEventListener("DOMContentLoaded", () => {
 					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
 					const componentsObj = (jsonObject.components[indexOfGuiActionRow] ??= {}).components ??= []
-					if (componentsObj.length >= 5) return error("Cannot have more than 5 components!")
-					componentsObj.push({label: "Button label", custom_id: "", type: 1, style: 1, disabled: false})
+					if (componentsObj.length >= 5) return error("An action row cannot have more than 5 components!")
+					componentsObj.push({custom_id: "", label: "Button label", type: 1, style: 1, disabled: false})
 
-					const newComponent = guiActionRow.appendChild(componentFragment.firstChild.cloneNode(true))
+					const newComponent = guiActionRow.insertBefore(componentFragment.firstChild.cloneNode(true), guiActionRow.querySelector(".addComponent"))
+					newComponent.querySelector(".edit .componentInnerTemplate").removeAttribute("hidden")
 
 					buildEmbed()
 					addGuiEventListeners()
@@ -776,7 +781,7 @@ addEventListener("DOMContentLoaded", () => {
 					const fieldIndex = Array.from(e.closest(".fields").children).indexOf(e.closest(".field"))
 
 					if (jsonObject.embeds[embedIndex]?.fields[fieldIndex] == -1)
-						return error("Failed to find the index of the field to remove.")
+						return error("Failed to the field to remove.")
 
 					jsonObject.embeds[embedIndex].fields.splice(fieldIndex, 1)
 
@@ -790,7 +795,7 @@ addEventListener("DOMContentLoaded", () => {
 					const componentIndex = Array.from(e.closest(".guiActionRow").children).indexOf(e.closest(".guiComponent"))
 
 					if (jsonObject.components[rowIndex]?.components[componentIndex] == -1)
-						return error("Failed to find the index of the field to remove.")
+						return error("Failed to find the component to remove.")
 
 					jsonObject.components[rowIndex].components.splice(componentIndex, 1)
 
@@ -1080,7 +1085,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedDescription":
 					const embedDescription = embed?.querySelector(".embedDescription")
 					if (!embedDescription) return buildEmbed()
-					if (embedObj.description) display(embedDescription, markup(encode(embedObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
+					if (embedObj.description) display(embedDescription, markup(encode(embedObj.description), { replaceEmojis: true, replaceHeaders: true }))
 					else hide(embedDescription)
 
 					return externalParsing({ element: embedDescription })
@@ -1139,7 +1144,7 @@ addEventListener("DOMContentLoaded", () => {
 				if (currentObj.title) display(embedTitle, markup(`${currentObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(currentObj.url)) + '">' + encode(currentObj.title) + "</a>" : encode(currentObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
 				else hide(embedTitle)
 
-				if (currentObj.description) display(embedDescription, markup(encode(currentObj.description), { inEmbed: true, replaceEmojis: true, replaceHeaders: true }))
+				if (currentObj.description) display(embedDescription, markup(encode(currentObj.description), { replaceEmojis: true, replaceHeaders: true }))
 				else hide(embedDescription)
 
 				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = (typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color)
