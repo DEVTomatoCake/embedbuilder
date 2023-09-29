@@ -11,7 +11,7 @@ let params = new URLSearchParams(location.search),
 	hasParam = param => params.get(param) !== null,
 	dataSpecified = options.data || params.get("data"),
 	username = params.has("mb") ? "Manage Bot" : "TomatenKuchen",
-	avatar = params.has("mb") ? "https://cdn.discordapp.com/avatars/856203974994952192/9d22da33fd916b30f4f5c9499b86d65b.webp?size=40" : "https://tomatenkuchen.com/assets/images/background_192.webp",
+	avatar = "./assets/images/" + (params.has("mb") ? "managebot_40" : "background_192") + ".webp",
 	guiTabs = params.get("guitabs") || options.guiTabs,
 	useJsonEditor = params.get("editor") === "json" || options.useJsonEditor,
 	reverseColumns = hasParam("reverse") || options.reverseColumns,
@@ -1405,6 +1405,20 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelector(".import").addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
 	document.querySelector(".sendbot").addEventListener("click", () => socket.send(JSON.stringify({action: "send", content: json.content, embeds: json.embeds, components: json.components})))
 
+	document.querySelector(".copy").addEventListener("click", () => {
+		const jsonData = JSON.stringify(json, null, 4)
+
+		if (!navigator.clipboard?.writeText(jsonData).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
+			const textarea = document.body.appendChild(document.createElement("textarea"))
+
+			textarea.value = jsonData
+			textarea.select()
+			textarea.setSelectionRange(0, 50000)
+			document.execCommand("copy")
+			document.body.removeChild(textarea)
+		}
+	})
+
 	document.querySelector(".top-btn.menu")?.addEventListener("click", async e => {
 		if (e.target.closest(".item.dataLink")) {
 			let data = encodeJson(json, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x === "=" ? "" : "&")
@@ -1458,20 +1472,6 @@ addEventListener("DOMContentLoaded", () => {
 					console.error(webhookjson)
 					return error("Request failed with error: " + webhookres.statusText)
 				}
-			}
-		}
-
-		if (e.target.closest(".item.copy")) {
-			const jsonData = JSON.stringify(json, null, 4)
-
-			if (!navigator.clipboard?.writeText(jsonData).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
-				const textarea = document.body.appendChild(document.createElement("textarea"))
-
-				textarea.value = jsonData
-				textarea.select()
-				textarea.setSelectionRange(0, 50000)
-				document.execCommand("copy")
-				document.body.removeChild(textarea)
 			}
 		}
 

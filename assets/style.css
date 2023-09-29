@@ -1401,7 +1401,6 @@ body:not(.gui) .chooser>.back {
     height: 40px;
     width: 90%;
     margin: 8px 4px;
-    /*margin: 8px auto;*/
     border-radius: 7px;
     background: linear-gradient(90deg, #212226, #21222600);
     background: #2122269c;
@@ -1470,7 +1469,7 @@ input, textarea {
     animation: editAn .3s ease;
     height: 40px;
     width: 90%;
-    margin: 8px auto;
+    margin: 8px 4px;
     position: relative;
     border-bottom-left-radius: 7px;
     border-bottom-right-radius: 7px;
@@ -2003,29 +2002,24 @@ span.h3 {
 .top-btn.import {
     left: 190px;
 }
-
-.top-btn.import>svg {
-    width: 15px;
-    left: 1px;
-    top: -.5px;
-}
-
 .top-btn.sendbot {
     left: 240px;
 }
-
-.top-btn.sendbot>svg {
-    width: 15px;
-    left: 1px;
-    top: -.5px;
+.top-btn.copy {
+    left: 290px;
 }
 
-.top-btn>svg {
+.top-btn > svg {
     width: 20px;
     height: 100%;
     position: relative;
     left: -2.5px;
     top: -2px;
+}
+.top-btn.import > svg, .top-btn.sendbot > svg, .top-btn.copy > svg {
+    width: 15px;
+    left: 1px;
+    top: -.5px;
 }
 
 .top-btn.menu {
