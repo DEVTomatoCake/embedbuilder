@@ -61,7 +61,7 @@ json = {
 			components: [
 				{
 					type: 3,
-					label: "Selectmenü",
+					label: "Select menu",
 					custom_id: "selectmenu",
 					options: [
 						{

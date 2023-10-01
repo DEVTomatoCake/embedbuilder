@@ -33,7 +33,7 @@ const guiActionRowIndex = guiRo => {
 }
 const guiComponentIndex = guiRo => {
 	const guiComponent = guiRo?.closest(".guiComponent")
-	const gui = guiComponent?.closest(".gui")
+	const gui = guiComponent?.closest(".guiActionRow")
 
 	return gui ? Array.from(gui.querySelectorAll(".guiComponent")).indexOf(guiComponent) : -1
 }
@@ -521,7 +521,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	const [guiFragment, fieldFragment, componentFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 7 }, () => document.createDocumentFragment())
 	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
-	componentFragment.appendChild(document.querySelector(".guiActionRow>.guiComponent>.edit").cloneNode(true))
+	componentFragment.appendChild(document.querySelector(".guiActionRow>.guiComponent").cloneNode(true))
 	embedFragment.appendChild(document.querySelector(".embed.markup").cloneNode(true))
 	actionRowFragment.appendChild(document.querySelector(".actionrow.markup").cloneNode(true))
 	guiEmbedAddFragment.appendChild(document.querySelector(".guiEmbedAdd").cloneNode(true))
@@ -676,6 +676,8 @@ addEventListener("DOMContentLoaded", () => {
 
 		for (const e of document.querySelectorAll(".top>.gui .item"))
 			e.addEventListener("click", () => {
+				console.warn(e)
+				// TODO: buildGui() wird für die neuen editoren nicht aufgerufen, warum?
 				if (e?.classList.contains("active")) {
 					if (getSelection().anchorNode != e) e.classList.remove("active")
 				} else if (e) {
@@ -756,9 +758,9 @@ addEventListener("DOMContentLoaded", () => {
 					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
 					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
-					const componentsObj = (jsonObject.components[indexOfGuiActionRow] ??= {}).components ??= []
+					const componentsObj = jsonObject.components ? (jsonObject.components[indexOfGuiActionRow] ??= {}).components ??= [] : []
 					if (componentsObj.length >= 5) return error("An action row cannot have more than 5 components!")
-					componentsObj.push({custom_id: "", label: "Button label", type: 1, style: 1, disabled: false})
+					componentsObj.push({custom_id: "custom_", label: "Button", type: 1, style: 1, disabled: false})
 
 					const newComponent = guiActionRow.insertBefore(componentFragment.firstChild.cloneNode(true), guiActionRow.querySelector(".addComponent"))
 					newComponent.querySelector(".edit .componentInnerTemplate").removeAttribute("hidden")
