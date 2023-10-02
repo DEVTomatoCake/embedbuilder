@@ -767,7 +767,7 @@ addEventListener("DOMContentLoaded", () => {
 
 					buildEmbed()
 					addGuiEventListeners()
-					for (const e of newComponent.querySelectorAll(".top>.gui .item")) addComponentClickListener(e)
+					for (const item of newComponent.querySelectorAll(".top>.gui .item")) addComponentClickListener(item)
 
 					newComponent.scrollIntoView({ behavior: "smooth", block: "center" })
 					if (!smallerScreen.matches) {
