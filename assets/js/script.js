@@ -674,10 +674,8 @@ addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		for (const e of document.querySelectorAll(".top>.gui .item"))
+		const addComponentClickListener = e => {
 			e.addEventListener("click", () => {
-				console.warn(e)
-				// TODO: buildGui() wird für die neuen editoren nicht aufgerufen, warum?
 				if (e?.classList.contains("active")) {
 					if (getSelection().anchorNode != e) e.classList.remove("active")
 				} else if (e) {
@@ -689,8 +687,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (e.classList.contains("guiEmbedName")) return changeLastActiveGuiEmbed(guiEmbedIndex(e))
 					if (e.classList.contains("guiActionRowName")) return changeLastActiveGuiActionRow(guiActionRowIndex(e))
 
-					else if (inlineField)
-						inlineField.querySelector(".ttle~input").focus()
+					else if (inlineField) inlineField.querySelector(".ttle~input").focus()
 
 					else if (e.classList.contains("footer")) {
 						const date = new Date(jsonObject.embeds[guiEmbedIndex(e)]?.timestamp || new Date())
@@ -713,6 +710,8 @@ addEventListener("DOMContentLoaded", () => {
 					}
 				}
 			})
+		}
+		for (const e of document.querySelectorAll(".top>.gui .item")) addComponentClickListener(e)
 
 		// Scroll into view when tabs are opened in the GUI.
 		const lastTabs = new Set(Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg")))
@@ -761,12 +760,14 @@ addEventListener("DOMContentLoaded", () => {
 					const componentsObj = jsonObject.components ? (jsonObject.components[indexOfGuiActionRow] ??= {}).components ??= [] : []
 					if (componentsObj.length >= 5) return error("An action row cannot have more than 5 components!")
 					componentsObj.push({custom_id: "custom_", label: "Button", type: 1, style: 1, disabled: false})
+					if (!jsonObject.components) jsonObject.components = [{components: componentsObj}]
 
 					const newComponent = guiActionRow.insertBefore(componentFragment.firstChild.cloneNode(true), guiActionRow.querySelector(".addComponent"))
 					newComponent.querySelector(".edit .componentInnerTemplate").removeAttribute("hidden")
 
 					buildEmbed()
 					addGuiEventListeners()
+					for (const e of newComponent.querySelectorAll(".top>.gui .item")) addComponentClickListener(e)
 
 					newComponent.scrollIntoView({ behavior: "smooth", block: "center" })
 					if (!smallerScreen.matches) {
@@ -815,8 +816,8 @@ addEventListener("DOMContentLoaded", () => {
 
 					const rowindex = guiActionRowIndex(el.target)
 					const componentindex = guiComponentIndex(el.target)
-					const actionRowObj = rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {}
-					let componentObj
+					const actionRowObj = jsonObject.components && rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {}
+					let componentObj = {}
 					if (actionRowObj.components) actionRowObj.components.forEach((component, i) => {
 						if (i == componentindex) componentObj = component
 					})
