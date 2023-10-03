@@ -10,11 +10,11 @@ const hasParam = param => params.get(param) !== null
 const username = params.has("mb") ? "Manage Bot" : "TomatenKuchen"
 const avatar = "./assets/images/" + (params.has("mb") ? "managebot_40" : "background_192") + ".webp"
 const dataSpecified = params.get("data")
-let guiTabs = params.get("guitabs") || ["description"]
-let useJsonEditor = params.get("editor") == "json"
+const guiTabs = params.get("guitabs") || ["description"]
+const useJsonEditor = params.get("editor") == "json"
 let reverseColumns = hasParam("reverse")
 let autoUpdateURL = localStorage.getItem("autoUpdateURL"),
-	activeFields, lastActiveGuiEmbedIndex = -1, lastActiveGuiActionRowIndex = -1, lastActiveGuiComponentIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui
+	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui
 
 const guiEmbedIndex = guiEl => {
 	const guiEmbed = guiEl?.closest(".guiEmbed")
@@ -59,7 +59,7 @@ const createElement = object => {
 
 const encodeJson = (jsonCode, withURL = false, redirect = false) => {
 	let data = btoa(encodeURIComponent(JSON.stringify(typeof jsonCode === "object" ? jsonCode : json)))
-	let url = new URL(location.href)
+	const url = new URL(location.href)
 
 	if (withURL) {
 		url.searchParams.set("data", data)
@@ -173,7 +173,6 @@ const changeLastActiveGuiEmbed = index => {
 		}
 	}
 }
-const changeLastActiveGuiActionRow = index => lastActiveGuiActionRowIndex = index
 
 // Called after building embed for extra work.
 const afterBuilding = () => autoUpdateURL && urlOptions({ set: ["data", encodeJson(json)] })
@@ -193,12 +192,6 @@ const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
 const hide = el => el.style.removeProperty("display")
 const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
 const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
-
-const makeShort = (txt, length, mediaWidth) => {
-	if (mediaWidth && matchMedia(`(max-width:${mediaWidth}px)`).matches)
-		return txt.length > (length - 3) ? txt.substring(0, length - 3) + "..." : txt
-	return txt
-}
 
 const timestamp = stringISO => {
 	const date = stringISO ? new Date(stringISO) : new Date()
@@ -316,10 +309,10 @@ const uploadError = (message, browse, sleepTime = 7000) => {
 	}, sleepTime)
 }
 
-let embedKeys = ["author", "footer", "color", "thumbnail", "image", "fields", "title", "description", "url", "timestamp"]
-let componentKeys = ["label", "style", "emoji", "options", "placeholder", "custom_id", "url", "disabled", "type", "value", "min_values", "max_values"]
-let mainKeys = ["embed", "embeds", "content", "components"]
-let allJsonKeys = [...mainKeys, ...embedKeys, ...componentKeys]
+const embedKeys = ["author", "footer", "color", "thumbnail", "image", "fields", "title", "description", "url", "timestamp"]
+const componentKeys = ["label", "style", "emoji", "options", "placeholder", "custom_id", "url", "disabled", "type", "value", "min_values", "max_values"]
+const mainKeys = ["embed", "embeds", "content", "components"]
+const allJsonKeys = [...mainKeys, ...embedKeys, ...componentKeys]
 
 // 'jsonObject' is used internally, do not change it's value. Assign to 'json' instead.
 // 'json' is the object that is used to build the embed. Assigning to it also updates the editor.
@@ -367,7 +360,7 @@ addEventListener("DOMContentLoaded", () => {
 		lint: true,
 		extraKeys: {
 			// Fill in indent spaces on a new line when enter (return) key is pressed.
-			Enter: _ => {
+			Enter: () => {
 				const cursor = editor.getCursor()
 				const end = editor.getLine(cursor.line)
 				const leadingSpaces = end.replace(/\S($|.)+/g, "") || "    \n"
@@ -645,7 +638,6 @@ addEventListener("DOMContentLoaded", () => {
 
 					e.classList.add("active")
 					if (e.classList.contains("guiEmbedName")) return changeLastActiveGuiEmbed(guiEmbedIndex(e))
-					if (e.classList.contains("guiActionRowName")) return changeLastActiveGuiActionRow(guiActionRowIndex(e))
 
 					else if (inlineField) inlineField.querySelector(".ttle~input").focus()
 
@@ -947,8 +939,6 @@ addEventListener("DOMContentLoaded", () => {
 					const guiActionRow = e.closest(".guiActionRow")
 					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
 					if (indexOfGuiActionRow == -1) return error("Could not find the action row to add the component to.")
-
-					changeLastActiveGuiActionRow(indexOfGuiActionRow)
 				}
 
 			if (!jsonObject.embeds[lastActiveGuiEmbedIndex])
@@ -1316,9 +1306,7 @@ addEventListener("DOMContentLoaded", () => {
 	let pickInGuiMode = false
 	document.querySelector(".opt.gui").addEventListener("click", () => {
 		if (lastGuiJson && lastGuiJson !== JSON.stringify(json, null, 4)) buildGui()
-
 		lastGuiJson = false
-		activeFields = null
 
 		document.body.classList.add("gui")
 		if (pickInGuiMode) {
@@ -1341,7 +1329,6 @@ addEventListener("DOMContentLoaded", () => {
 		editor.refresh()
 		editor.focus()
 
-		activeFields = document.querySelectorAll(".gui > .item.active")
 		if (document.querySelector("section.side1.low")) togglePicker(true)
 	})
 
@@ -1549,8 +1536,7 @@ Object.defineProperty(window, "json", {
 	}
 })
 
-// Props used to validate embed properties.
-window.embedObjectsProps ??= {
+const embedObjectsProps = {
 	author: ["name", "url", "icon_url"],
 	thumbnail: ["url", "proxy_url", "height", "width"],
 	image: ["url", "proxy_url", "height", "width"],

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 const emojis = {
     "open_hands": "👐",
     "open_hands_tone1": "👐🏻",
