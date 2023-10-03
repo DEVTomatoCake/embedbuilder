@@ -150,28 +150,12 @@ const indexOfEmptyGuiEmbed = text => {
 }
 
 const changeLastActiveGuiEmbed = index => {
-	const pickerEmbedText = document.querySelector(".colors .cTop .embedText>span")
-
 	if (index === -1) {
 		lastActiveGuiEmbedIndex = -1
-		return pickerEmbedText.textContent = ""
+		return ""
 	}
 
 	lastActiveGuiEmbedIndex = index
-
-	if (pickerEmbedText) {
-		pickerEmbedText.textContent = index + 1
-
-		const guiEmbedNames = document.querySelectorAll(".gui .item.guiEmbedName")
-		pickerEmbedText.onclick = () => {
-			const newIndex = parseInt(prompt("Enter an embed number" + (guiEmbedNames.length > 1 ? `, 1 - ${guiEmbedNames.length}` : ""), index + 1))
-			if (isNaN(newIndex)) return
-			if (newIndex < 1 || newIndex > guiEmbedNames.length)
-				return error(guiEmbedNames.length === 1 ? `'${newIndex}' is not a valid embed number` : `'${newIndex}' doesn't seem like a number between 1 and ${guiEmbedNames.length}`)
-
-			changeLastActiveGuiEmbed(newIndex - 1)
-		}
-	}
 }
 
 // Called after building embed for extra work.
@@ -1141,7 +1125,7 @@ addEventListener("DOMContentLoaded", () => {
 				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true))
 
 				if (actionRow.components) for (const component of actionRow.components) {
-					if (component.style == 5 && component.url) {
+					if (component.style == 5) {
 						const buttonElement = document.createElement("button")
 						buttonElement.classList.add("b-" + buttonStyles[component.style])
 						buttonElement.dataset.style = component.style
@@ -1160,12 +1144,11 @@ addEventListener("DOMContentLoaded", () => {
 					} else {
 						const buttonElement = document.createElement("button")
 
-						if (component.style) {
-							buttonElement.classList.add("b-" + buttonStyles[component.style])
-							buttonElement.dataset.style = component.style
-						}
+						buttonElement.classList.add("b-" + buttonStyles[component.style])
+						buttonElement.dataset.style = component.style
+
 						if (component.disabled) buttonElement.classList.add("disabled")
-						if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
+						if (component.custom_id) buttonElement.dataset.custom_id = component.custom_id
 						if (component.emoji) {
 							let emojiElement
 							if (/^[0-9]{17,21}$/.test(component.emoji.id || component.emoji)) {
@@ -1177,7 +1160,7 @@ addEventListener("DOMContentLoaded", () => {
 							}
 							if (emojiElement) buttonElement.appendChild(emojiElement)
 						}
-						if (component.label) {
+						if (component.label && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
 							const label = document.createElement("span")
 							label.innerText = component.label
 							buttonElement.appendChild(label)
@@ -1236,69 +1219,6 @@ addEventListener("DOMContentLoaded", () => {
 		}
 	})
 
-	const picker = new CP(document.querySelector(".picker"), state = { parent: document.querySelector(".cTop") })
-
-	picker.fire?.("change", toRGB("#41f097"))
-
-	const colors = document.querySelector(".colors")
-	const hexInput = colors?.querySelector(".hex>div input")
-
-	let typingHex = true
-	let exit = false
-
-	removePicker = () => {
-		if (exit) return exit = false
-		if (typingHex) picker.enter()
-		else {
-			typingHex = false
-			exit = true
-			colors.classList.remove("picking")
-			picker.exit()
-		}
-	}
-
-	document.querySelector(".colBack")?.addEventListener("click", () => {
-		picker.self.remove()
-		typingHex = false
-		removePicker()
-	})
-
-	picker.on?.("exit", removePicker)
-	picker.on?.("enter", () => {
-		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
-		if (jsonObject?.embeds[embedIndex]?.color) {
-			hexInput.value = jsonObject.embeds[embedIndex].color.toString(16).padStart(6, "0")
-			document.querySelector(".hex.incorrect")?.classList.remove("incorrect")
-		}
-		colors.classList.add("picking")
-	})
-
-	document.querySelectorAll(".color").forEach(e => e.addEventListener("click", el => {
-		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
-		const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex]
-		const embedObj = jsonObject.embeds[embedIndex] ??= {}
-		const color = el.target.closest(".color")
-
-		embedObj.color = toRGB(color.style.backgroundColor, false, true)
-		if (embed) embed.style.borderColor = color.style.backgroundColor
-		picker.source.style.removeProperty("background")
-	}))
-
-	hexInput?.addEventListener("focus", () => typingHex = true)
-	setTimeout(() => {
-		picker.on?.("change", (r, g, b) => {
-			const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
-			const embed = document.querySelectorAll(".msgEmbed .container>.embed")[embedIndex]
-			const embedObj = jsonObject.embeds[embedIndex]
-
-			const hex = r.toString(16) + g.toString(16) + b.toString(16)
-			embedObj.color = parseInt(hex, 16)
-			picker.source.style.background = "#" + hex.padStart(6, "0")
-			embed.style.borderColor = "#" + hex.padStart(6, "0")
-			hexInput.value = "#" + hex.padStart(6, "0")
-		})
-	}, 1000)
-
 	document.querySelector(".timeText").innerText = timestamp()
 
 	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightBlock(block)
@@ -1335,7 +1255,6 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelector(".clear").addEventListener("click", () => {
 		json = {}
 
-		picker.source.style.removeProperty("background")
 		document.querySelector(".msgEmbed .container>.embed")?.remove()
 
 		buildEmbed()
@@ -1459,38 +1378,8 @@ addEventListener("DOMContentLoaded", () => {
 			})
 	})
 
-	togglePicker = pickLater => {
-		colors.classList.toggle("display")
-		document.querySelector(".side1").classList.toggle("low")
-		if (pickLater) pickInGuiMode = true
-	}
-
 	document.querySelector(".pickerToggle").addEventListener("click", () => togglePicker())
 	buildEmbed()
-
-	document.body.addEventListener("click", e => {
-		if (e.target.classList.contains("low") || (e.target.classList.contains("top") && colors.classList.contains("display")))
-			togglePicker()
-	})
-
-	document.querySelector(".colors .hex>div")?.addEventListener("input", e => {
-		let inputValue = e.target.value
-
-		if (inputValue.startsWith("#")) {
-			e.target.value = inputValue.slice(1)
-			inputValue = e.target.value
-		}
-		if (inputValue.length !== 6 || !/^[a-zA-Z0-9]{6}$/g.test(inputValue))
-			return e.target.closest(".hex").classList.add("incorrect")
-
-		e.target.closest(".hex").classList.remove("incorrect")
-
-		const embedIndex = lastActiveGuiEmbedIndex == -1 ? 0 : lastActiveGuiEmbedIndex
-		jsonObject.embeds[embedIndex].color = parseInt(inputValue, 16)
-		picker.fire?.("change", toRGB(inputValue))
-
-		buildEmbed()
-	})
 
 	const menuMore = document.querySelector(".item.section .inner.more")
 	if (menuMore.childElementCount < 2) menuMore?.classList.add("invisible")

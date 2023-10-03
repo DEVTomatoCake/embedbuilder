@@ -1,8 +1,3 @@
-/**
- * This script file will (or atleast should) run before the main script file runs.
- * This file should contain stuff like options, global variables (etc.) to be used by the main script.
- */
-
 // Default JSON object
 json = {
 	content: "Hello ~~world~~ Discord user :D\n\n# New markdown works too!\n\n## So, what are you waiting for?\n\n### Go ahead and edit this message!",

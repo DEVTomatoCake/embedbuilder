@@ -4,7 +4,6 @@
 		"es2022": true
 	},
 	"plugins": ["html", "@html-eslint", "unicorn", "sonarjs"],
-	"ignorePatterns": ["assets/libs/color-picker/color-picker.min.js"],
 	"settings": {
 		"html/html-extensions": [".html"]
 	},
