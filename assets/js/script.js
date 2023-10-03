@@ -80,14 +80,6 @@ const decodeJson = data => {
 	return typeof jsonData === "string" ? JSON.parse(jsonData) : jsonData
 }
 
-const toRGB = (hex, reversed, integer) => {
-	if (reversed) return "#" + hex.match(/\d+/g).map(x => parseInt(x).toString(16).padStart(2, "0")).join("")
-	if (integer) return parseInt(hex.match(/\d+/g).map(x => parseInt(x).toString(16).padStart(2, "0")).join(""), 16)
-	if (hex.includes(",")) return hex.match(/\d+/g)
-	hex = hex.replace("#", "").match(/.{1,2}/g)
-	return [parseInt(hex[0], 16), parseInt(hex[1], 16), parseInt(hex[2], 16), 1]
-}
-
 const reverse = reversed => {
 	const side = document.querySelector(reversed ? ".side2" : ".side1")
 	if (side.nextElementSibling) side.parentElement.insertBefore(side.nextElementSibling, side)
@@ -333,7 +325,7 @@ addEventListener("DOMContentLoaded", () => {
 		actionRowCont = document.querySelector(".components"),
 		gui = guiParent.querySelector(".gui:first-of-type")
 
-	editor = CodeMirror(elt => editorHolder.parentNode.replaceChild(elt, editorHolder), {
+	const editor = CodeMirror(elt => editorHolder.parentNode.replaceChild(elt, editorHolder), {
 		value: JSON.stringify(json, null, 4),
 		gutters: ["CodeMirror-foldgutter", "CodeMirror-lint-markers"],
 		scrollbarStyle: "overlay",
@@ -475,12 +467,16 @@ addEventListener("DOMContentLoaded", () => {
 		gui.innerHTML = ""
 		gui.appendChild(guiEmbedAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
+				if (!jsonObject.embeds) jsonObject.embeds = []
+				if (jsonObject.embeds.length >= 10) return error("You can only have up to 10 embeds!")
 				if (indexOfEmptyGuiEmbed("(empty embed)") !== -1) return
 				jsonObject.embeds.push({})
 				buildGui()
 			})
 		gui.appendChild(guiActionRowAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
+				if (!jsonObject.components) jsonObject.components = []
+				if (jsonObject.components.length >= 5) return error("You can only have up to 5 action rows!")
 				jsonObject.components.push({})
 				buildGui()
 			})
@@ -636,7 +632,8 @@ addEventListener("DOMContentLoaded", () => {
 						)
 					} else if (input) {
 						if (!smallerScreen.matches) input.focus()
-						input.selectionStart = input.selectionEnd = input.value.length
+						input.selectionStart = input.value.length
+						input.selectionEnd = input.value.length
 					} else if (txt && !smallerScreen.matches) txt.focus()
 
 					if (e.classList.contains("fields")) {
@@ -719,8 +716,7 @@ addEventListener("DOMContentLoaded", () => {
 					const embedIndex = guiEmbedIndex(e)
 					const fieldIndex = Array.from(e.closest(".fields").children).indexOf(e.closest(".field"))
 
-					if (jsonObject.embeds[embedIndex]?.fields[fieldIndex] == -1)
-						return error("Failed to the field to remove.")
+					if (jsonObject.embeds[embedIndex]?.fields[fieldIndex] == -1) return error("Failed to the field to remove.")
 
 					jsonObject.embeds[embedIndex].fields.splice(fieldIndex, 1)
 
@@ -733,8 +729,7 @@ addEventListener("DOMContentLoaded", () => {
 					const rowIndex = guiActionRowIndex(e)
 					const componentIndex = Array.from(e.closest(".guiActionRow").children).indexOf(e.closest(".guiComponent"))
 
-					if (jsonObject.components[rowIndex]?.components[componentIndex] == -1)
-						return error("Failed to find the component to remove.")
+					if (jsonObject.components[rowIndex]?.components[componentIndex] == -1) return error("Failed to find the component to remove.")
 
 					jsonObject.components[rowIndex].components.splice(componentIndex, 1)
 
@@ -833,6 +828,10 @@ addEventListener("DOMContentLoaded", () => {
 							case "editComponentLabel":
 								componentObj.label = value
 								buildEmbed({ only: "componentLabel", index: guiComponentIndex(el.target) })
+								break
+							case "editComponentPlaceholder":
+								componentObj.placeholder = value
+								buildEmbed({ only: "componentPlaceholder", index: guiComponentIndex(el.target) })
 								break
 							case "editComponentStyle":
 								componentObj.style = parseInt(value)
@@ -977,7 +976,7 @@ addEventListener("DOMContentLoaded", () => {
 	gui.classList.remove("hidden")
 
 	// Renders embed and message content.
-	buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
+	const buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
 		if (jsonData) json = jsonData
 		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed")
 
@@ -1144,12 +1143,14 @@ addEventListener("DOMContentLoaded", () => {
 					} else {
 						const buttonElement = document.createElement("button")
 
-						buttonElement.classList.add("b-" + buttonStyles[component.style])
-						buttonElement.dataset.style = component.style
+						if (component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
+							buttonElement.classList.add("b-" + buttonStyles[component.style])
+							buttonElement.dataset.style = component.style
+						}
 
 						if (component.disabled) buttonElement.classList.add("disabled")
 						if (component.custom_id) buttonElement.dataset.custom_id = component.custom_id
-						if (component.emoji) {
+						if (component.emoji && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
 							let emojiElement
 							if (/^[0-9]{17,21}$/.test(component.emoji.id || component.emoji)) {
 								emojiElement = document.createElement("img")
@@ -1168,11 +1169,8 @@ addEventListener("DOMContentLoaded", () => {
 
 						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) {
 							buttonElement.classList.add("select")
-
-							const svgSelect = document.createElement("div")
-							svgSelect.innerHTML = "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M16.59 8.59003L12 13.17L7.41 8.59003L6 " +
-								"10L12 16L18 10L16.59 8.59003Z'></path></svg>" + encode(component.placeholder)
-							buttonElement.appendChild(svgSelect)
+							buttonElement.innerHTML = encode(component.placeholder) + "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M16.59 " +
+								"8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z'></path></svg>"
 						}
 
 						actionRowElement.appendChild(buttonElement)
@@ -1187,33 +1185,32 @@ addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
-	editor.on("change", editor => {
+	editor.on("change", edi => {
 		// If the editor value is not set by the user, return.
-		if (JSON.stringify(json, null, 4) == editor.getValue()) return
+		if (JSON.stringify(json, null, 4) == edi.getValue()) return
 
 		try {
 			// Autofill when " is typed on new line
-			const line = editor.getCursor().line
-			const text = editor.getLine(line)
+			const line = edi.getCursor().line
+			const text = edi.getLine(line)
 
 			if (text.trim() == '"') {
-				editor.replaceRange(text.trim() + ":", { line, ch: line.length })
-				editor.setCursor(line, text.length)
+				edi.replaceRange(text.trim() + ":", { line, ch: line.length })
+				edi.setCursor(line, text.length)
 			}
 
-			json = JSON.parse(editor.getValue())
+			json = JSON.parse(edi.getValue())
 			const dataKeys = Object.keys(json)
 
 			if (dataKeys.length && !allJsonKeys.some(key => dataKeys.includes(key))) {
 				const usedKeys = dataKeys.filter(key => !allJsonKeys.includes(key))
-				if (usedKeys.length > 2)
-					return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, -1).join("', '")}', and '${usedKeys.at(-1)}' are invalid keys.`)
+				if (usedKeys.length > 2) return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, -1).join("', '")}', and '${usedKeys.at(-1)}' are invalid keys.`)
 				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys.at(-1) + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`)
 			}
 
 			buildEmbed()
 		} catch {
-			if (editor.getValue()) return
+			if (edi.getValue()) return
 			document.body.classList.add("emptyEmbed")
 			embedContent.innerHTML = ""
 		}
@@ -1223,16 +1220,11 @@ addEventListener("DOMContentLoaded", () => {
 
 	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightBlock(block)
 
-	let pickInGuiMode = false
 	document.querySelector(".opt.gui").addEventListener("click", () => {
 		if (lastGuiJson && lastGuiJson !== JSON.stringify(json, null, 4)) buildGui()
 		lastGuiJson = false
 
 		document.body.classList.add("gui")
-		if (pickInGuiMode) {
-			pickInGuiMode = false
-			togglePicker()
-		}
 	})
 
 	document.querySelector(".opt.json").addEventListener("click", () => {
@@ -1248,8 +1240,6 @@ addEventListener("DOMContentLoaded", () => {
 		editor.setValue(jsonStr === "{}" ? "{\n\t\n}" : jsonStr)
 		editor.refresh()
 		editor.focus()
-
-		if (document.querySelector("section.side1.low")) togglePicker(true)
 	})
 
 	document.querySelector(".clear").addEventListener("click", () => {
@@ -1341,12 +1331,12 @@ addEventListener("DOMContentLoaded", () => {
 		}
 
 		if (e.target.closest(".item.download"))
-			return createElement({ a: { download: "embed-" + new Date().toLocaleTimeString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click()
+			createElement({ a: { download: "tk_embed_" + new Date().toLocaleTimeString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4)) } }).click()
+		else if (e.target.closest(".item.auto")) {
+			const input = e.target.closest(".item")?.querySelector("input")
+			if (input) input.checked = !input.checked
 
-		const input = e.target.closest(".item")?.querySelector("input")
-		if (input) input.checked = !input.checked
-
-		if (e.target.closest(".item.auto")) {
+			e.target.checked = !e.target.checked
 			autoUpdateURL = document.body.classList.toggle("autoUpdateURL")
 			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", true)
 			else localStorage.removeItem("autoUpdateURL")
@@ -1355,19 +1345,7 @@ addEventListener("DOMContentLoaded", () => {
 			reverse(reverseColumns)
 			reverseColumns = !reverseColumns
 			toggleStored("reverseColumns")
-		} else if (e.target.closest(".toggles>.item")) {
-			const win = input.closest(".item").classList[2]
-
-			if (input.checked) {
-				document.body.classList.remove("no-" + win)
-				localStorage.removeItem("hide" + win)
-			} else {
-				document.body.classList.add("no-" + win)
-				localStorage.setItem("hide" + win, true)
-			}
-		}
-
-		e.target.closest(".top-btn")?.classList.toggle("active")
+		} else e.target.closest(".top-btn")?.classList.toggle("active")
 	})
 
 	document.querySelectorAll(".img").forEach(e => {
@@ -1378,7 +1356,6 @@ addEventListener("DOMContentLoaded", () => {
 			})
 	})
 
-	document.querySelector(".pickerToggle").addEventListener("click", () => togglePicker())
 	buildEmbed()
 
 	const menuMore = document.querySelector(".item.section .inner.more")

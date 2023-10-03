@@ -1181,7 +1181,6 @@ body:not(.gui) .pickerToggle {
 	height: 40px;
 	width: 100px;
 	border-radius: 5px;
-	margin-bottom: 10px;
 	padding: 7px;
 	background: #1b1c2061;
 	box-shadow: -2px -2px 10px 0px #0000;
@@ -1216,10 +1215,6 @@ body:not(.gui) .chooser>.back {
 	top: 50%;
 	transform: translateY(-50%);
 	pointer-events: none;
-}
-
-.bottom {
-	max-width: 90%;
 }
 
 .top {
@@ -1374,7 +1369,7 @@ textarea {
 	font-size: 13px;
 	min-width: 100%;
 	max-width: 100% !important;
-	height: 80px;
+	height: 90px;
 	max-height: 450px;
 }
 
@@ -1384,7 +1379,7 @@ textarea {
 }
 
 .top>.gui .item.content+.edit textarea {
-	height: 100px;
+	height: 120px;
 }
 
 .browse, .footerDate {
@@ -1841,8 +1836,6 @@ span.h3 {
 	transition: .5s ease;
 	display: flex;
 	gap: 10px;
-	text-align: center;
-	align-content: center;
 	max-width: none;
 }
 
@@ -2420,7 +2413,6 @@ body.toHook .done .channels .selectOptions .hook {
 }
 
 @media screen and (max-width: 490px) {
-
 	.markup>blockquote,
 	.markup pre {
 		max-width: 99%;
@@ -2431,9 +2423,8 @@ body.toHook .done .channels .selectOptions .hook {
 	background: none;
 	height: auto;
 	font-size: 13px;
-	left: 19px;
 	margin: auto;
-	padding: 10px 0 10px 0;
+	padding: 10px 0;
 	z-index: 1;
 }
 
@@ -2574,8 +2565,8 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
 
 .actionrow .select {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
+	justify-content: space-between;
 	padding: 8px;
 	margin: 0 16px 0 0;
 	background-color: #1E1F22;
