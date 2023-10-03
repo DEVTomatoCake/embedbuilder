@@ -5,18 +5,15 @@
  * https://github.com/DEVTomatoCake/embedbuilder
  */
 
-window.options ??= {}
-
 let params = new URLSearchParams(location.search),
 	hasParam = param => params.get(param) !== null,
-	dataSpecified = options.data || params.get("data"),
+	dataSpecified = params.get("data"),
 	username = params.has("mb") ? "Manage Bot" : "TomatenKuchen",
 	avatar = "./assets/images/" + (params.has("mb") ? "managebot_40" : "background_192") + ".webp",
-	guiTabs = params.get("guitabs") || options.guiTabs,
-	useJsonEditor = params.get("editor") === "json" || options.useJsonEditor,
-	reverseColumns = hasParam("reverse") || options.reverseColumns,
-	allowPlaceholders = hasParam("placeholders") || options.allowPlaceholders,
-	autoUpdateURL = localStorage.getItem("autoUpdateURL") || options.autoUpdateURL,
+	guiTabs = params.get("guitabs") || ["description"],
+	useJsonEditor = params.get("editor") == "json",
+	reverseColumns = hasParam("reverse"),
+	autoUpdateURL = localStorage.getItem("autoUpdateURL"),
 	validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastActiveGuiActionRowIndex = -1, lastActiveGuiComponentIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui
 
 const guiEmbedIndex = guiEl => {
@@ -329,7 +326,6 @@ let allJsonKeys = [...mainKeys, ...embedKeys, ...componentKeys]
 let jsonObject = window.json ?? {}
 
 if (dataSpecified) jsonObject = decodeJson()
-if (allowPlaceholders) allowPlaceholders = params.get("placeholders") === "errors" ? 1 : 2
 
 if (!jsonObject.embeds?.length) jsonObject.embeds = []
 if (!jsonObject.components?.length) jsonObject.components = []
@@ -425,41 +421,6 @@ addEventListener("DOMContentLoaded", () => {
 			else if (wsjson.action == "result_send") error(wsjson.success ? "The message was sent successfully!" : "The message couldn't be sent: " + wsjson.error)
 		}
 	})
-
-	const allGood = embedObj => {
-		let invalid, err
-		let str = JSON.stringify(embedObj, null, 4)
-		let re = /("(?:icon_)?url": *")((?!\w+?:\/\/).+)"/g.exec(str)
-
-		if (embedObj.timestamp && new Date(embedObj.timestamp).toString() === "Invalid Date") {
-			if (allowPlaceholders == 2) return true
-			if (!allowPlaceholders) {
-				invalid = true
-				err = "Timestamp is invalid"
-			}
-		} else if (re) { // If a URL is found without a protocol
-			if (!/\w+:|\/\/|^\//g.test(re[2]) && re[2].includes(".")) {
-				let activeInput = document.querySelector('input[class$="link" i]:focus')
-				if (activeInput && !allowPlaceholders) {
-					lastPos = activeInput.selectionStart + 8
-					activeInput.value = `https://${re[2]}`
-					activeInput.setSelectionRange(lastPos, lastPos)
-					return true
-				}
-			}
-			if (allowPlaceholders !== 2) {
-				invalid = true
-				err = `URL should have a protocol. Did you mean <span class="inline full short">https://${makeShort(re[2], 30, 600)}</span>?`
-			}
-		}
-
-		if (invalid) {
-			validationError = true
-			return error(err)
-		}
-
-		return true
-	}
 
 	const createEmbedFields = (fields, embedFields) => {
 		embedFields.innerHTML = ""
@@ -653,13 +614,12 @@ addEventListener("DOMContentLoaded", () => {
 									if (newChild.classList.contains("disableCheck")) newChild.querySelector("input").checked = Boolean(f.disabled)
 									else if (newChild.classList?.contains("custom_id")) newChild.querySelector(".custom_id input").value = f?.custom_id || ""
 									else if (newChild.classList?.contains("label")) newChild.querySelector(".label input").value = f?.label || ""
+									else if (newChild.classList?.contains("placeholder")) newChild.querySelector(".placeholder input").value = f?.placeholder || ""
 									else if (newChild.classList?.contains("editComponentStyle")) newChild.value = f?.style || 1
 									else if (newChild.classList?.contains("url")) newChild.querySelector(".url input").value = f?.url || ""
 									else if (newChild.classList?.contains("emoji")) newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
 
 									/*
-									edit.querySelector(".editSelectMenuCustomId").value = component?.custom_id || ""
-									edit.querySelector(".editSelectMenuPlaceholder").value = component?.placeholder || ""
 									edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
 									edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
 									edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
@@ -1001,18 +961,13 @@ addEventListener("DOMContentLoaded", () => {
 
 		addGuiEventListeners()
 
-		let activeGuiEmbed
 		if (opts?.guiEmbedIndex) {
-			activeGuiEmbed = Array.from(document.querySelectorAll(".gui .item.guiEmbedName"))[opts.guiEmbedIndex]
+			const activeGuiEmbed = Array.from(document.querySelectorAll(".gui .item.guiEmbedName"))[opts.guiEmbedIndex]
 			activeGuiEmbed?.classList.add("active")
-			activeGuiEmbed = activeGuiEmbed?.nextElementSibling
 		}
-
-		let activeGuiActionRow
 		if (opts?.guiActionRowIndex) {
-			activeGuiActionRow = Array.from(document.querySelectorAll(".gui .item.guiActionRowName"))[opts.guiActionRowIndex]
+			const activeGuiActionRow = Array.from(document.querySelectorAll(".gui .item.guiActionRowName"))[opts.guiActionRowIndex]
 			activeGuiActionRow?.classList.add("active")
-			activeGuiActionRow = activeGuiActionRow?.nextElementSibling
 		}
 
 		if (opts?.activateClassNames)
@@ -1055,7 +1010,6 @@ addEventListener("DOMContentLoaded", () => {
 		try {
 			// If there's no message content, hide the message content HTML element.
 			if (jsonObject.content) {
-				// Update embed content in render
 				embedContent.innerHTML = markup(encode(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
 				document.body.classList.remove("emptyContent")
 			} else document.body.classList.add("emptyContent")
@@ -1071,7 +1025,8 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedTitle":
 					const embedTitle = embed?.querySelector(".embedTitle")
 					if (!embedTitle) return buildEmbed()
-					if (embedObj.title) display(embedTitle, markup(`${embedObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(embedObj.url)) + '">' + encode(embedObj.title) + "</a>" : encode(embedObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
+					if (embedObj.title) display(embedTitle, markup(embedObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(embedObj.url)) + '">' + encode(embedObj.title) + "</a>" :
+						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
 					else hide(embedTitle)
 
 					return externalParsing({ element: embedTitle })
@@ -1081,7 +1036,8 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedAuthor) return buildEmbed()
 					if (embedObj.author?.name) display(embedAuthor, `
 						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(embedObj.author.icon_url)) + '">' : ""}
-						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(embedObj.author.url)) + '" target="_blank">' + encode(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(embedObj.author.name) + "</span>"}`, "flex")
+						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(embedObj.author.url)) + '" target="_blank">' +
+							encode(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(embedObj.author.name) + "</span>"}`, "flex")
 					else hide(embedAuthor)
 
 					return externalParsing({ element: embedAuthor })
@@ -1131,7 +1087,6 @@ addEventListener("DOMContentLoaded", () => {
 
 			embedCont.innerHTML = ""
 			for (const currentObj of jsonObject.embeds) {
-				if (!allGood(currentObj)) continue
 				validationError = false
 
 				const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true))
@@ -1174,8 +1129,8 @@ addEventListener("DOMContentLoaded", () => {
 				} else hide(embedImage.parentElement)
 
 				if (currentObj.footer?.text) display(embedFooter, `
-					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.com/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
-						${encode(currentObj.footer.text)}
+					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.com/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}
+					<span class="embedFooterText">${encode(currentObj.footer.text)}
 					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
 				else if (currentObj.timestamp)
 					display(embedFooter, `<span class="embedFooterText">${encode(timestamp(currentObj.timestamp))}</span></div>`, "flex")
@@ -1201,6 +1156,8 @@ addEventListener("DOMContentLoaded", () => {
 						const buttonElement = document.createElement("button")
 						buttonElement.classList.add("b-" + buttonStyles[component.style])
 						buttonElement.dataset.style = component.style
+						buttonElement.title = encode(url(component.url))
+
 						if (component.disabled) buttonElement.classList.add("disabled")
 						else buttonElement.onclick = () => window.open(url(component.url), "_blank", "noopener")
 
@@ -1221,11 +1178,10 @@ addEventListener("DOMContentLoaded", () => {
 						if (component.disabled) buttonElement.classList.add("disabled")
 						if (component.custom_id && component.style != 5) buttonElement.dataset.custom_id = component.custom_id
 						if (component.emoji) {
-							const id = component.emoji.id || component.emoji
 							let emojiElement
-							if (/^[0-9]{17,21}$/.test(id)) {
+							if (/^[0-9]{17,21}$/.test(component.emoji.id || component.emoji)) {
 								emojiElement = document.createElement("img")
-								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(id) + ".webp?size=16"
+								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(component.emoji.id || component.emoji) + ".webp?size=16"
 							} else if (component.emoji.name) {
 								emojiElement = document.createElement("span")
 								emojiElement.innerText = component.emoji.name
@@ -1243,7 +1199,7 @@ addEventListener("DOMContentLoaded", () => {
 
 							const svgSelect = document.createElement("div")
 							svgSelect.innerHTML = "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M16.59 8.59003L12 13.17L7.41 8.59003L6 " +
-								"10L12 16L18 10L16.59 8.59003Z'></path></svg>" + component.placeholder
+								"10L12 16L18 10L16.59 8.59003Z'></path></svg>" + encode(component.placeholder)
 							buttonElement.appendChild(svgSelect)
 						}
 

@@ -2828,3 +2828,8 @@ body .top>.gui .item.guiActionRowName:not(.active)+.guiActionRow {
     color: #9A9BB4;
 	width: 400px;
 }
+
+.actionrow .select div {
+	display: flex;
+	align-items: center;
+}

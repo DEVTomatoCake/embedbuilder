@@ -3,19 +3,6 @@
  * This file should contain stuff like options, global variables (etc.) to be used by the main script.
  */
 
-// Options
-
-// URL options can override the options below.
-// Options set through the menu can override both until the page is refreshed.
-options = {
-	data: null,
-	guiTabs: ["description"],
-	useJsonEditor: false,
-	reverseColumns: false,
-	allowPlaceholders: false,
-	autoUpdateURL: false
-}
-
 // Default JSON object
 json = {
 	content: "Hello ~~world~~ Discord user :D\n\n# New markdown works too!\n\n## So, what are you waiting for?\n\n### Go ahead and edit this message!",
@@ -61,8 +48,10 @@ json = {
 			components: [
 				{
 					type: 3,
-					label: "Select menu",
+					placeholder: "Select a value!",
 					custom_id: "selectmenu",
+					min_values: 1,
+					max_values: 2,
 					options: [
 						{
 							label: "Option 1",
