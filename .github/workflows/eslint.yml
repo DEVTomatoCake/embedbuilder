@@ -15,9 +15,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+          cache: "npm"
 
-      - name: "🛸 install eslint html plugins"
-        run: npm i eslint-plugin-html @html-eslint/parser @html-eslint/eslint-plugin eslint-plugin-unicorn eslint-plugin-sonarjs
+      - name: "🛸 install eslint plugins"
+        run: npm i --no-fund --no-audit
 
       - name: "🔍 lint code"
         run: npx eslint --ext .html,.js . --report-unused-disable-directives

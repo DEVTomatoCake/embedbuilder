@@ -5,16 +5,16 @@
  * https://github.com/DEVTomatoCake/embedbuilder
  */
 
-let params = new URLSearchParams(location.search),
-	hasParam = param => params.get(param) !== null,
-	dataSpecified = params.get("data"),
-	username = params.has("mb") ? "Manage Bot" : "TomatenKuchen",
-	avatar = "./assets/images/" + (params.has("mb") ? "managebot_40" : "background_192") + ".webp",
-	guiTabs = params.get("guitabs") || ["description"],
-	useJsonEditor = params.get("editor") == "json",
-	reverseColumns = hasParam("reverse"),
-	autoUpdateURL = localStorage.getItem("autoUpdateURL"),
-	validationError, activeFields, lastActiveGuiEmbedIndex = -1, lastActiveGuiActionRowIndex = -1, lastActiveGuiComponentIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui
+const params = new URLSearchParams(location.search)
+const hasParam = param => params.get(param) !== null
+const username = params.has("mb") ? "Manage Bot" : "TomatenKuchen"
+const avatar = "./assets/images/" + (params.has("mb") ? "managebot_40" : "background_192") + ".webp"
+const dataSpecified = params.get("data")
+let guiTabs = params.get("guitabs") || ["description"]
+let useJsonEditor = params.get("editor") == "json"
+let reverseColumns = hasParam("reverse")
+let autoUpdateURL = localStorage.getItem("autoUpdateURL"),
+	activeFields, lastActiveGuiEmbedIndex = -1, lastActiveGuiActionRowIndex = -1, lastActiveGuiComponentIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui
 
 const guiEmbedIndex = guiEl => {
 	const guiEmbed = guiEl?.closest(".guiEmbed")
@@ -494,7 +494,7 @@ addEventListener("DOMContentLoaded", () => {
 	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
 
 	// Renders the GUI editor with json data from 'jsonObject'.
-	buildGui = (object = jsonObject, opts) => {
+	buildGui = (object = jsonObject, opts = {}) => {
 		gui.innerHTML = ""
 		gui.appendChild(guiEmbedAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
@@ -961,20 +961,20 @@ addEventListener("DOMContentLoaded", () => {
 
 		addGuiEventListeners()
 
-		if (opts?.guiEmbedIndex) {
+		if (opts.guiEmbedIndex) {
 			const activeGuiEmbed = Array.from(document.querySelectorAll(".gui .item.guiEmbedName"))[opts.guiEmbedIndex]
 			activeGuiEmbed?.classList.add("active")
 		}
-		if (opts?.guiActionRowIndex) {
+		if (opts.guiActionRowIndex) {
 			const activeGuiActionRow = Array.from(document.querySelectorAll(".gui .item.guiActionRowName"))[opts.guiActionRowIndex]
 			activeGuiActionRow?.classList.add("active")
 		}
 
-		if (opts?.activateClassNames)
+		if (opts.activateClassNames)
 			for (const cName of opts.activateClassNames)
 				for (const e of document.getElementsByClassName(cName)) e.classList.add("active")
 
-		else if (opts?.guiTabs) {
+		else if (opts.guiTabs) {
 			const tabs = opts.guiTabs.split?.(/, */) || opts.guiTabs
 			const bottomKeys = new Set(["footer", "image"])
 			const topKeys = new Set(["author", "content"])
@@ -990,7 +990,7 @@ addEventListener("DOMContentLoaded", () => {
 				const gui2 = document.querySelector(".top .gui")
 				gui2.scrollTo({ top: gui2.scrollHeight })
 			}
-		} else if (opts?.activate)
+		} else if (opts.activate)
 			for (const clss of Array.from(opts.activate).map(el => el.className).map(cls => "." + cls.split(" ").slice(0, 2).join(".")))
 				for (const e of document.querySelectorAll(clss))
 					e.classList.add("active")
@@ -1087,8 +1087,6 @@ addEventListener("DOMContentLoaded", () => {
 
 			embedCont.innerHTML = ""
 			for (const currentObj of jsonObject.embeds) {
-				validationError = false
-
 				const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true))
 				const embedGrid = embedElement.querySelector(".embedGrid")
 				const embedTitle = embedElement.querySelector(".embedTitle")
@@ -1105,12 +1103,13 @@ addEventListener("DOMContentLoaded", () => {
 				if (currentObj.description) display(embedDescription, markup(encode(currentObj.description), { replaceEmojis: true, replaceHeaders: true }))
 				else hide(embedDescription)
 
-				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = (typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color)
+				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color
 				else embedGrid.closest(".embed").style.removeProperty("border-color")
 
 				if (currentObj.author?.name) display(embedAuthor, `
 					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(currentObj.author.icon_url)) + '">' : ""}
-					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(currentObj.author.url)) + '" target="_blank">' + encode(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(currentObj.author.name) + "</span>"}`, "flex")
+					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(currentObj.author.url)) + '" target="_blank">' +
+					encode(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(currentObj.author.name) + "</span>"}`, "flex")
 				else hide(embedAuthor)
 
 				const pre = embedGrid.querySelector(".markup pre")
@@ -1562,21 +1561,19 @@ window.embedObjectsProps ??= {
 function cleanEmbed(obj, recursing = false) {
 	if (!recursing)
 		// Remove all invalid properties from embed object.
-		for (const key in obj)
+		for (const key in obj) {
 			if (!embedKeys.includes(key)) delete obj[key]
-			else if (obj[key].constructor === Object) // Value is an object. eg. 'author'
+			else if (obj[key].constructor === Object)
 				// Remove items that are not in the props of the current key.
-				for (const item in obj[key])
-					if (!embedObjectsProps[key].includes(item)) delete obj[key][item]
-
-			else if (obj[key].constructor === Array) // Value is an array. eg. 'fields'
+				for (const item in obj[key]) if (!embedObjectsProps[key].includes(item)) delete obj[key][item]
+			else if (obj[key].constructor === Array)
 				// Remove items that are not in the props of the current key.
 				for (const field of obj[key])
-					for (const i in field)
-						if (!embedObjectsProps[key].items.includes(i)) delete field[i]
+					for (const i in field) if (!embedObjectsProps[key].items.includes(i)) delete field[i]
+		}
 
 	// Remove empty properties from embed object.
-	for (const [key, val] of Object.entries(obj))
+	for (const [key, val] of Object.entries(obj)) {
 		if (val === void 0 || val.trim?.() == "")
 			// Remove the key if value is empty
 			delete obj[key]
@@ -1592,6 +1589,7 @@ function cleanEmbed(obj, recursing = false) {
 			// If object isn't a string, boolean, number, array or object, convert it to string.
 			if (!["string", "boolean", "number"].includes(typeof val))
 				obj[key] = val.toString()
+	}
 
 	return obj
 }
