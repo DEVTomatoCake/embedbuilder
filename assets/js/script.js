@@ -14,7 +14,7 @@ const guiTabs = params.get("guitabs") || ["description"]
 const useJsonEditor = params.get("editor") == "json"
 let reverseColumns = hasParam("reverse")
 let autoUpdateURL = localStorage.getItem("autoUpdateURL"),
-	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui
+	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui, buildEmbed
 
 const guiEmbedIndex = guiEl => {
 	const guiEmbed = guiEl?.closest(".guiEmbed")
@@ -325,6 +325,7 @@ addEventListener("DOMContentLoaded", () => {
 		actionRowCont = document.querySelector(".components"),
 		gui = guiParent.querySelector(".gui:first-of-type")
 
+	// eslint-disable-next-line no-undef
 	const editor = CodeMirror(elt => editorHolder.parentNode.replaceChild(elt, editorHolder), {
 		value: JSON.stringify(json, null, 4),
 		gutters: ["CodeMirror-foldgutter", "CodeMirror-lint-markers"],
@@ -355,7 +356,6 @@ addEventListener("DOMContentLoaded", () => {
 	editor.focus()
 
 	const notif = document.querySelector(".notification")
-
 	const error = (msg, time = "5s") => {
 		notif.innerText = msg
 		notif.style.removeProperty("--startY")
@@ -461,6 +461,216 @@ addEventListener("DOMContentLoaded", () => {
 	gui.querySelector(".edit>.fields>.field").remove()
 
 	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
+
+	// Renders embed and message content.
+	buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
+		if (jsonData) json = jsonData
+		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed")
+
+		try {
+			// If there's no message content, hide the message content HTML element.
+			if (jsonObject.content) {
+				embedContent.innerHTML = markup(encode(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
+				document.body.classList.remove("emptyContent")
+			} else document.body.classList.add("emptyContent")
+
+			const embed = document.querySelectorAll(".container>.embed")[index]
+			const embedObj = jsonObject.embeds[index]
+
+			if (only && (!embed || !embedObj)) return buildEmbed()
+
+			switch (only) {
+				// If only updating the message content and nothing else, return here.
+				case "content": return externalParsing({ element: embedContent })
+				case "embedTitle":
+					const embedTitle = embed?.querySelector(".embedTitle")
+					if (!embedTitle) return buildEmbed()
+					if (embedObj.title) display(embedTitle, markup(embedObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(embedObj.url)) + '">' + encode(embedObj.title) + "</a>" :
+						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
+					else hide(embedTitle)
+
+					return externalParsing({ element: embedTitle })
+				case "embedAuthorName":
+				case "embedAuthorLink":
+					const embedAuthor = embed?.querySelector(".embedAuthor")
+					if (!embedAuthor) return buildEmbed()
+					if (embedObj.author?.name) display(embedAuthor, `
+						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(embedObj.author.icon_url)) + '">' : ""}
+						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(embedObj.author.url)) + '" target="_blank">' +
+							encode(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(embedObj.author.name) + "</span>"}`, "flex")
+					else hide(embedAuthor)
+
+					return externalParsing({ element: embedAuthor })
+				case "embedDescription":
+					const embedDescription = embed?.querySelector(".embedDescription")
+					if (!embedDescription) return buildEmbed()
+					if (embedObj.description) display(embedDescription, markup(encode(embedObj.description), { replaceEmojis: true, replaceHeaders: true }))
+					else hide(embedDescription)
+
+					return externalParsing({ element: embedDescription })
+				case "embedThumbnail":
+					const embedThumbnailLink = embed?.querySelector(".embedThumbnailLink")
+					if (!embedThumbnailLink) return buildEmbed()
+					const pre = embed.querySelector(".embedGrid .markup pre")
+					if (embedObj.thumbnail?.url) {
+						embedThumbnailLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.thumbnail.url))
+						embedThumbnailLink.parentElement.style.display = "block"
+						if (pre) pre.style.maxWidth = "90%"
+					} else {
+						hide(embedThumbnailLink.parentElement)
+						pre?.style.removeProperty("max-width")
+					}
+
+					return afterBuilding()
+				case "embedImage":
+					const embedImageLink = embed?.querySelector(".embedImageLink")
+					if (!embedImageLink) return buildEmbed()
+					if (embedObj.image?.url) {
+						embedImageLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.image.url))
+						embedImageLink.parentElement.style.display = "block"
+					} else hide(embedImageLink.parentElement)
+
+					return afterBuilding()
+				case "embedFooterText":
+				case "embedFooterLink":
+				case "embedFooterTimestamp":
+					const embedFooter = embed?.querySelector(".embedFooter")
+					if (!embedFooter) return buildEmbed()
+					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter, `
+						${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encode(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
+						${encode(embedObj.footer.text)}
+						${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex")
+					else hide(embedFooter)
+
+					return externalParsing({ element: embedFooter })
+			}
+
+			embedCont.innerHTML = ""
+			for (const currentObj of jsonObject.embeds) {
+				const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true))
+				const embedGrid = embedElement.querySelector(".embedGrid")
+				const embedTitle = embedElement.querySelector(".embedTitle")
+				const embedDescription = embedElement.querySelector(".embedDescription")
+				const embedAuthor = embedElement.querySelector(".embedAuthor")
+				const embedFooter = embedElement.querySelector(".embedFooter")
+				const embedImage = embedElement.querySelector(".embedImage > img")
+				const embedThumbnail = embedElement.querySelector(".embedThumbnail > img")
+				const embedFields = embedElement.querySelector(".embedFields")
+
+				if (currentObj.title) display(embedTitle, markup(`${currentObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(currentObj.url)) + '">' + encode(currentObj.title) + "</a>" : encode(currentObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
+				else hide(embedTitle)
+
+				if (currentObj.description) display(embedDescription, markup(encode(currentObj.description), { replaceEmojis: true, replaceHeaders: true }))
+				else hide(embedDescription)
+
+				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color
+				else embedGrid.closest(".embed").style.removeProperty("border-color")
+
+				if (currentObj.author?.name) display(embedAuthor, `
+					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(currentObj.author.icon_url)) + '">' : ""}
+					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(currentObj.author.url)) + '" target="_blank">' +
+					encode(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(currentObj.author.name) + "</span>"}`, "flex")
+				else hide(embedAuthor)
+
+				const pre = embedGrid.querySelector(".markup pre")
+				if (currentObj.thumbnail?.url) {
+					embedThumbnail.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.thumbnail.url))
+					embedThumbnail.parentElement.style.display = "block"
+					if (pre) pre.style.maxWidth = "90%"
+				} else {
+					hide(embedThumbnail.parentElement)
+					if (pre) pre.style.removeProperty("max-width")
+				}
+
+				if (currentObj.image?.url) {
+					embedImage.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.image.url))
+					embedImage.parentElement.style.display = "block"
+				} else hide(embedImage.parentElement)
+
+				if (currentObj.footer?.text) display(embedFooter, `
+					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.com/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}
+					<span class="embedFooterText">${encode(currentObj.footer.text)}
+					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
+				else if (currentObj.timestamp)
+					display(embedFooter, `<span class="embedFooterText">${encode(timestamp(currentObj.timestamp))}</span></div>`, "flex")
+				else hide(embedFooter)
+
+				if (currentObj.fields) createEmbedFields(currentObj.fields, embedFields)
+				else hide(embedFields)
+
+				document.body.classList.remove("emptyEmbed")
+				externalParsing()
+
+				if (embedElement.innerText.trim() || embedElement.querySelector(".embedGrid > [style*=display] img"))
+					embedElement.classList.remove("emptyEmbed")
+				else embedElement.classList.add("emptyEmbed")
+			}
+
+			actionRowCont.innerHTML = ""
+			if (jsonObject.components) for (const actionRow of jsonObject.components) {
+				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true))
+
+				if (actionRow.components) for (const component of actionRow.components) {
+					if (component.style == 5) {
+						const buttonElement = document.createElement("button")
+						buttonElement.classList.add("b-" + buttonStyles[component.style])
+						buttonElement.dataset.style = component.style
+						buttonElement.title = encode(url(component.url))
+
+						if (component.disabled) buttonElement.classList.add("disabled")
+						else buttonElement.onclick = () => window.open(url(component.url), "_blank", "noopener")
+
+						buttonElement.innerHTML = encode(component.label) +
+							// From Discord's client source code
+							"<svg aria-hidden='true' role='img' width='16' height='16' viewBox='0 0 24 24'>" +
+							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
+							"<path fill='currentColor' d='M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z'></path></svg>"
+
+						actionRowElement.appendChild(buttonElement)
+					} else {
+						const buttonElement = document.createElement("button")
+
+						if (component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
+							buttonElement.classList.add("b-" + buttonStyles[component.style])
+							buttonElement.dataset.style = component.style
+						}
+
+						if (component.disabled) buttonElement.classList.add("disabled")
+						if (component.custom_id) buttonElement.dataset.custom_id = component.custom_id
+						if (component.emoji && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
+							let emojiElement
+							if (/^[0-9]{17,21}$/.test(component.emoji.id || component.emoji)) {
+								emojiElement = document.createElement("img")
+								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(component.emoji.id || component.emoji) + ".webp?size=16"
+							} else if (component.emoji.name) {
+								emojiElement = document.createElement("span")
+								emojiElement.innerText = component.emoji.name
+							}
+							if (emojiElement) buttonElement.appendChild(emojiElement)
+						}
+						if (component.label && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
+							const label = document.createElement("span")
+							label.innerText = component.label
+							buttonElement.appendChild(label)
+						}
+
+						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) {
+							buttonElement.classList.add("select")
+							buttonElement.innerHTML = encode(component.placeholder) + "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M16.59 " +
+								"8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z'></path></svg>"
+						}
+
+						actionRowElement.appendChild(buttonElement)
+					}
+				}
+			}
+
+			afterBuilding()
+		} catch (e) {
+			console.error(e)
+			error(e)
+		}
+	}
 
 	// Renders the GUI editor with json data from 'jsonObject'.
 	buildGui = (object = jsonObject, opts = {}) => {
@@ -974,216 +1184,6 @@ addEventListener("DOMContentLoaded", () => {
 
 	buildGui(jsonObject, { guiTabs })
 	gui.classList.remove("hidden")
-
-	// Renders embed and message content.
-	const buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
-		if (jsonData) json = jsonData
-		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed")
-
-		try {
-			// If there's no message content, hide the message content HTML element.
-			if (jsonObject.content) {
-				embedContent.innerHTML = markup(encode(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
-				document.body.classList.remove("emptyContent")
-			} else document.body.classList.add("emptyContent")
-
-			const embed = document.querySelectorAll(".container>.embed")[index]
-			const embedObj = jsonObject.embeds[index]
-
-			if (only && (!embed || !embedObj)) return buildEmbed()
-
-			switch (only) {
-				// If only updating the message content and nothing else, return here.
-				case "content": return externalParsing({ element: embedContent })
-				case "embedTitle":
-					const embedTitle = embed?.querySelector(".embedTitle")
-					if (!embedTitle) return buildEmbed()
-					if (embedObj.title) display(embedTitle, markup(embedObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(embedObj.url)) + '">' + encode(embedObj.title) + "</a>" :
-						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
-					else hide(embedTitle)
-
-					return externalParsing({ element: embedTitle })
-				case "embedAuthorName":
-				case "embedAuthorLink":
-					const embedAuthor = embed?.querySelector(".embedAuthor")
-					if (!embedAuthor) return buildEmbed()
-					if (embedObj.author?.name) display(embedAuthor, `
-						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(embedObj.author.icon_url)) + '">' : ""}
-						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(embedObj.author.url)) + '" target="_blank">' +
-							encode(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(embedObj.author.name) + "</span>"}`, "flex")
-					else hide(embedAuthor)
-
-					return externalParsing({ element: embedAuthor })
-				case "embedDescription":
-					const embedDescription = embed?.querySelector(".embedDescription")
-					if (!embedDescription) return buildEmbed()
-					if (embedObj.description) display(embedDescription, markup(encode(embedObj.description), { replaceEmojis: true, replaceHeaders: true }))
-					else hide(embedDescription)
-
-					return externalParsing({ element: embedDescription })
-				case "embedThumbnail":
-					const embedThumbnailLink = embed?.querySelector(".embedThumbnailLink")
-					if (!embedThumbnailLink) return buildEmbed()
-					const pre = embed.querySelector(".embedGrid .markup pre")
-					if (embedObj.thumbnail?.url) {
-						embedThumbnailLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.thumbnail.url))
-						embedThumbnailLink.parentElement.style.display = "block"
-						if (pre) pre.style.maxWidth = "90%"
-					} else {
-						hide(embedThumbnailLink.parentElement)
-						pre?.style.removeProperty("max-width")
-					}
-
-					return afterBuilding()
-				case "embedImage":
-					const embedImageLink = embed?.querySelector(".embedImageLink")
-					if (!embedImageLink) return buildEmbed()
-					if (embedObj.image?.url) {
-						embedImageLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.image.url))
-						embedImageLink.parentElement.style.display = "block"
-					} else hide(embedImageLink.parentElement)
-
-					return afterBuilding()
-				case "embedFooterText":
-				case "embedFooterLink":
-				case "embedFooterTimestamp":
-					const embedFooter = embed?.querySelector(".embedFooter")
-					if (!embedFooter) return buildEmbed()
-					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter, `
-						${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encode(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
-						${encode(embedObj.footer.text)}
-						${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex")
-					else hide(embedFooter)
-
-					return externalParsing({ element: embedFooter })
-			}
-
-			embedCont.innerHTML = ""
-			for (const currentObj of jsonObject.embeds) {
-				const embedElement = embedCont.appendChild(embedFragment.firstChild.cloneNode(true))
-				const embedGrid = embedElement.querySelector(".embedGrid")
-				const embedTitle = embedElement.querySelector(".embedTitle")
-				const embedDescription = embedElement.querySelector(".embedDescription")
-				const embedAuthor = embedElement.querySelector(".embedAuthor")
-				const embedFooter = embedElement.querySelector(".embedFooter")
-				const embedImage = embedElement.querySelector(".embedImage > img")
-				const embedThumbnail = embedElement.querySelector(".embedThumbnail > img")
-				const embedFields = embedElement.querySelector(".embedFields")
-
-				if (currentObj.title) display(embedTitle, markup(`${currentObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(currentObj.url)) + '">' + encode(currentObj.title) + "</a>" : encode(currentObj.title)}`, { replaceEmojis: true, inlineBlock: true }))
-				else hide(embedTitle)
-
-				if (currentObj.description) display(embedDescription, markup(encode(currentObj.description), { replaceEmojis: true, replaceHeaders: true }))
-				else hide(embedDescription)
-
-				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color
-				else embedGrid.closest(".embed").style.removeProperty("border-color")
-
-				if (currentObj.author?.name) display(embedAuthor, `
-					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(currentObj.author.icon_url)) + '">' : ""}
-					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(currentObj.author.url)) + '" target="_blank">' +
-					encode(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(currentObj.author.name) + "</span>"}`, "flex")
-				else hide(embedAuthor)
-
-				const pre = embedGrid.querySelector(".markup pre")
-				if (currentObj.thumbnail?.url) {
-					embedThumbnail.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.thumbnail.url))
-					embedThumbnail.parentElement.style.display = "block"
-					if (pre) pre.style.maxWidth = "90%"
-				} else {
-					hide(embedThumbnail.parentElement)
-					if (pre) pre.style.removeProperty("max-width")
-				}
-
-				if (currentObj.image?.url) {
-					embedImage.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.image.url))
-					embedImage.parentElement.style.display = "block"
-				} else hide(embedImage.parentElement)
-
-				if (currentObj.footer?.text) display(embedFooter, `
-					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.com/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}
-					<span class="embedFooterText">${encode(currentObj.footer.text)}
-					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
-				else if (currentObj.timestamp)
-					display(embedFooter, `<span class="embedFooterText">${encode(timestamp(currentObj.timestamp))}</span></div>`, "flex")
-				else hide(embedFooter)
-
-				if (currentObj.fields) createEmbedFields(currentObj.fields, embedFields)
-				else hide(embedFields)
-
-				document.body.classList.remove("emptyEmbed")
-				externalParsing()
-
-				if (embedElement.innerText.trim() || embedElement.querySelector(".embedGrid > [style*=display] img"))
-					embedElement.classList.remove("emptyEmbed")
-				else embedElement.classList.add("emptyEmbed")
-			}
-
-			actionRowCont.innerHTML = ""
-			if (jsonObject.components) for (const actionRow of jsonObject.components) {
-				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true))
-
-				if (actionRow.components) for (const component of actionRow.components) {
-					if (component.style == 5) {
-						const buttonElement = document.createElement("button")
-						buttonElement.classList.add("b-" + buttonStyles[component.style])
-						buttonElement.dataset.style = component.style
-						buttonElement.title = encode(url(component.url))
-
-						if (component.disabled) buttonElement.classList.add("disabled")
-						else buttonElement.onclick = () => window.open(url(component.url), "_blank", "noopener")
-
-						buttonElement.innerHTML = encode(component.label) +
-							// From Discord's client source code
-							"<svg aria-hidden='true' role='img' width='16' height='16' viewBox='0 0 24 24'>" +
-							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
-							"<path fill='currentColor' d='M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z'></path></svg>"
-
-						actionRowElement.appendChild(buttonElement)
-					} else {
-						const buttonElement = document.createElement("button")
-
-						if (component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
-							buttonElement.classList.add("b-" + buttonStyles[component.style])
-							buttonElement.dataset.style = component.style
-						}
-
-						if (component.disabled) buttonElement.classList.add("disabled")
-						if (component.custom_id) buttonElement.dataset.custom_id = component.custom_id
-						if (component.emoji && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
-							let emojiElement
-							if (/^[0-9]{17,21}$/.test(component.emoji.id || component.emoji)) {
-								emojiElement = document.createElement("img")
-								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(component.emoji.id || component.emoji) + ".webp?size=16"
-							} else if (component.emoji.name) {
-								emojiElement = document.createElement("span")
-								emojiElement.innerText = component.emoji.name
-							}
-							if (emojiElement) buttonElement.appendChild(emojiElement)
-						}
-						if (component.label && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
-							const label = document.createElement("span")
-							label.innerText = component.label
-							buttonElement.appendChild(label)
-						}
-
-						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) {
-							buttonElement.classList.add("select")
-							buttonElement.innerHTML = encode(component.placeholder) + "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M16.59 " +
-								"8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z'></path></svg>"
-						}
-
-						actionRowElement.appendChild(buttonElement)
-					}
-				}
-			}
-
-			afterBuilding()
-		} catch (e) {
-			console.error(e)
-			error(e)
-		}
-	}
 
 	editor.on("change", edi => {
 		// If the editor value is not set by the user, return.
