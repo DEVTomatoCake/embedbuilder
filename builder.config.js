@@ -1,6 +1,6 @@
 // Default JSON object
 json = {
-	content: "Hello ~~world~~ Discord user :D\n\n# New markdown works too!\n\n## So, what are you waiting for?\n\n### Go ahead and edit this message!",
+	content: "Hello ~~world~~ *Discord* user :D\n\n# Markdown is working!\n\n## So, what are you waiting for?\n\n### Go ahead and edit this message!",
 	embeds: [
 		{
 			title: "Next steps",
