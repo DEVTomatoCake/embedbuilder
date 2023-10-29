@@ -232,8 +232,10 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 			return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&gt; /gm, "")}</blockquote></div>`
 		})
 
-		/** Mentions */
-		.replace(/&lt;id:(customize|home|browse)&gt;/g, "<span class='mention channel'>$1</span>")
+		// Mentions
+		.replace(/&lt;id:customize&gt;/g, "<span class='mention channel'>Channels & Roles</span>")
+		.replace(/&lt;id:home&gt;/g, "<span class='mention channel'>Server Guide</span>")
+		.replace(/&lt;id:browse&gt;/g, "<span class='mention channel'>Browse Channels</span>")
 		.replace(/&lt;#(\d{17,21})&gt;/g, "<span class='mention channel interactive'>channel: $1</span>")
 		.replace(/&lt;@&amp;(\d{17,21})&gt;/g, "<span class='mention interactive'>@role: $1</span>")
 		.replace(/&lt;@(\d+)&gt;|@(?:everyone|here)/g, (all, match1) => {
@@ -485,6 +487,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedTitle":
 					const embedTitle = embed?.querySelector(".embedTitle")
 					if (!embedTitle) return buildEmbed()
+
 					if (embedObj.title) display(embedTitle, markup(embedObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(embedObj.url)) + '">' + encode(embedObj.title) + "</a>" :
 						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
 					else hide(embedTitle)
@@ -494,6 +497,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedAuthorLink":
 					const embedAuthor = embed?.querySelector(".embedAuthor")
 					if (!embedAuthor) return buildEmbed()
+
 					if (embedObj.author?.name) display(embedAuthor, `
 						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(embedObj.author.icon_url)) + '">' : ""}
 						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(embedObj.author.url)) + '" target="_blank">' +
@@ -501,9 +505,18 @@ addEventListener("DOMContentLoaded", () => {
 					else hide(embedAuthor)
 
 					return externalParsing({ element: embedAuthor })
+				case "embedColor":
+					const embedGrid = embed?.closest(".embed")
+					if (!embedGrid) return buildEmbed()
+
+					if (embedObj.color || embedObj.color == 0) embedGrid.style.borderColor = typeof embedObj.color == "number" ? "#" + embedObj.color.toString(16).padStart(6, "0") : embedObj.color
+					else embedGrid.style.removeProperty("border-color")
+
+					return afterBuilding()
 				case "embedDescription":
 					const embedDescription = embed?.querySelector(".embedDescription")
 					if (!embedDescription) return buildEmbed()
+
 					if (embedObj.description) display(embedDescription, markup(encode(embedObj.description), { replaceEmojis: true, replaceHeaders: true }))
 					else hide(embedDescription)
 
@@ -511,6 +524,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedThumbnail":
 					const embedThumbnailLink = embed?.querySelector(".embedThumbnailLink")
 					if (!embedThumbnailLink) return buildEmbed()
+
 					const pre = embed.querySelector(".embedGrid .markup pre")
 					if (embedObj.thumbnail?.url) {
 						embedThumbnailLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.thumbnail.url))
@@ -525,6 +539,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedImage":
 					const embedImageLink = embed?.querySelector(".embedImageLink")
 					if (!embedImageLink) return buildEmbed()
+
 					if (embedObj.image?.url) {
 						embedImageLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.image.url))
 						embedImageLink.parentElement.style.display = "block"
@@ -536,6 +551,7 @@ addEventListener("DOMContentLoaded", () => {
 				case "embedFooterTimestamp":
 					const embedFooter = embed?.querySelector(".embedFooter")
 					if (!embedFooter) return buildEmbed()
+
 					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter, `
 						${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encode(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
 						${encode(embedObj.footer.text)}
@@ -724,6 +740,9 @@ addEventListener("DOMContentLoaded", () => {
 									break
 								case "title":
 									row.querySelector(".editTitle").value = embed?.title || ""
+									break
+								case "color":
+									row.querySelector(".editColor").value = embed && embed.color ? (typeof embed.color == "number" ? "#" + embed.color.toString(16).padStart(6, "0") : embed.color) : ""
 									break
 								case "description":
 									edit.querySelector(".editDescription").value = embed?.description || ""
@@ -998,6 +1017,10 @@ addEventListener("DOMContentLoaded", () => {
 								embedObj.author.icon_url = value
 								imgSrc(el.target.previousElementSibling, value)
 								buildEmbed({ only: "embedAuthorLink", index: guiEmbedIndex(el.target) })
+								break
+							case "editColor":
+								embedObj.color = parseInt(value.replace("#", ""), 16) || 0
+								buildEmbed({ only: "embedColor", index: guiEmbedIndex(el.target) })
 								break
 							case "editDescription":
 								embedObj.description = value
