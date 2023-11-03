@@ -7,8 +7,8 @@
 
 const params = new URLSearchParams(location.search)
 const hasParam = param => params.get(param) !== null
-const username = params.has("mb") ? "Manage Bot" : "TomatenKuchen"
-const avatar = "./assets/images/" + (params.has("mb") ? "managebot_40" : "background_192") + ".webp"
+const username = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
+const avatar = "./assets/images/" + (params.has("dgh") ? "gitdishook_2.png" : (params.has("mb") ? "managebot_40" : "background_192") + ".webp")
 const dataSpecified = params.get("data")
 const guiTabs = params.get("guitabs") || ["description"]
 const useJsonEditor = params.get("editor") == "json"
