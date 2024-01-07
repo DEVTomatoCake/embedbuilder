@@ -12,7 +12,7 @@
 		"CodeMirror": "readonly",
 		"twemoji": "readonly",
 		"hljs": "readonly",
-		"emojis": "readonly"
+		"emojis": "writable"
 	},
 	"rules": {
 		"array-bracket-spacing": 2,
