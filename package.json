@@ -1,16 +1,16 @@
 {
-  "name": "embedbuilder",
+  "name": "tk-embedbuilder",
   "private": true,
   "version": "1.0.0",
   "author": "TomatoCake",
   "main": "index.html",
   "devDependencies": {
-    "@html-eslint/eslint-plugin": "^0.20.0",
-    "@html-eslint/parser": "^0.20.0",
-    "eslint": "^8.52.0",
+    "@html-eslint/eslint-plugin": "^0.22.0",
+    "@html-eslint/parser": "^0.22.0",
+    "eslint": "^8.56.0",
     "eslint-plugin-html": "^7.1.0",
-    "eslint-plugin-sonarjs": "^0.21.0",
-    "eslint-plugin-unicorn": "^48.0.1"
+    "eslint-plugin-sonarjs": "^0.23.0",
+    "eslint-plugin-unicorn": "^50.0.1"
   },
-  "license": "ISC"
+  "license": "MIT"
 }

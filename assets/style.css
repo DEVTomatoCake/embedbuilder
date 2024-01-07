@@ -1281,7 +1281,10 @@ input, textarea {
 }
 
 .edit {
-	padding-left: 15px;
+	padding-left: 10px;
+}
+.edit select {
+	margin-left: 5px;
 }
 
 .item:not(.rows2)+.edit {
@@ -1327,7 +1330,7 @@ textarea {
 	min-width: 100%;
 	max-width: 100% !important;
 	height: 90px;
-	max-height: 450px;
+	max-height: 1500px;
 }
 
 .top>.gui .item.description+.edit,
@@ -1674,11 +1677,7 @@ body {
 	display: flex;
 	cursor: pointer;
 	opacity: .5;
-	padding-top: 20px;
-}
-
-.addField>*, .addComponent>* {
-	pointer-events: none;
+	padding: 8px 0 0 20px;
 }
 
 .addField>svg, .addComponent>svg {
@@ -2080,7 +2079,7 @@ body.toHook .done {
 
 .done:not(.sent):hover .item {
 	max-height: 500px;
-	transition: max-height .50s ease-in;
+	transition: max-height .5s ease-in;
 	scrollbar-color: #2c2d33 #202225;
 }
 
