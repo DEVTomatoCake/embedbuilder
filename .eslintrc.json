@@ -11,8 +11,7 @@
 		"sockette": "readonly",
 		"CodeMirror": "readonly",
 		"twemoji": "readonly",
-		"hljs": "readonly",
-		"emojis": "writable"
+		"hljs": "readonly"
 	},
 	"rules": {
 		"array-bracket-spacing": 2,

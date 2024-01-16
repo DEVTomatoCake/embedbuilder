@@ -253,8 +253,8 @@ const timestamp = stringISO => {
 }
 
 const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
-	if (replaceEmojis)
-		txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
+	// eslint-disable-next-line no-undef
+	if (replaceEmojis) txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
 	txt = txt
 		.trim()
