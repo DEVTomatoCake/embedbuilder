@@ -267,6 +267,7 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 		.replace(/__(.+?)__/g, "<u>$1</u>")
 		.replace(/\*(.+?)\*/g, "<em>$1</em>")
 		.replace(/_(.+?)_/g, "<em>$1</em>")
+		.replace(/\|\|(.+?)\|\|/g, "<span class='spoiler'>$1</span>")
 		// Replace non-markdown links
 		.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
 
@@ -299,9 +300,9 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 			return prefix + "<li>" + p2 + "</li>" + suffix
 		})
 		// Replace >>> and > with block-quotes. &gt; is HTML code for >
-		.replace(/^(?: *&gt;&gt;&gt; ([\s\S]*))|(?:^ *&gt;(?!&gt;&gt;) +.+\n)+(?:^ *&gt;(?!&gt;&gt;) .+\n?)+|^(?: *&gt;(?!&gt;&gt;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) => {
-			return `<div class="blockquote"><div class="blockquoteDivider"></div><blockquote>${match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&gt; /gm, "")}</blockquote></div>`
-		})
+		.replace(/^(?: *&gt;&gt;&gt; ([\s\S]*))|(?:^ *&gt;(?!&gt;&gt;) +.+\n)+(?:^ *&gt;(?!&gt;&gt;) .+\n?)+|^(?: *&gt;(?!&gt;&gt;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) =>
+			"<div class='blockquote'><div class='blockquoteDivider'></div><blockquote>" + (match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&gt; /gm, "")) + "</blockquote></div>"
+		)
 
 		// Mentions
 		.replace(/&lt;id:customize&gt;/g, "<span class='mention channel'>Channels & Roles</span>")
@@ -314,9 +315,7 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 			return "<span class='mention interactive'>@user: " + match1 + "</span>"
 		})
 		.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
-		.replace(/&lt;t:([0-9]{1,13})(:[a-z])?&gt;/gi, (all, match1) => {
-			return "<span class='spoiler'>" + new Date(parseInt(match1) * 1000).toLocaleString() + "</span>"
-		})
+		.replace(/&lt;t:([0-9]{1,13})(:[a-z])?&gt;/gi, (all, match1) => "<span class='spoiler'>" + new Date(parseInt(match1) * 1000).toLocaleString() + "</span>")
 
 	if (inlineBlock)
 		// Treat both inline code and code blocks as inline code
@@ -397,20 +396,21 @@ addEventListener("DOMContentLoaded", () => {
 		foldGutter: true,
 		lint: true,
 		extraKeys: {
-			// Fill in indent spaces on a new line when enter (return) key is pressed.
+			// Fill in indent on a new line when enter (return) key is pressed.
 			Enter: () => {
 				const cursor = editor.getCursor()
 				const end = editor.getLine(cursor.line)
-				const leadingSpaces = end.replace(/\S($|.)+/g, "") || "    \n"
 				const nextLine = editor.getLine(cursor.line + 1)
 
 				if ((nextLine === void 0 || !nextLine.trim()) && !end.substr(cursor.ch).trim())
 					editor.replaceRange("\n", { line: cursor.line, ch: cursor.ch })
-				else
-					editor.replaceRange(`\n${end.endsWith("{") ? leadingSpaces + "    " : leadingSpaces}`, {
+				else {
+					const leadingSpaces = end.replace(/\S($|.)+/g, "") || "\t\n"
+					editor.replaceRange("\n" + leadingSpaces + (end.endsWith("{") ? "\t" : ""), {
 						line: cursor.line,
 						ch: cursor.ch
 					})
+				}
 			}
 		}
 	})
@@ -431,7 +431,7 @@ addEventListener("DOMContentLoaded", () => {
 		notif.style.setProperty("--startY", 0)
 		notif.style.setProperty("--startOpacity", 1)
 		notif.style.display = null
-		setTimeout(() => notif.style.display = "block", 0.5)
+		setTimeout(() => notif.style.display = "block", 1)
 
 		return false
 	}
@@ -509,8 +509,6 @@ addEventListener("DOMContentLoaded", () => {
 		display(embedFields, void 0, "grid")
 	}
 
-	const smallerScreen = matchMedia("(max-width: 1015px)")
-
 	const [guiFragment, fieldFragment, componentFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 7 }, () => document.createDocumentFragment())
 	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
 	componentFragment.appendChild(document.querySelector(".guiActionRow>.guiComponent").cloneNode(true))
@@ -530,7 +528,6 @@ addEventListener("DOMContentLoaded", () => {
 		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed")
 
 		try {
-			// If there's no message content, hide the message content HTML element.
 			if (jsonObject.content) {
 				embedContent.innerHTML = markup(encode(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
 				document.body.classList.remove("emptyContent")
@@ -645,10 +642,10 @@ addEventListener("DOMContentLoaded", () => {
 				if (currentObj.color) embedGrid.closest(".embed").style.borderColor = typeof currentObj.color == "number" ? "#" + currentObj.color.toString(16).padStart(6, "0") : currentObj.color
 				else embedGrid.closest(".embed").style.removeProperty("border-color")
 
-				if (currentObj.author?.name) display(embedAuthor, `
-					${currentObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(currentObj.author.icon_url)) + '">' : ""}
-					${currentObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(currentObj.author.url)) + '" target="_blank">' +
-					encode(currentObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(currentObj.author.name) + "</span>"}`, "flex")
+				if (currentObj.author?.name) display(embedAuthor,
+					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + encode(url(currentObj.author.icon_url)) + "'>" : "") +
+					(currentObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(currentObj.author.url)) + "' target='_blank'>" +
+					encode(currentObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(currentObj.author.name) + "</span>"), "flex")
 				else hide(embedAuthor)
 
 				const pre = embedGrid.querySelector(".markup pre")
@@ -670,8 +667,7 @@ addEventListener("DOMContentLoaded", () => {
 					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.com/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}
 					<span class="embedFooterText">${encode(currentObj.footer.text)}
 					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
-				else if (currentObj.timestamp)
-					display(embedFooter, `<span class="embedFooterText">${encode(timestamp(currentObj.timestamp))}</span></div>`, "flex")
+				else if (currentObj.timestamp) display(embedFooter, "<span class='embedFooterText'>" + encode(timestamp(currentObj.timestamp)) + "</span></div>", "flex")
 				else hide(embedFooter)
 
 				if (currentObj.fields) createEmbedFields(currentObj.fields, embedFields)
@@ -751,6 +747,7 @@ addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
+	const smallerScreen = matchMedia("(max-width: 1015px)")
 	// Renders the GUI editor with json data from 'jsonObject'.
 	buildGui = (object = jsonObject) => {
 		gui.innerHTML = ""
@@ -777,7 +774,7 @@ addEventListener("DOMContentLoaded", () => {
 				for (const [i, embed] of (object.embeds || [{}]).entries()) {
 					const guiEmbedName = gui.appendChild(child.cloneNode(true))
 
-					guiEmbedName.querySelector(".text").innerHTML = `Embed ${i + 1}${embed.title ? `: <span>${embed.title}</span>` : ""}`
+					guiEmbedName.querySelector(".text").innerHTML = "Embed " + (i + 1) + (embed.title ? ": <span>" + embed.title + "</span>" : "")
 					guiEmbedName.querySelector(".icon").addEventListener("click", () => {
 						object.embeds.splice(i, 1)
 						buildGui()
@@ -854,7 +851,7 @@ addEventListener("DOMContentLoaded", () => {
 				for (const [i, component] of (object.components && object.components.length ? object.components : [{}]).entries()) {
 					const guiActionRowName = gui.appendChild(child.cloneNode(true))
 
-					guiActionRowName.querySelector(".text").innerHTML = `Action Row ${i + 1}${component.custom_id ? `: <span>${component.custom_id}</span>` : ""}`
+					guiActionRowName.querySelector(".text").innerHTML = "Action Row " + (i + 1) + (component.custom_id ? ": <span>" + component.custom_id + "</span>" : "")
 					guiActionRowName.querySelector(".icon").addEventListener("click", () => {
 						object.components.splice(i, 1)
 						buildGui()
@@ -883,12 +880,6 @@ addEventListener("DOMContentLoaded", () => {
 									else if (newChild.classList?.contains("editComponentStyle")) newChild.value = f?.style || 1
 									else if (newChild.classList?.contains("url")) newChild.querySelector(".url input").value = f?.url || ""
 									else if (newChild.classList?.contains("emoji")) newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
-
-									/*
-									edit.querySelector(".editSelectMenuMinValues").value = component?.min_values || 1
-									edit.querySelector(".editSelectMenuMaxValues").value = component?.max_values || 1
-									edit.querySelector(".editSelectMenuOptions").value = component?.options?.map(o => `${o.label}:${o.value}:${o.description}:${o.emoji?.id || ""}:${o.emoji?.name || ""}`).join("\n") || ""
-									*/
 								}
 							}
 						}
@@ -940,7 +931,7 @@ addEventListener("DOMContentLoaded", () => {
 
 		// Scroll into view when tabs are opened in the GUI.
 		const lastTabs = new Set(Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg")))
-		const requiresView = matchMedia(`${smallerScreen.media}, (max-height: 845px)`)
+		const requiresView = matchMedia(smallerScreen.media + ", (max-height: 845px)")
 		const addGuiEventListeners = () => {
 			for (const e of document.querySelectorAll(".gui .item:not(.fields)"))
 				e.onclick = () => {
@@ -1035,7 +1026,6 @@ addEventListener("DOMContentLoaded", () => {
 					const value = el.target.value
 					const index = guiEmbedIndex(el.target)
 					const field = el.target.closest(".field")
-					const fields = field?.closest(".fields")
 					const embedObj = jsonObject.embeds?.[index] || {}
 
 					const rowindex = guiActionRowIndex(el.target)
@@ -1044,7 +1034,7 @@ addEventListener("DOMContentLoaded", () => {
 					const componentObj = actionRowObj.components && actionRowObj.components[componentindex] ? actionRowObj.components[componentindex] : {}
 
 					if (field) {
-						const fieldIndex = Array.from(fields.children).indexOf(field)
+						const fieldIndex = Array.from(field.closest(".fields").children).indexOf(field)
 						const jsonField = embedObj.fields?.[fieldIndex]
 
 						if (jsonField) {
@@ -1066,7 +1056,7 @@ addEventListener("DOMContentLoaded", () => {
 								embedObj.title = value
 								const guiEmbedName = el.target.closest(".guiEmbed")?.previousElementSibling
 								if (guiEmbedName?.classList.contains("guiEmbedName"))
-									guiEmbedName.querySelector(".text").innerHTML = guiEmbedName.innerText.split(":")[0] + (value ? `: <span>${value}</span>` : "")
+									guiEmbedName.querySelector(".text").innerHTML = guiEmbedName.innerText.split(":")[0] + (value ? ": <span>" + value + "</span>" : "")
 								buildEmbed({ only: "embedTitle", index: guiEmbedIndex(el.target) })
 								break
 							case "editAuthorName":
@@ -1146,7 +1136,6 @@ addEventListener("DOMContentLoaded", () => {
 								break
 						}
 
-						// Find and filter out any empty objects ({}) in the embeds array as Discord doesn't like them.
 						const nonEmptyEmbedObjects = jsonObject.embeds?.map(cleanEmbed)?.filter(o => 0 in Object.keys(o))
 						if (nonEmptyEmbedObjects?.length) jsonObject.embeds = nonEmptyEmbedObjects
 
