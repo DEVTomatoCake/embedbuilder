@@ -77,7 +77,7 @@ const guiTabs = params.get("guitabs") || ["description"]
 const useJsonEditor = params.get("editor") == "json"
 let reverseColumns = params.get("reverse") !== null
 let autoUpdateURL = localStorage.getItem("autoUpdateURL"),
-	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, num = 0, buildGui, buildEmbed
+	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, buildGui, buildEmbed
 
 const guiEmbedIndex = guiEl => {
 	const guiEmbed = guiEl?.closest(".guiEmbed")
@@ -184,7 +184,7 @@ const animateGuiEmbedNameAt = (i, text) => {
 		{ duration: 100, iterations: 3 }
 	)
 
-	if (text) guiEmbedName?.style.setProperty("--text", `"${text}"`)
+	if (text) guiEmbedName?.style.setProperty("--text", "\"" + text + "\"")
 
 	guiEmbedName?.scrollIntoView({ behavior: "smooth", block: "center" })
 	guiEmbedName?.classList.remove("empty")
@@ -359,6 +359,9 @@ const allJsonKeys = [...mainKeys, ...embedKeys, ...componentKeys]
 addEventListener("DOMContentLoaded", () => {
 	if (reverseColumns || localStorage.getItem("reverseColumns")) reverse()
 
+	// iframe
+	if (top != self) document.getElementById("auto").parentElement.remove()
+
 	if (autoUpdateURL) {
 		document.body.classList.add("autoUpdateURL")
 		document.querySelector(".item.auto > input").checked = true
@@ -474,21 +477,19 @@ addEventListener("DOMContentLoaded", () => {
 				if (f.inline) {
 					if (i && !fields[i - 1].inline) colNum = 1
 
-					fieldElement.outerHTML = `
-						<div class="embedField ${num}${gridCol ? " colNum-2" : ""}" style="grid-column: ${gridCol || (colNum + " / " + (colNum + 4))};">
-							<div class="embedFieldName">${markup(encode(f.name), { replaceEmojis: true, inlineBlock: true })}</div>
-							<div class="embedFieldValue">${markup(encode(f.value), { replaceEmojis: true })}</div>
-						</div>`
+					fieldElement.outerHTML =
+						"<div class='embedField " + (gridCol ? " colNum-2" : "") + "' style='grid-column: " + (gridCol || (colNum + " / " + (colNum + 4))) + ";'>" +
+						"<div class='embedFieldName'>" + markup(encode(f.name), { replaceEmojis: true, inlineBlock: true }) + "</div>" +
+						"<div class='embedFieldValue'>" + markup(encode(f.value), { replaceEmojis: true }) + "</div>" +
+						"</div>"
 
 					if (index != i) gridCol = false
-				} else fieldElement.outerHTML = `
-					<div class="embedField" style="grid-column: 1 / 13;">
-						<div class="embedFieldName">${markup(encode(f.name), { replaceEmojis: true, inlineBlock: true })}</div>
-						<div class="embedFieldValue">${markup(encode(f.value), { replaceEmojis: true })}</div>
-					</div>`
+				} else fieldElement.outerHTML = "<div class='embedField' style='grid-column: 1 / 13;'>" +
+					"<div class='embedFieldName'>" + markup(encode(f.name), { replaceEmojis: true, inlineBlock: true }) + "</div>" +
+					"<div class='embedFieldValue'>" + markup(encode(f.value), { replaceEmojis: true }) + "</div>" +
+					"</div>"
 
 				colNum = (colNum == 9 ? 1 : colNum + 4)
-				num++
 			}
 		}
 
@@ -600,10 +601,9 @@ addEventListener("DOMContentLoaded", () => {
 					const embedFooter = embed?.querySelector(".embedFooter")
 					if (!embedFooter) return buildEmbed()
 
-					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter, `
-						${embedObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="' + encode(url(embedObj.footer.icon_url)) + '">' : ""}<span class="embedFooterText">
-						${encode(embedObj.footer.text)}
-						${embedObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(embedObj.timestamp)) : ""}</span></div>`, "flex")
+					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter,
+						(embedObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='" + encode(url(embedObj.footer.icon_url)) + "'>" : "") + "<span class='embedFooterText'>" +
+						encode(embedObj.footer.text) + (embedObj.timestamp ? "<span class='embedFooterSeparator'>•</span>" + encode(timestamp(embedObj.timestamp)) : "") + "</span></div>", "flex")
 					else hide(embedFooter)
 
 					return externalParsing({ element: embedFooter })
@@ -622,7 +622,7 @@ addEventListener("DOMContentLoaded", () => {
 				const embedFields = embedElement.querySelector(".embedFields")
 
 				if (currentObj.title) display(embedTitle, markup(
-					currentObj.url ? "<a class='anchor' target='_blank' href='" + encode(url(currentObj.url)) + "'>" + encode(currentObj.title) + "</a>" : encode(currentObj.title),
+					currentObj.url ? "<a class='anchor' href='" + encode(url(currentObj.url)) + "' target='_blank' rel='noopener'>" + encode(currentObj.title) + "</a>" : encode(currentObj.title),
 					{ replaceEmojis: true, inlineBlock: true }
 				))
 				else hide(embedTitle)
@@ -636,7 +636,7 @@ addEventListener("DOMContentLoaded", () => {
 				if (currentObj.author?.name) display(embedAuthor,
 					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='https://api.tomatenkuchen.com/image-proxy?url=" +
 						encode(url(currentObj.author.icon_url)) + "&origin=" + encodeURIComponent(location.origin) + "'>" : "") +
-					(currentObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(currentObj.author.url)) + "' target='_blank'>" +
+					(currentObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(currentObj.author.url)) + "' target='_blank' rel='noopener'>" +
 					encode(currentObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(currentObj.author.name) + "</span>"), "flex")
 				else hide(embedAuthor)
 
@@ -940,9 +940,9 @@ addEventListener("DOMContentLoaded", () => {
 
 					if (!jsonObject.embeds) jsonObject.embeds = []
 					const guiEmbedObj = jsonObject.embeds[indexOfGuiEmbed] || {}
-					const fieldsObj = guiEmbedObj.fields || []
-					if (fieldsObj.length >= 25) return error("An embed cannot have more than 25 fields!")
-					fieldsObj.push({ name: "Field name", value: "Field value", inline: false })
+					if (guiEmbedObj.fields && guiEmbedObj.fields.length >= 25) return error("An embed cannot have more than 25 fields!")
+					if (guiEmbedObj.fields) guiEmbedObj.fields.push({ name: "Field name", value: "Field value", inline: false })
+					else guiEmbedObj.fields = [{ name: "Field name", value: "Field value", inline: false }]
 
 					const newField = guiEmbed?.querySelector(".item.fields+.edit>.fields")?.appendChild(fieldFragment.firstChild.cloneNode(true))
 
@@ -951,11 +951,10 @@ addEventListener("DOMContentLoaded", () => {
 
 					newField.scrollIntoView({ behavior: "smooth", block: "center" })
 					if (!smallerScreen.matches) {
-						const firstFieldInput = newField.querySelector(".designerFieldName input")
-
-						if (firstFieldInput) {
-							firstFieldInput.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
-							firstFieldInput.focus()
+						const firstInput = newField.querySelector(".designerFieldName input")
+						if (firstInput) {
+							firstInput.setSelectionRange(firstInput.value.length, firstInput.value.length)
+							firstInput.focus()
 						}
 					}
 				}
@@ -982,11 +981,10 @@ addEventListener("DOMContentLoaded", () => {
 
 					newComponent.scrollIntoView({ behavior: "smooth", block: "center" })
 					if (!smallerScreen.matches) {
-						const firstFieldInput = newComponent.querySelector(".editComponentLabel")
-
-						if (firstFieldInput) {
-							firstFieldInput.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
-							firstFieldInput.focus()
+						const firstInput = newComponent.querySelector(".editComponentLabel")
+						if (firstInput) {
+							firstInput.setSelectionRange(firstInput.value.length, firstInput.value.length)
+							firstInput.focus()
 						}
 					}
 				}
@@ -1145,19 +1143,18 @@ addEventListener("DOMContentLoaded", () => {
 
 			for (const browse of document.querySelectorAll(".browse"))
 				browse.onclick = () => {
-					const formData = new FormData()
 					const fileInput = createElement({ input: { type: "file", accept: "image/*" } })
 					const edit = browse.closest(".edit")
 
 					fileInput.onchange = el => {
-						if (el.target.files[0].size > 32 * 1024 * 1024)
-							return uploadError("File is too large. Maximum size is 32 MB.", browse, 5000)
+						if (el.target.files[0].size > 25 * 1024 * 1024)
+							return uploadError("File is too large. Maximum size is 25 MiB.", browse)
+						browse.classList.add("loading")
 
-						formData.append("expiration", 60 * 60 * 24 * 7) // Expire after 7 days. Discord caches files.
+						const formData = new FormData()
+						formData.append("expiration", 60 * 60 * 24 * 7) // Expire after 7 days
 						formData.append("key", "247664c78b4606093dc9a510037483e0")
 						formData.append("image", el.target.files[0])
-
-						browse.classList.add("loading")
 
 						fetch("https://api.imgbb.com/1/upload", {
 							method: "POST",
@@ -1256,8 +1253,8 @@ addEventListener("DOMContentLoaded", () => {
 
 			if (dataKeys.length && !allJsonKeys.some(key => dataKeys.includes(key))) {
 				const usedKeys = dataKeys.filter(key => !allJsonKeys.includes(key))
-				if (usedKeys.length > 2) return error(`'${usedKeys[0] + "', '" + usedKeys.slice(1, -1).join("', '")}', and '${usedKeys.at(-1)}' are invalid keys.`)
-				return error(`'${usedKeys.length == 2 ? usedKeys[0] + "' and '" + usedKeys.at(-1) + "' are invalid keys." : usedKeys[0] + "' is an invalid key."}`)
+				if (usedKeys.length > 2) return error("\"" + usedKeys.slice(0, -1).join("\", \"") + "\", and \"" + usedKeys.at(-1) + "\" are invalid keys.")
+				return error("\"" + (usedKeys.length == 2 ? usedKeys[0] + "\" and \"" + usedKeys.at(-1) + "' are invalid keys." : usedKeys[0]) + "\" is an invalid key.")
 			}
 
 			buildEmbed()
@@ -1411,10 +1408,6 @@ addEventListener("DOMContentLoaded", () => {
 	})
 
 	buildEmbed()
-
-	const menuMore = document.querySelector(".item.section .inner.more")
-	if (menuMore.childElementCount < 2) menuMore?.classList.add("invisible")
-	if (menuMore.parentElement.childElementCount < 1) menuMore?.parentElement.classList.add("invisible")
 })
 
 const embedObjectsProps = {
