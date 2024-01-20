@@ -73,7 +73,7 @@ let jsonObject = {
 
 const params = new URLSearchParams(location.search)
 const username = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
-const avatar = "./assets/images/" + (params.has("dgh") ? "gitdishook_2.png" : (params.has("mb") ? "managebot_40" : "background_192") + ".webp")
+const avatar = "./assets/images/" + (params.has("dgh") ? "gitdishook_2.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
 const dataSpecified = params.get("data")
 const guiTabs = params.get("guitabs") || ["description"]
 const useJsonEditor = params.get("editor") == "json"
@@ -584,7 +584,7 @@ addEventListener("DOMContentLoaded", () => {
 
 					const pre = embed.querySelector(".embedGrid .markup pre")
 					if (embedObj.thumbnail?.url) {
-						embedThumbnailLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.thumbnail.url))
+						embedThumbnailLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.thumbnail.url)) + "&origin=" + encodeURIComponent(location.origin)
 						embedThumbnailLink.parentElement.style.display = "block"
 						if (pre) pre.style.maxWidth = "90%"
 					} else {
@@ -598,7 +598,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedImageLink) return buildEmbed()
 
 					if (embedObj.image?.url) {
-						embedImageLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.image.url))
+						embedImageLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.image.url)) + "&origin=" + encodeURIComponent(location.origin)
 						embedImageLink.parentElement.style.display = "block"
 					} else hide(embedImageLink.parentElement)
 
@@ -643,14 +643,15 @@ addEventListener("DOMContentLoaded", () => {
 				else embedGrid.closest(".embed").style.removeProperty("border-color")
 
 				if (currentObj.author?.name) display(embedAuthor,
-					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + encode(url(currentObj.author.icon_url)) + "'>" : "") +
+					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='https://api.tomatenkuchen.com/image-proxy?url=" +
+						encode(url(currentObj.author.icon_url)) + "&origin=" + encodeURIComponent(location.origin) + "'>" : "") +
 					(currentObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(currentObj.author.url)) + "' target='_blank'>" +
 					encode(currentObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(currentObj.author.name) + "</span>"), "flex")
 				else hide(embedAuthor)
 
 				const pre = embedGrid.querySelector(".markup pre")
 				if (currentObj.thumbnail?.url) {
-					embedThumbnail.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.thumbnail.url))
+					embedThumbnail.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.thumbnail.url)) + "&origin=" + encodeURIComponent(location.origin)
 					embedThumbnail.parentElement.style.display = "block"
 					if (pre) pre.style.maxWidth = "90%"
 				} else {
@@ -659,14 +660,15 @@ addEventListener("DOMContentLoaded", () => {
 				}
 
 				if (currentObj.image?.url) {
-					embedImage.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.image.url))
+					embedImage.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.image.url)) + "&origin=" + encodeURIComponent(location.origin)
 					embedImage.parentElement.style.display = "block"
 				} else hide(embedImage.parentElement)
 
-				if (currentObj.footer?.text) display(embedFooter, `
-					${currentObj.footer.icon_url ? '<img class="embedFooterIcon embedFooterLink" src="https://api.tomatenkuchen.com/image-proxy?url=' + encode(url(currentObj.footer.icon_url)) + '">' : ""}
-					<span class="embedFooterText">${encode(currentObj.footer.text)}
-					${currentObj.timestamp ? '<span class="embedFooterSeparator">•</span>' + encode(timestamp(currentObj.timestamp)) : ""}</span></div>`, "flex")
+				if (currentObj.footer?.text) display(embedFooter,
+					(currentObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='https://api.tomatenkuchen.com/image-proxy?url=" +
+						encode(url(currentObj.footer.icon_url)) + "&origin=" + encodeURIComponent(location.origin) + "'>" : "") +
+					"<span class='embedFooterText'>" + encode(currentObj.footer.text) +
+					(currentObj.timestamp ? "<span class='embedFooterSeparator'>•</span>" + encode(timestamp(currentObj.timestamp)) : "") + "</span></div>", "flex")
 				else if (currentObj.timestamp) display(embedFooter, "<span class='embedFooterText'>" + encode(timestamp(currentObj.timestamp)) + "</span></div>", "flex")
 				else hide(embedFooter)
 
@@ -793,8 +795,8 @@ addEventListener("DOMContentLoaded", () => {
 							switch (child2.classList[1]) {
 								case "author":
 									const authorURL = embed?.author?.icon_url || ""
-									if (authorURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encode(authorURL) + ")"
+									if (authorURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(authorURL) +
+										"&origin=" + encodeURIComponent(location.origin) + ")"
 									edit.querySelector(".editAuthorLink").value = authorURL
 									edit.querySelector(".editAuthorName").value = embed?.author?.name || ""
 									break
@@ -809,20 +811,20 @@ addEventListener("DOMContentLoaded", () => {
 									break
 								case "thumbnail":
 									const thumbnailURL = embed?.thumbnail?.url || ""
-									if (thumbnailURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encode(thumbnailURL) + ")"
+									if (thumbnailURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(thumbnailURL) +
+										"&origin=" + encodeURIComponent(location.origin) + ")"
 									edit.querySelector(".editThumbnailLink").value = thumbnailURL
 									break
 								case "image":
 									const imageURL = embed?.image?.url || ""
-									if (imageURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encode(imageURL) + ")"
+									if (imageURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(imageURL) +
+										"&origin=" + encodeURIComponent(location.origin) + ")"
 									edit.querySelector(".editImageLink").value = imageURL
 									break
 								case "footer":
 									const footerURL = embed?.footer?.icon_url || ""
-									if (footerURL)
-										edit.querySelector(".imgParent").style.content = "url(" + encode(footerURL) + ")"
+									if (footerURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(footerURL) +
+										"&origin=" + encodeURIComponent(location.origin) + ")"
 									edit.querySelector(".editFooterLink").value = footerURL
 									edit.querySelector(".editFooterText").value = embed?.footer?.text || ""
 									break
@@ -949,6 +951,7 @@ addEventListener("DOMContentLoaded", () => {
 					const indexOfGuiEmbed = Array.from(gui.querySelectorAll(".guiEmbed")).indexOf(guiEmbed)
 					if (indexOfGuiEmbed == -1) return error("Could not find the embed to add the field to.")
 
+					if (!jsonObject.embeds) jsonObject.embeds = []
 					const guiEmbedObj = jsonObject.embeds[indexOfGuiEmbed] || {}
 					const fieldsObj = guiEmbedObj.fields || []
 					if (fieldsObj.length >= 25) return error("An embed cannot have more than 25 fields!")
@@ -974,7 +977,9 @@ addEventListener("DOMContentLoaded", () => {
 					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
 					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
-					const componentsObj = jsonObject.components ? (jsonObject.components[indexOfGuiActionRow] ??= {}).components ??= [] : []
+					if (!jsonObject.components) jsonObject.components = []
+					const guiComponentObj = jsonObject.components[indexOfGuiActionRow] || {}
+					const componentsObj = guiComponentObj.components || []
 					if (componentsObj.length >= 5) return error("An action row cannot have more than 5 components!")
 					componentsObj.push({custom_id: "custom_", label: "Button", type: 1, style: 1, disabled: false})
 					if (!jsonObject.components) jsonObject.components = [{components: componentsObj}]
@@ -1316,7 +1321,9 @@ addEventListener("DOMContentLoaded", () => {
 		if (!smallerScreen.matches) document.getElementsByClassName("editContent")[0].focus()
 	})
 	document.querySelector(".import").addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
-	document.querySelector(".sendbot").addEventListener("click", () => socket.send(JSON.stringify({action: "send", content: jsonObject.content?.trim(), embeds: jsonObject.embeds?.map(cleanEmbed), components: jsonObject.components})))
+	document.querySelector(".sendbot").addEventListener("click", () => {
+		socket.send(JSON.stringify({action: "send", content: jsonObject.content?.trim(), embeds: jsonObject.embeds?.map(cleanEmbed), components: jsonObject.components}))
+	})
 
 	document.querySelector(".copy").addEventListener("click", () => {
 		const jsonData = JSON.stringify(jsonObject, null, "\t")

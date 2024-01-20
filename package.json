@@ -2,6 +2,7 @@
   "name": "tk-embedbuilder",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
   "author": "TomatoCake",
   "main": "index.html",
   "devDependencies": {
@@ -10,7 +11,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-html": "^7.1.0",
     "eslint-plugin-sonarjs": "^0.23.0",
-    "eslint-plugin-unicorn": "^50.0.1"
-  },
-  "license": "MIT"
+    "eslint-plugin-unicorn": "^50.0.1",
+    "uglify-js": "^3.17.4"
+  }
 }
