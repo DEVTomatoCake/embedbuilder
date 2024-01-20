@@ -1347,16 +1347,18 @@ addEventListener("DOMContentLoaded", () => {
 				data = "https://shorter.cf/" + shorterjson.name
 			}
 
-			try {
-				navigator.clipboard.writeText(data)
-			} catch {
-				const input = document.body.appendChild(document.createElement("input"))
-				input.value = data
-				input.select()
-				document.setSelectionRange(0, 30000)
-				document.execCommand("copy")
-				document.body.removeChild(input)
-			}
+			if (top == self) {
+				try {
+					navigator.clipboard.writeText(data)
+				} catch {
+					const input = document.body.appendChild(document.createElement("input"))
+					input.value = data
+					input.select()
+					document.setSelectionRange(0, 30000)
+					document.execCommand("copy")
+					document.body.removeChild(input)
+				}
+			} else alert("URL: " + data)
 
 			setTimeout(() => alert("Copied to clipboard." + (data.length > 2000 ? " URL was shortened to work on Discord, for example with the TomatenKuchen \"embed\" command." : "")), 1)
 			return

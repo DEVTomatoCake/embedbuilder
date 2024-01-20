@@ -180,18 +180,17 @@ code,
 div,
 em,
 h2,
-html,
 img,
 label,
 li,
 ol,
+ul,
 p,
 pre,
 s,
 small,
 span,
-strong,
-ul {
+strong {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -284,17 +283,8 @@ code,
 	line-height: 16px;
 }
 
-::-webkit-input-placeholder,
-body,
-button,
-input,
-select,
-textarea {
-	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-	text-rendering: optimizelegibility;
-}
-
 ::placeholder,
+::-webkit-input-placeholder,
 body,
 button,
 input,
@@ -310,8 +300,6 @@ div,
 input,
 label,
 select,
-span,
-strong,
 textarea {
 	outline: 0;
 }
@@ -333,7 +321,7 @@ textarea {
 
 .mention {
 	background-color: hsla(235, calc(85.6%), 64.7%, .3);
-	transition: background-color 50ms ease-out, color 50ms ease-out;
+	transition: background-color .5s ease-out, color .5s ease-out;
 	border-radius: 3px;
 	padding: 0 2px;
 	font-weight: 500;
@@ -484,9 +472,7 @@ ol, ul {
 .embedFieldValue,
 .embedFooterText,
 .embedLink,
-.embedProvider-3k5pfl,
-.embedTitle,
-.embedTitleLink-1Zla9e {
+.embedTitle {
 	unicode-bidi: plaintext;
 	text-align: left;
 }
@@ -565,13 +551,6 @@ ol, ul {
 	max-width: 100%;
 }
 
-.embedImage img,
-.embedThumbnail img {
-	display: block;
-	object-fit: fill;
-	border-radius: 4px;
-}
-
 .embedThumbnail {
 	grid-area: 1 / 2 / 8 / 2;
 	margin-left: 16px;
@@ -580,6 +559,13 @@ ol, ul {
 	justify-self: end;
 	width: 80px;
 	height: 80px;
+}
+
+.embedImage img,
+.embedThumbnail img {
+	display: block;
+	object-fit: fill;
+	border-radius: 4px;
 }
 
 .embedFooter {
@@ -673,15 +659,11 @@ ol, ul {
 }
 
 strong {
-	font-weight: 600;
+	font-weight: 700;
 }
 
 u, .markup a:hover {
 	text-decoration: underline;
-}
-
-.markup strong {
-	font-weight: 700;
 }
 
 .markup {
@@ -1971,7 +1953,6 @@ h5.title {
 	}
 
 	body.gui .side1 .item.top {
-		height: 85%;
 		width: 100%;
 	}
 
@@ -1991,7 +1972,6 @@ h5.title {
 
 @media screen and (max-height: 830px) {
 	body.gui .side1 .item.top {
-		max-width: 100%;
 		width: 100%;
 	}
 
@@ -2000,15 +1980,9 @@ h5.title {
 	}
 }
 
-@media screen and (max-height: 830px) and (min-width: 1015px) {
+@media screen and (max-height: 700px) {
 	body.gui .side1 .item.top {
-		height: 72%;
-	}
-}
-
-@media screen and (max-height: 750px) and (min-width: 1015px) {
-	body.gui .side1 .item.top {
-		height: 69%;
+		height: 85%;
 	}
 }
 
