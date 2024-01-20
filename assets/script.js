@@ -72,8 +72,6 @@ let jsonObject = {
 }
 
 const params = new URLSearchParams(location.search)
-const username = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
-const avatar = "./assets/images/" + (params.has("dgh") ? "gitdishook_2.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
 const dataSpecified = params.get("data")
 const guiTabs = params.get("guitabs") || ["description"]
 const useJsonEditor = params.get("editor") == "json"
@@ -140,8 +138,7 @@ const encodeJson = (jsonCode, withURL = false, redirect = false) => {
 
 const decodeJson = data => {
 	if (!data && dataSpecified) data = dataSpecified
-	data = data.replace(/ /g, "+")
-	const jsonData = decodeURIComponent(atob(data))
+	const jsonData = decodeURIComponent(atob(data.replace(/ /g, "+")))
 	return typeof jsonData == "string" ? JSON.parse(jsonData) : jsonData
 }
 
@@ -156,10 +153,9 @@ const reverse = reversed => {
 	else side.parentElement.insertBefore(side, side.parentElement.firstElementChild)
 }
 
-const urlOptions = ({ remove, set }) => {
+const urlOptions = ({ set }) => {
 	const url = new URL(location.href)
-	if (remove) url.searchParams.delete(remove)
-	if (set) url.searchParams.set(set[0], set[1])
+	url.searchParams.set(set[0], set[1])
 
 	try {
 		history.replaceState(null, null, url.href.replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x == "=" ? "" : "&"))
@@ -258,9 +254,8 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 
 	txt = txt
 		.trim()
-		/** Markdown */
-		.replace(/&lt;:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp"/>')
-		.replace(/&lt;a:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif"/>')
+		.replace(/&lt;:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp">')
+		.replace(/&lt;a:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif">')
 		.replace(/~~(.+?)~~/g, "<s>$1</s>")
 		.replace(/\*\*\*(.+?)\*\*\*/g, "<em><strong>$1</strong></em>")
 		.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
@@ -310,7 +305,7 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 		.replace(/&lt;id:browse&gt;/g, "<span class='mention channel'>Browse Channels</span>")
 		.replace(/&lt;#(\d{17,21})&gt;/g, "<span class='mention channel interactive'>channel: $1</span>")
 		.replace(/&lt;@&amp;(\d{17,21})&gt;/g, "<span class='mention interactive'>@role: $1</span>")
-		.replace(/&lt;@(\d+)&gt;|@(?:everyone|here)/g, (all, match1) => {
+		.replace(/&lt;@(\d{17,21})&gt;|@(?:everyone|here)/g, (all, match1) => {
 			if (all.startsWith("@")) return "<span class='mention'>" + all + "</span>"
 			return "<span class='mention interactive'>@user: " + match1 + "</span>"
 		})
@@ -323,18 +318,17 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 			if (x || y || z) return "<code class='inline'>" + (x || y || z) + "</code>"
 			return m
 		})
-	else {
+	else txt = txt
 		// Code block
-		txt = txt.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
+		.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
 			if (w) return "<pre><code class='" + w + "'>" + x.trim() + "</code></pre>"
 			else return "<pre><code class='hljs nohighlight'>" + x.trim() + "</code></pre>"
 		})
 		// Inline code
-		txt = txt.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y) => {
+		.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y) => {
 			if (x || y) return "<code class='inline'>" + (x || y) + "</code>"
 			return m
 		})
-	}
 
 	return txt
 }
@@ -373,8 +367,8 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelector(".side1.noDisplay")?.classList.remove("noDisplay")
 	if (useJsonEditor) document.body.classList.remove("gui")
 
-	if (username) document.querySelector(".username").textContent = username
-	if (avatar) document.querySelector(".avatar").src = avatar
+	document.querySelector(".username").textContent = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
+	document.querySelector(".avatar").src = "./assets/images/" + (params.has("dgh") ? "gitdishook_2.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
 
 	for (const e of document.querySelectorAll(".clickable > img"))
 		e.parentElement.addEventListener("mouseup", el => window.open(el.target.src))
@@ -404,13 +398,10 @@ addEventListener("DOMContentLoaded", () => {
 
 				if ((nextLine === void 0 || !nextLine.trim()) && !end.substr(cursor.ch).trim())
 					editor.replaceRange("\n", { line: cursor.line, ch: cursor.ch })
-				else {
-					const leadingSpaces = end.replace(/\S($|.)+/g, "") || "\t\n"
-					editor.replaceRange("\n" + leadingSpaces + (end.endsWith("{") ? "\t" : ""), {
+				else editor.replaceRange("\n" + (end.replace(/\S($|.)+/g, "") || "\t\n") + (end.endsWith("{") ? "\t" : ""), {
 						line: cursor.line,
 						ch: cursor.ch
 					})
-				}
 			}
 		}
 	})
@@ -555,10 +546,10 @@ addEventListener("DOMContentLoaded", () => {
 					const embedAuthor = embed?.querySelector(".embedAuthor")
 					if (!embedAuthor) return buildEmbed()
 
-					if (embedObj.author?.name) display(embedAuthor, `
-						${embedObj.author.icon_url ? '<img class="embedAuthorIcon embedAuthorLink" src="' + encode(url(embedObj.author.icon_url)) + '">' : ""}
-						${embedObj.author.url ? '<a class="embedAuthorNameLink embedLink embedAuthorName" href="' + encode(url(embedObj.author.url)) + '" target="_blank">' +
-							encode(embedObj.author.name) + "</a>" : '<span class="embedAuthorName">' + encode(embedObj.author.name) + "</span>"}`, "flex")
+					if (embedObj.author?.name) display(embedAuthor,
+						(embedObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + encode(url(embedObj.author.icon_url)) + "'>" : "") +
+						(embedObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(embedObj.author.url)) + "' target='_blank'>" +
+							encode(embedObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(embedObj.author.name) + "</span>"), "flex")
 					else hide(embedAuthor)
 
 					return externalParsing({ element: embedAuthor })
@@ -909,12 +900,8 @@ addEventListener("DOMContentLoaded", () => {
 					else if (e.classList.contains("footer")) {
 						const date = new Date(jsonObject.embeds[guiEmbedIndex(e)]?.timestamp || new Date())
 						const textElement = e.nextElementSibling.querySelector("svg>text")
-						const dateInput = textElement.closest(".footerDate").querySelector("input")
-
-						return (
-							textElement.textContent = (date.getDate() + "").padStart(2, 0),
-							dateInput.value = date.toISOString().substring(0, 19)
-						)
+						textElement.textContent = ("" + date.getDate()).padStart(2, 0)
+						textElement.closest(".footerDate").querySelector("input").value = date.toISOString().substring(0, 19)
 					} else if (input) {
 						if (!smallerScreen.matches) input.focus()
 						input.selectionStart = input.value.length
@@ -966,8 +953,10 @@ addEventListener("DOMContentLoaded", () => {
 					if (!smallerScreen.matches) {
 						const firstFieldInput = newField.querySelector(".designerFieldName input")
 
-						firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
-						firstFieldInput?.focus()
+						if (firstFieldInput) {
+							firstFieldInput.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
+							firstFieldInput.focus()
+						}
 					}
 				}
 
@@ -995,8 +984,10 @@ addEventListener("DOMContentLoaded", () => {
 					if (!smallerScreen.matches) {
 						const firstFieldInput = newComponent.querySelector(".editComponentLabel")
 
-						firstFieldInput?.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
-						firstFieldInput?.focus()
+						if (firstFieldInput) {
+							firstFieldInput.setSelectionRange(firstFieldInput.value.length, firstFieldInput.value.length)
+							firstFieldInput.focus()
+						}
 					}
 				}
 
@@ -1157,13 +1148,12 @@ addEventListener("DOMContentLoaded", () => {
 					const formData = new FormData()
 					const fileInput = createElement({ input: { type: "file", accept: "image/*" } })
 					const edit = browse.closest(".edit")
-					const expiration = 7 * 24 * 60 * 60
 
 					fileInput.onchange = el => {
 						if (el.target.files[0].size > 32 * 1024 * 1024)
 							return uploadError("File is too large. Maximum size is 32 MB.", browse, 5000)
 
-						formData.append("expiration", expiration) // Expire after 7 days. Discord caches files.
+						formData.append("expiration", 60 * 60 * 24 * 7) // Expire after 7 days. Discord caches files.
 						formData.append("key", "247664c78b4606093dc9a510037483e0")
 						formData.append("image", el.target.files[0])
 
@@ -1188,7 +1178,7 @@ addEventListener("DOMContentLoaded", () => {
 								// focus on the next empty input if the field requires a name or text to display eg. footer or author.
 								if (!textInput?.value) textInput?.focus()
 
-								console.info(`${res.data.url} will be deleted in ${expiration / 60 / 60} hours. To delete it now, visit ${res.data.delete_url} and scroll down to find the delete button.`)
+								console.info(res.data.url + " will be deleted in seven days. To delete it now, visit " + res.data.delete_url + " and scroll down to find the delete button.")
 
 								linkInput.dispatchEvent(new Event("input"))
 							}).catch(err => {
@@ -1211,8 +1201,7 @@ addEventListener("DOMContentLoaded", () => {
 			for (const e of document.querySelectorAll(".guiActionRow"))
 				e.onclick = () => {
 					const guiActionRow = e.closest(".guiActionRow")
-					const indexOfGuiActionRow = Array.from(gui.querySelectorAll(".guiActionRow")).indexOf(guiActionRow)
-					if (indexOfGuiActionRow == -1) return error("Could not find the action row to add the component to.")
+					if (!Array.from(gui.querySelectorAll(".guiActionRow")).includes(guiActionRow)) return error("Could not find the action row to add the component to.")
 				}
 
 			if (jsonObject.embeds && !jsonObject.embeds[lastActiveGuiEmbedIndex])
@@ -1234,7 +1223,7 @@ addEventListener("DOMContentLoaded", () => {
 			for (const e of gui.querySelectorAll(".item:not(.guiEmbedName).active")) e.classList.remove("active")
 
 			// Activate wanted GUI fields
-			for (const e of document.querySelectorAll(`.${tabs.join(", .")}`)) e.classList.add("active")
+			for (const e of document.querySelectorAll("." + tabs.join(", ."))) e.classList.add("active")
 
 			// Autoscroll GUI to the bottom if necessary.
 			if (!tabs.some(item => topKeys.has(item)) && tabs.some(item => bottomKeys.has(item))) {
@@ -1343,7 +1332,6 @@ addEventListener("DOMContentLoaded", () => {
 		if (e.target.closest(".item.dataLink")) {
 			let data = encodeJson(jsonObject, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x == "=" ? "" : "&")
 			if (data.length > 2000) {
-				const name = Math.random().toString(36).slice(5)
 				const shorterres = await fetch("https://shorter.cf", {
 					method: "POST",
 					headers: {
@@ -1352,7 +1340,7 @@ addEventListener("DOMContentLoaded", () => {
 						Accept: "application/json"
 					},
 					body: JSON.stringify({
-						name,
+						name: Math.random().toString(36).slice(5),
 						url: data,
 						date: Date.now() + 1000 * 60 * 60 * 24 * 5
 					})
@@ -1373,13 +1361,12 @@ addEventListener("DOMContentLoaded", () => {
 				document.body.removeChild(input)
 			}
 
-			setTimeout(() => alert("Copied to clipboard." + (data.length > 2000 ? " URL was shortened to work on Discord, for example with the TK embed command." : "")), 1)
+			setTimeout(() => alert("Copied to clipboard." + (data.length > 2000 ? " URL was shortened to work on Discord, for example with the TomatenKuchen \"embed\" command." : "")), 1)
 			return
 		}
 
 		if (e.target.closest(".item.sendwebhook")) {
 			const webhook = prompt("Enter the URL of the webhook to send the message to.")
-
 			if (webhook) {
 				const webhookres = await fetch(webhook, {
 					method: "POST",
@@ -1391,8 +1378,7 @@ addEventListener("DOMContentLoaded", () => {
 					body: JSON.stringify(jsonObject)
 				})
 				if (!webhookres.ok) {
-					const webhookjson = await webhookres.json()
-					console.error(webhookjson)
+					console.error(webhookres.status, await webhookres.json())
 					return error("Request failed with error: " + webhookres.statusText)
 				}
 			}
