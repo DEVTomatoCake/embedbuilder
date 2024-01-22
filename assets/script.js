@@ -231,6 +231,7 @@ const externalParsing = ({ noEmojis, element } = {}) => {
 }
 
 const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
+const imgProxy = str => "https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)
 const hide = el => el.style.removeProperty("display")
 const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
 const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
@@ -548,7 +549,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedAuthor) return buildEmbed()
 
 					if (embedObj.author?.name) display(embedAuthor,
-						(embedObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + encode(url(embedObj.author.icon_url)) + "'>" : "") +
+						(embedObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + imgProxy(embedObj.author.icon_url) + "'>" : "") +
 						(embedObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(embedObj.author.url)) + "' target='_blank'>" +
 							encode(embedObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(embedObj.author.name) + "</span>"), "flex")
 					else hide(embedAuthor)
@@ -576,7 +577,7 @@ addEventListener("DOMContentLoaded", () => {
 
 					const pre = embed.querySelector(".embedGrid .markup pre")
 					if (embedObj.thumbnail?.url) {
-						embedThumbnailLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.thumbnail.url)) + "&origin=" + encodeURIComponent(location.origin)
+						embedThumbnailLink.src = imgProxy(embedObj.thumbnail.url)
 						embedThumbnailLink.parentElement.style.display = "block"
 						if (pre) pre.style.maxWidth = "90%"
 					} else {
@@ -590,7 +591,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedImageLink) return buildEmbed()
 
 					if (embedObj.image?.url) {
-						embedImageLink.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(embedObj.image.url)) + "&origin=" + encodeURIComponent(location.origin)
+						embedImageLink.src = imgProxy(embedObj.image.url)
 						embedImageLink.parentElement.style.display = "block"
 					} else hide(embedImageLink.parentElement)
 
@@ -602,7 +603,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (!embedFooter) return buildEmbed()
 
 					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter,
-						(embedObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='" + encode(url(embedObj.footer.icon_url)) + "'>" : "") + "<span class='embedFooterText'>" +
+						(embedObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='" + imgProxy(embedObj.footer.icon_url) + "'>" : "") + "<span class='embedFooterText'>" +
 						encode(embedObj.footer.text) + (embedObj.timestamp ? "<span class='embedFooterSeparator'>•</span>" + encode(timestamp(embedObj.timestamp)) : "") + "</span></div>", "flex")
 					else hide(embedFooter)
 
@@ -634,15 +635,14 @@ addEventListener("DOMContentLoaded", () => {
 				else embedGrid.closest(".embed").style.removeProperty("border-color")
 
 				if (currentObj.author?.name) display(embedAuthor,
-					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='https://api.tomatenkuchen.com/image-proxy?url=" +
-						encode(url(currentObj.author.icon_url)) + "&origin=" + encodeURIComponent(location.origin) + "'>" : "") +
+					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + imgProxy(currentObj.author.icon_url) + "'>" : "") +
 					(currentObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(currentObj.author.url)) + "' target='_blank' rel='noopener'>" +
 					encode(currentObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(currentObj.author.name) + "</span>"), "flex")
 				else hide(embedAuthor)
 
 				const pre = embedGrid.querySelector(".markup pre")
 				if (currentObj.thumbnail?.url) {
-					embedThumbnail.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.thumbnail.url)) + "&origin=" + encodeURIComponent(location.origin)
+					embedThumbnail.src = imgProxy(currentObj.thumbnail.url)
 					embedThumbnail.parentElement.style.display = "block"
 					if (pre) pre.style.maxWidth = "90%"
 				} else {
@@ -651,13 +651,12 @@ addEventListener("DOMContentLoaded", () => {
 				}
 
 				if (currentObj.image?.url) {
-					embedImage.src = "https://api.tomatenkuchen.com/image-proxy?url=" + encode(url(currentObj.image.url)) + "&origin=" + encodeURIComponent(location.origin)
+					embedImage.src = imgProxy(currentObj.image.url)
 					embedImage.parentElement.style.display = "block"
 				} else hide(embedImage.parentElement)
 
 				if (currentObj.footer?.text) display(embedFooter,
-					(currentObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='https://api.tomatenkuchen.com/image-proxy?url=" +
-						encode(url(currentObj.footer.icon_url)) + "&origin=" + encodeURIComponent(location.origin) + "'>" : "") +
+					(currentObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='" + imgProxy(currentObj.footer.icon_url) + "'>" : "") +
 					"<span class='embedFooterText'>" + encode(currentObj.footer.text) +
 					(currentObj.timestamp ? "<span class='embedFooterSeparator'>•</span>" + encode(timestamp(currentObj.timestamp)) : "") + "</span></div>", "flex")
 				else if (currentObj.timestamp) display(embedFooter, "<span class='embedFooterText'>" + encode(timestamp(currentObj.timestamp)) + "</span></div>", "flex")
@@ -786,8 +785,7 @@ addEventListener("DOMContentLoaded", () => {
 							switch (child2.classList[1]) {
 								case "author":
 									const authorURL = embed?.author?.icon_url || ""
-									if (authorURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(authorURL) +
-										"&origin=" + encodeURIComponent(location.origin) + ")"
+									if (authorURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(authorURL) + ")"
 									edit.querySelector(".editAuthorLink").value = authorURL
 									edit.querySelector(".editAuthorName").value = embed?.author?.name || ""
 									break
@@ -802,20 +800,17 @@ addEventListener("DOMContentLoaded", () => {
 									break
 								case "thumbnail":
 									const thumbnailURL = embed?.thumbnail?.url || ""
-									if (thumbnailURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(thumbnailURL) +
-										"&origin=" + encodeURIComponent(location.origin) + ")"
+									if (thumbnailURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(thumbnailURL) + ")"
 									edit.querySelector(".editThumbnailLink").value = thumbnailURL
 									break
 								case "image":
 									const imageURL = embed?.image?.url || ""
-									if (imageURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(imageURL) +
-										"&origin=" + encodeURIComponent(location.origin) + ")"
+									if (imageURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(imageURL) + ")"
 									edit.querySelector(".editImageLink").value = imageURL
 									break
 								case "footer":
 									const footerURL = embed?.footer?.icon_url || ""
-									if (footerURL) edit.querySelector(".imgParent").style.content = "url(https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(footerURL) +
-										"&origin=" + encodeURIComponent(location.origin) + ")"
+									if (footerURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(footerURL) + ")"
 									edit.querySelector(".editFooterLink").value = footerURL
 									edit.querySelector(".editFooterText").value = embed?.footer?.text || ""
 									break
