@@ -122,9 +122,9 @@ const createElement = object => {
 
 const encodeJson = (jsonCode, withURL = false, redirect = false) => {
 	let data = btoa(encodeURIComponent(JSON.stringify(typeof jsonCode == "object" ? jsonCode : jsonObject)))
-	const url = new URL(location.href)
 
 	if (withURL) {
+		const url = new URL(location.href)
 		url.searchParams.set("data", data)
 		if (redirect) return top.location.href = url
 
@@ -361,7 +361,13 @@ addEventListener("DOMContentLoaded", () => {
 	if (reverseColumns || localStorage.getItem("reverseColumns")) reverse()
 
 	// iframe
-	if (top != self) document.getElementById("auto").parentElement.remove()
+	if (top != self) {
+		document.getElementById("auto").parentElement.remove()
+
+		window.onmessage = e => {
+			if (e.data == "requestMessage") window.top.postMessage("respondMessage_" + encodeJson(jsonObject), "*")
+		}
+	}
 
 	if (autoUpdateURL) {
 		document.body.classList.add("autoUpdateURL")
