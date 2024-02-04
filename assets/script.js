@@ -377,8 +377,11 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelector(".side1.noDisplay")?.classList.remove("noDisplay")
 	if (useJsonEditor) document.body.classList.remove("gui")
 
-	document.querySelector(".username").textContent = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
-	document.querySelector(".avatar").src = "./assets/images/" + (params.has("dgh") ? "gitdishook_2.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
+	document.getElementsByClassName("username")[0].textContent = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
+	document.getElementsByClassName("avatar")[0].src = "./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
+	document.getElementsByClassName("avatar")[0].srcset =
+		"./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp") + " 1x, " +
+		"./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp") + " 2x"
 
 	for (const e of document.querySelectorAll(".clickable > img"))
 		e.parentElement.addEventListener("mouseup", el => window.open(el.target.src))
@@ -1307,10 +1310,16 @@ addEventListener("DOMContentLoaded", () => {
 
 		if (!smallerScreen.matches) document.getElementsByClassName("editContent")[0].focus()
 	})
-	document.querySelector(".import").addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
-	document.querySelector(".sendbot").addEventListener("click", () => {
-		socket.send(JSON.stringify({action: "send", content: jsonObject.content?.trim(), embeds: jsonObject.embeds?.map(cleanEmbed), components: jsonObject.components}))
-	})
+
+	if (params.has("dgh") || params.has("mb")) {
+		document.getElementsByClassName("import")[0].remove()
+		document.getElementsByClassName("sendbot")[0].remove()
+	} else {
+		document.getElementsByClassName("import")[0].addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
+		document.getElementsByClassName("sendbot")[0].addEventListener("click", () => {
+			socket.send(JSON.stringify({action: "send", content: jsonObject.content?.trim(), embeds: jsonObject.embeds?.map(cleanEmbed), components: jsonObject.components}))
+		})
+	}
 
 	document.querySelector(".copy").addEventListener("click", () => {
 		const jsonData = JSON.stringify(jsonObject, null, "\t")
