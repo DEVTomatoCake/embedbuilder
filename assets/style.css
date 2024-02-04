@@ -1640,13 +1640,13 @@ span.h3 {
 	transition: .5s ease;
 }
 
-.top-btn.import {
+.top-btn.copy {
 	left: 190px;
 }
-.top-btn.sendbot {
+.top-btn.import {
 	left: 240px;
 }
-.top-btn.copy {
+.top-btn.sendbot {
 	left: 290px;
 }
 
