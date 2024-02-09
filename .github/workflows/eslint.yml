@@ -18,7 +18,7 @@ jobs:
           cache: "npm"
 
       - name: "🛸 install eslint plugins"
-        run: npm i --no-fund --no-audit
+        run: npm i --omit=optional --include=dev --no-fund --progress=false
 
       - name: "🔍 lint code"
-        run: npx eslint --ext .html,.js . --report-unused-disable-directives
+        run: npx eslint .

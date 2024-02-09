@@ -1414,7 +1414,7 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelectorAll(".img").forEach(e => {
 		if (e.nextElementSibling?.classList.contains("spinner-container"))
 			e.addEventListener("error", el => {
-				el.target.style.removeProperty("display")
+				el.target.style.display = "none"
 				el.target.nextElementSibling.style.display = "block"
 			})
 	})
