@@ -12,7 +12,8 @@ const global = {
 	sockette: "readonly",
 	CodeMirror: "readonly",
 	twemoji: "readonly",
-	hljs: "readonly"
+	hljs: "readonly",
+	emojis: "readonly"
 }
 
 const rules = {

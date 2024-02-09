@@ -250,13 +250,12 @@ const timestamp = stringISO => {
 }
 
 const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
-	// eslint-disable-next-line no-undef
 	if (replaceEmojis) txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
 	txt = txt
 		.trim()
-		.replace(/&lt;:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.webp">')
-		.replace(/&lt;a:\w+:(\d{17,21})&gt;/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif">')
+		.replace(/&lt;:\w+:(\d{17,21})&gt;/g, "<img class='emoji' src='https://cdn.discordapp.com/emojis/$1.webp'>")
+		.replace(/&lt;a:\w+:(\d{17,21})&gt;/g, "<img class='emoji' src='https://cdn.discordapp.com/emojis/$1.gif'>")
 		.replace(/~~(.+?)~~/g, "<s>$1</s>")
 		.replace(/\*\*\*(.+?)\*\*\*/g, "<em><strong>$1</strong></em>")
 		.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
@@ -504,7 +503,7 @@ addEventListener("DOMContentLoaded", () => {
 		}
 
 
-		for (const e of document.querySelectorAll('.embedField[style="grid-column: 1 / 5;"]'))
+		for (const e of document.querySelectorAll(".embedField[style='grid-column: 1 / 5;']"))
 			if (!e.nextElementSibling || e.nextElementSibling.style.gridColumn == "1 / 13") e.style.gridColumn = "1 / 13"
 		colNum = 1
 
@@ -547,7 +546,7 @@ addEventListener("DOMContentLoaded", () => {
 					const embedTitle = embed?.querySelector(".embedTitle")
 					if (!embedTitle) return buildEmbed()
 
-					if (embedObj.title) display(embedTitle, markup(embedObj.url ? '<a class="anchor" target="_blank" href="' + encode(url(embedObj.url)) + '">' + encode(embedObj.title) + "</a>" :
+					if (embedObj.title) display(embedTitle, markup(embedObj.url ? "<a class='anchor' target='_blank' href='" + encode(url(embedObj.url)) + "'>" + encode(embedObj.title) + "</a>" :
 						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
 					else hide(embedTitle)
 
@@ -1247,7 +1246,7 @@ addEventListener("DOMContentLoaded", () => {
 			const line = edi.getCursor().line
 			const text = edi.getLine(line)
 
-			if (text.trim() == '"') {
+			if (text.trim() == "\"") {
 				edi.replaceRange(text.trim() + ":", { line, ch: line.length })
 				edi.setCursor(line, text.length)
 			}
