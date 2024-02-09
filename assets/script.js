@@ -364,7 +364,8 @@ addEventListener("DOMContentLoaded", () => {
 		document.getElementById("auto").parentElement.remove()
 
 		window.onmessage = e => {
-			if (e.data == "requestMessage") window.top.postMessage("respondMessage_" + encodeJson(jsonObject), "*")
+			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "https://localhost:4269") && e.data == "requestMessage")
+				window.top.postMessage("respondMessage_" + encodeJson(jsonObject), "*")
 		}
 	}
 
