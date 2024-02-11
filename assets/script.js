@@ -1339,7 +1339,7 @@ addEventListener("DOMContentLoaded", () => {
 		if (e.target.closest(".item.dataLink")) {
 			let data = encodeJson(jsonObject, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x == "=" ? "" : "&")
 			if (data.length > 2000) {
-				const shorterres = await fetch("https://shorter.cf", {
+				const shorterres = await fetch("https://sh0rt.zip", {
 					method: "POST",
 					headers: {
 						"User-Agent": "TomatoCake TomatenKuchen.com Message Editor",
@@ -1349,12 +1349,12 @@ addEventListener("DOMContentLoaded", () => {
 					body: JSON.stringify({
 						name: Math.random().toString(36).slice(5),
 						url: data,
-						date: Date.now() + 1000 * 60 * 60 * 24 * 5
+						date: Date.now() + 1000 * 60 * 60 * 24 * 14
 					})
 				})
 				const shorterjson = await shorterres.json()
-				console.log("Response from https://shorter.cf:", shorterjson)
-				data = "https://shorter.cf/" + shorterjson.name
+				console.log("Response from https://sh0rt.zip:", shorterjson)
+				data = "https://sh0rt.zip/" + shorterjson.name
 			}
 
 			if (top == self) {
@@ -1368,9 +1368,11 @@ addEventListener("DOMContentLoaded", () => {
 					document.execCommand("copy")
 					document.body.removeChild(input)
 				}
+
+				setTimeout(() => alert("Copied to clipboard." +
+					(data.length > 2000 ? " The URL was shortened to work on Discord and can now be used for example with the TomatenKuchen \"embed\" command." : "")), 1)
 			} else alert("URL: " + data)
 
-			setTimeout(() => alert("Copied to clipboard." + (data.length > 2000 ? " URL was shortened to work on Discord, for example with the TomatenKuchen \"embed\" command." : "")), 1)
 			return
 		}
 
