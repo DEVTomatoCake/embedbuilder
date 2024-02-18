@@ -10,7 +10,7 @@ let jsonObject = {
 	embeds: [
 		{
 			title: "Next steps",
-			description: "1. https://tomatenkuchen.com/invite\n2. Use the bot to import a message\n3. Send it using TomatenKuchen or a webhook!"
+			description: "1. [Invite TomatenKuchen](https://tomatenkuchen.com/invite)\n2. Use the bot to import a message\n3. Send it using TomatenKuchen or a webhook!"
 		}
 	],
 	components: [
@@ -72,6 +72,8 @@ let jsonObject = {
 }
 
 const params = new URLSearchParams(location.search)
+if (params.has("mb") || params.has("dgh")) jsonObject.embeds = []
+
 const dataSpecified = params.get("data")
 const guiTabs = params.get("guitabs") || ["description"]
 const useJsonEditor = params.get("editor") == "json"
@@ -120,13 +122,16 @@ const createElement = object => {
 	return element
 }
 
-const encodeJson = (jsonCode, withURL = false, redirect = false) => {
-	let data = btoa(encodeURIComponent(JSON.stringify(typeof jsonCode == "object" ? jsonCode : jsonObject)))
+const encodeJson = (withURL = false) => {
+	let data = btoa(encodeURIComponent(JSON.stringify({
+		...jsonObject,
+		embeds: jsonObject.embeds && jsonObject.embeds.length > 0 ? jsonObject.embeds.map(cleanEmbed) : void 0,
+		components: jsonObject.components && jsonObject.components.length > 0 ? jsonObject.components : void 0
+	})))
 
 	if (withURL) {
 		const url = new URL(location.href)
 		url.searchParams.set("data", data)
-		if (redirect) return top.location.href = url
 
 		data = url.href
 			// Replace %3D ('=' url encoded) with '='
@@ -217,7 +222,7 @@ const changeLastActiveGuiEmbed = index => {
 }
 
 // Called after building embed for extra work.
-const afterBuilding = () => autoUpdateURL && urlOptions({ set: ["data", encodeJson(jsonObject)] })
+const afterBuilding = () => autoUpdateURL && urlOptions({ set: ["data", encodeJson()] })
 // Parses emojis to images and adds code highlighting.
 const externalParsing = ({ noEmojis, element } = {}) => {
 	if (!noEmojis) twemoji.parse(element || document.querySelector(".msgEmbed"), { base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/" })
@@ -364,8 +369,8 @@ addEventListener("DOMContentLoaded", () => {
 		document.getElementById("auto").parentElement.remove()
 
 		window.onmessage = e => {
-			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "https://localhost:4269") && e.data == "requestMessage")
-				window.top.postMessage("respondMessage_" + encodeJson(jsonObject), "*")
+			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269") && e.data == "requestMessage")
+				window.top.postMessage("respondMessage_" + encodeJson(), "*")
 		}
 	}
 
@@ -1270,6 +1275,10 @@ addEventListener("DOMContentLoaded", () => {
 	})
 
 	document.querySelector(".timeText").innerText = timestamp()
+	setTimeout(() => {
+		document.querySelector(".timeText").innerText = timestamp()
+		setInterval(() => document.querySelector(".timeText").innerText = timestamp(), 60000)
+	}, 60000 - Date.now() % 60000)
 
 	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightBlock(block)
 
@@ -1337,7 +1346,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	document.querySelector(".top-btn.menu")?.addEventListener("click", async e => {
 		if (e.target.closest(".item.dataLink")) {
-			let data = encodeJson(jsonObject, true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x == "=" ? "" : "&")
+			let data = encodeJson(true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x == "=" ? "" : "&")
 			if (data.length > 2000) {
 				const shorterres = await fetch("https://sh0rt.zip", {
 					method: "POST",
@@ -1405,7 +1414,7 @@ addEventListener("DOMContentLoaded", () => {
 			autoUpdateURL = document.body.classList.toggle("autoUpdateURL")
 			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", true)
 			else localStorage.removeItem("autoUpdateURL")
-			urlOptions({ set: ["data", encodeJson(jsonObject)] })
+			urlOptions({ set: ["data", encodeJson()] })
 		} else if (e.target.closest(".item.reverse")) {
 			reverse(reverseColumns)
 			reverseColumns = !reverseColumns
@@ -1432,8 +1441,8 @@ const embedObjectsProps = {
 	footer: ["text", "icon_url"]
 }
 
-function cleanEmbed(obj, recursing = false) {
-	if (!recursing)
+const cleanEmbed = (obj, recursive = false) => {
+	if (!recursive)
 		// Remove all invalid properties from embed object.
 		for (const key in obj) {
 			if (!embedKeys.includes(key)) delete obj[key]
