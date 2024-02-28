@@ -388,6 +388,8 @@ addEventListener("DOMContentLoaded", () => {
 		"./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp") + " 1x, " +
 		"./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp") + " 2x"
 
+	if (params.has("light")) document.body.classList.add("light")
+
 	for (const e of document.querySelectorAll(".clickable > img"))
 		e.parentElement.addEventListener("mouseup", el => window.open(el.target.src))
 
