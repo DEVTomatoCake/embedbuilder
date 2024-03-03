@@ -38,6 +38,7 @@
 	--menu-hover: #35373f;
 	--menu-a: #b4b4b4;
 	--chooser-bg: #41444a;
+	--field-bg: #2d2e33;
 
 	--black: #000;
 	--white: #FFF;
@@ -57,6 +58,7 @@
 	--menu-hover: #d4d6d9;
 	--menu-a: #5b5b5b;
 	--chooser-bg: #838689;
+	--field-bg: #c7c7cf;
 
 	--black: #FFF;
 	--white: #000;
@@ -225,8 +227,8 @@ strong {
 	vertical-align: baseline;
 }
 
-body.light .CodeMirror-code {
-	color: #000;
+body.light .CodeMirror-code pre.CodeMirror-line > span {
+	color: #000 !important;
 }
 
 .hljs-comment,
@@ -744,7 +746,7 @@ u, .markup a:hover {
 }
 
 .spoiler {
-	background-color: #202225;
+	background-color: var(--background-tertiary);
 	border-radius: 3px;
 }
 
@@ -1512,7 +1514,7 @@ button[type="submit"] {
 }
 
 .fields + .edit .fieldInner .designerFieldName {
-	background-color: #2d2e33;
+	background-color: var(--field-bg);
 }
 
 body {

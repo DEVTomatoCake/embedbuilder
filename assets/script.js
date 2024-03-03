@@ -125,7 +125,7 @@ const createElement = object => {
 const encodeJson = (withURL = false) => {
 	let data = btoa(encodeURIComponent(JSON.stringify({
 		...jsonObject,
-		embeds: jsonObject.embeds && jsonObject.embeds.length > 0 ? jsonObject.embeds.map(cleanEmbed) : void 0,
+		embeds: jsonObject.embeds && jsonObject.embeds.length > 0 ? jsonObject.embeds : void 0,
 		components: jsonObject.components && jsonObject.components.length > 0 ? jsonObject.components : void 0
 	})))
 
@@ -203,7 +203,7 @@ const indexOfEmptyGuiEmbed = text => {
 			return i
 		}
 
-	for (const [i, embedObj] of (jsonObject.embeds?.map(cleanEmbed) || []).entries())
+	for (const [i, embedObj] of (jsonObject.embeds || []).entries())
 		if (!(0 in Object.keys(embedObj))) {
 			if (text !== false) animateGuiEmbedNameAt(i, text)
 			return i
@@ -225,12 +225,11 @@ const changeLastActiveGuiEmbed = index => {
 const afterBuilding = () => autoUpdateURL && urlOptions({ set: ["data", encodeJson()] })
 // Parses emojis to images and adds code highlighting.
 const externalParsing = ({ noEmojis, element } = {}) => {
-	if (!noEmojis) twemoji.parse(element || document.querySelector(".msgEmbed"), { base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/" })
-	for (const block of document.querySelectorAll(".markup pre > code"))
-		hljs.highlightBlock(block)
+	if (!noEmojis) twemoji.parse(element || document.querySelector(".msgEmbed"), { base: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.0.3/", size: "72x72" })
+	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightElement(block)
 
 	const embed = element?.closest(".embed")
-	if (embed?.innerText.trim()) embed.classList.remove("emptyEmbed")
+	if (embed?.textContent.trim()) embed.classList.remove("emptyEmbed")
 
 	afterBuilding()
 }
@@ -278,7 +277,7 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 
 	let listType
 	txt = txt
-		.replace(/^(-|\*|\d\.) ?([\S 	]+)/gm, (match, p1, p2) => {
+		.replace(/^(-|\*|\d\.) ([\S \t]+)/gm, (match, p1, p2) => {
 			let prefix = ""
 			if (!listType) {
 				if (p1 == "-" || p1 == "*") listType = "ul"
@@ -300,7 +299,7 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 			return prefix + "<li>" + p2 + "</li>" + suffix
 		})
 		// Replace >>> and > with block-quotes. &gt; is HTML code for >
-		.replace(/^(?: *&gt;&gt;&gt; ([\s\S]*))|(?:^ *&gt;(?!&gt;&gt;) +.+\n)+(?:^ *&gt;(?!&gt;&gt;) .+\n?)+|^(?: *&gt;(?!&gt;&gt;) ([^\n]*))(\n?)/mg, (all, match1, match2, newLine) =>
+		.replace(/^(?: *&gt;&gt;&gt; ([\s\S]*))|(?:^ *&gt;(?!&gt;&gt;) +.+\n)+(?:^ *&gt;(?!&gt;&gt;) .+\n?)+|^(?: *&gt;(?!&gt;&gt;) ([^\n]*))(\n?)/gm, (all, match1, match2, newLine) =>
 			"<div class='blockquote'><div class='blockquoteDivider'></div><blockquote>" + (match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&gt; /gm, "")) + "</blockquote></div>"
 		)
 
@@ -315,7 +314,23 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 			return "<span class='mention interactive'>@user: " + match1 + "</span>"
 		})
 		.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
-		.replace(/&lt;t:([0-9]{1,13})(:[a-z])?&gt;/gi, (all, match1) => "<span class='spoiler'>" + new Date(parseInt(match1) * 1000).toLocaleString() + "</span>")
+
+		// Timestamps
+		.replace(/&lt;t:([0-9]{1,14})(:([tTdDfFR]))?&gt;/g, (all, match1, match2, match3) => {
+			const dateInput = new Date(parseInt(match1) * 1000)
+			let time = ""
+			if (match3 == "d") time = dateInput.toLocaleString(void 0, {day: "2-digit", month: "2-digit", year: "numeric"})
+			else if (match3 == "D") time = dateInput.toLocaleString(void 0, {day: "numeric", month: "long", year: "numeric"})
+			else if (!match3 || match3 == "f") time = dateInput.toLocaleString(void 0, {day: "numeric", month: "long", year: "numeric"}) + " " +
+				dateInput.toLocaleString(void 0, {hour: "2-digit", minute: "2-digit"})
+			else if (match3 == "F") time = dateInput.toLocaleString(void 0, {day: "numeric", month: "long", year: "numeric", weekday: "long"}) + " " +
+				dateInput.toLocaleString(void 0, {hour: "2-digit", minute: "2-digit"})
+			else if (match3 == "t") time = dateInput.toLocaleString(void 0, {hour: "2-digit", minute: "2-digit"})
+			else if (match3 == "T") time = dateInput.toLocaleString(void 0, {hour: "2-digit", minute: "2-digit", second: "2-digit"})
+			else if (match3 == "R") time = Math.round((Date.now() - (parseInt(match1) * 1000)) / 1000 / 60) + " minutes ago"
+
+			return "<span class='spoiler'>" + time + "</span>"
+		})
 
 	if (inlineBlock)
 		// Treat both inline code and code blocks as inline code
@@ -325,9 +340,9 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 		})
 	else txt = txt
 		// Code block
-		.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, w, x) => {
-			if (w) return "<pre><code class='" + w + "'>" + x.trim() + "</code></pre>"
-			else return "<pre><code class='hljs nohighlight'>" + x.trim() + "</code></pre>"
+		.replace(/```(?:([a-z0-9_+\-.]+?)\n)?\n*([^\n][^]*?)\n*```/ig, (m, lang, code) => {
+			if (lang) return "<pre><code class='language-" + lang + "'>" + code.trim() + "</code></pre>"
+			else return "<pre><code class='nohighlight'>" + code.trim() + "</code></pre>"
 		})
 		// Inline code
 		.replace(/`([^`]+?)`|``([^`]+?)``/g, (m, x, y) => {
@@ -356,17 +371,12 @@ const uploadError = (message, browse, sleepTime = 7000) => {
 	}, sleepTime)
 }
 
-const embedKeys = ["author", "footer", "color", "thumbnail", "image", "fields", "title", "description", "url", "timestamp"]
-const componentKeys = ["label", "style", "emoji", "options", "placeholder", "custom_id", "url", "disabled", "type", "value", "min_values", "max_values"]
-const mainKeys = ["embeds", "content", "components"]
-const allJsonKeys = [...mainKeys, ...embedKeys, ...componentKeys]
-
 addEventListener("DOMContentLoaded", () => {
 	if (reverseColumns || localStorage.getItem("reverseColumns")) reverse()
 
-	// iframe
 	if (top != self) {
 		document.getElementById("auto").parentElement.remove()
+		document.getElementsByClassName("sendwebhook")[0].remove()
 
 		window.onmessage = e => {
 			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269") && e.data == "requestMessage")
@@ -429,7 +439,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	const notif = document.querySelector(".notification")
 	const error = (msg, time = "5s") => {
-		notif.innerText = msg
+		notif.textContent = msg
 		notif.style.removeProperty("--startY")
 		notif.style.removeProperty("--startOpacity")
 		notif.style.setProperty("--time", time)
@@ -448,19 +458,18 @@ addEventListener("DOMContentLoaded", () => {
 	}
 
 	const socket = sockette("wss://api.tomatenkuchen.com/embedbuilder", {
-		onClose: event => console.log("Disconnected!", event),
+		onClose: event => {
+			console.log("Disconnected!", event)
+			error("The connection to the bot has been lost, reload the page to reconnect.", "8s")
+		},
 		onOpen: event => console.log("Connected!", event),
 		onMessage: wsjson => {
 			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
 			else if (wsjson.action == "result_importcode") alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel!")
-			else if (wsjson.action == "result_sendcode") alert("Send the code " + wsjson.code + " in the channel you want to send the message in!")
+			else if (wsjson.action == "result_sendcode") alert("Send the code " + wsjson.code + " in the channel you want to send the message in! (Manage Messages)" +
+				"\nYou can optionally reply to a message to make the bot edit it. (Manage Guild)")
 			else if (wsjson.action == "result_import") {
-				jsonObject = {
-					content: wsjson.content,
-					embeds: wsjson.embeds,
-					components: wsjson.components
-				}
-
+				jsonObject = wsjson.data
 				buildEmbed()
 				buildGui()
 			} else if (wsjson.action == "result_send") error(wsjson.success ? "The message was sent successfully!" : "The message couldn't be sent: " + wsjson.error)
@@ -684,7 +693,7 @@ addEventListener("DOMContentLoaded", () => {
 				document.body.classList.remove("emptyEmbed")
 				externalParsing()
 
-				if (embedElement.innerText.trim() || embedElement.querySelector(".embedGrid > [style*=display] img"))
+				if (embedElement.textContent.trim() || embedElement.querySelector(".embedGrid > [style*=display] img"))
 					embedElement.classList.remove("emptyEmbed")
 				else embedElement.classList.add("emptyEmbed")
 			}
@@ -727,13 +736,13 @@ addEventListener("DOMContentLoaded", () => {
 								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(component.emoji.id || component.emoji) + ".webp?size=16"
 							} else if (component.emoji.name) {
 								emojiElement = document.createElement("span")
-								emojiElement.innerText = component.emoji.name
+								emojiElement.textContent = component.emoji.name
 							}
 							if (emojiElement) buttonElement.appendChild(emojiElement)
 						}
 						if (component.label && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
 							const label = document.createElement("span")
-							label.innerText = component.label
+							label.textContent = component.label
 							buttonElement.appendChild(label)
 						}
 
@@ -747,6 +756,16 @@ addEventListener("DOMContentLoaded", () => {
 					}
 				}
 			}
+
+			if (jsonObject.sticker_items && jsonObject.sticker_items.length > 0) {
+				let stickerHTML = ""
+				for (const sticker of jsonObject.sticker_items) {
+					if (sticker.format_type == 3) stickerHTML += "<i>Animated Lottie stickers aren't rendered in the preview.</i>"
+					else stickerHTML += "<img src='https://media.discordapp.net/stickers/" + encode(sticker.id) + "." +
+						(sticker.format_type == 4 ? "gif" : "png") + "?size=160' width='160' height='160' alt='Sticker: " + encode(sticker.name) + "' crossorigin='anonymous'>"
+				}
+				document.getElementById("stickerItems").innerHTML = stickerHTML
+			} else document.getElementById("stickerItems").innerHTML = ""
 
 			afterBuilding()
 		} catch (e) {
@@ -1061,7 +1080,7 @@ addEventListener("DOMContentLoaded", () => {
 								embedObj.title = value
 								const guiEmbedName = el.target.closest(".guiEmbed")?.previousElementSibling
 								if (guiEmbedName?.classList.contains("guiEmbedName"))
-									guiEmbedName.querySelector(".text").innerHTML = guiEmbedName.innerText.split(":")[0] + (value ? ": <span>" + value + "</span>" : "")
+									guiEmbedName.querySelector(".text").innerHTML = guiEmbedName.textContent.split(":")[0] + (value ? ": <span>" + value + "</span>" : "")
 								buildEmbed({ only: "embedTitle", index: guiEmbedIndex(el.target) })
 								break
 							case "editAuthorName":
@@ -1141,7 +1160,7 @@ addEventListener("DOMContentLoaded", () => {
 								break
 						}
 
-						const nonEmptyEmbedObjects = jsonObject.embeds?.map(cleanEmbed)?.filter(o => 0 in Object.keys(o))
+						const nonEmptyEmbedObjects = jsonObject.embeds?.filter(o => 0 in Object.keys(o))
 						if (nonEmptyEmbedObjects?.length) jsonObject.embeds = nonEmptyEmbedObjects
 
 						const nonEmptyComponentObjects = jsonObject.components?.filter(o => 0 in Object.keys(o))
@@ -1262,12 +1281,6 @@ addEventListener("DOMContentLoaded", () => {
 			jsonObject = JSON.parse(edi.getValue())
 			const dataKeys = Object.keys(jsonObject)
 
-			if (dataKeys.length && !allJsonKeys.some(key => dataKeys.includes(key))) {
-				const usedKeys = dataKeys.filter(key => !allJsonKeys.includes(key))
-				if (usedKeys.length > 2) return error("\"" + usedKeys.slice(0, -1).join("\", \"") + "\", and \"" + usedKeys.at(-1) + "\" are invalid keys.")
-				return error("\"" + (usedKeys.length == 2 ? usedKeys[0] + "\" and \"" + usedKeys.at(-1) + "' are invalid keys." : usedKeys[0]) + "\" is an invalid key.")
-			}
-
 			buildEmbed()
 		} catch {
 			if (edi.getValue()) return
@@ -1276,13 +1289,13 @@ addEventListener("DOMContentLoaded", () => {
 		}
 	})
 
-	document.querySelector(".timeText").innerText = timestamp()
+	document.querySelector(".timeText").textContent = timestamp()
 	setTimeout(() => {
-		document.querySelector(".timeText").innerText = timestamp()
-		setInterval(() => document.querySelector(".timeText").innerText = timestamp(), 60000)
+		document.querySelector(".timeText").textContent = timestamp()
+		setInterval(() => document.querySelector(".timeText").textContent = timestamp(), 60000)
 	}, 60000 - Date.now() % 60000)
 
-	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightBlock(block)
+	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightElement(block)
 
 	document.querySelector(".opt.gui").addEventListener("click", () => {
 		if (lastGuiJson && lastGuiJson != JSON.stringify(jsonObject, null, "\t")) buildGui()
@@ -1295,7 +1308,7 @@ addEventListener("DOMContentLoaded", () => {
 		const emptyEmbedIndex = indexOfEmptyGuiEmbed(false)
 		if (emptyEmbedIndex != -1)
 			// Clicked GUI tab while a blank embed is added from GUI.
-			return error(gui.querySelectorAll(".item.guiEmbedName")[emptyEmbedIndex].innerText.split(":")[0] + " should not be empty.", "3s")
+			return error(gui.querySelectorAll(".item.guiEmbedName")[emptyEmbedIndex].textContent.split(":")[0] + " should not be empty.", "3s")
 
 		const jsonStr = JSON.stringify(jsonObject, null, "\t")
 		lastGuiJson = jsonStr
@@ -1328,7 +1341,7 @@ addEventListener("DOMContentLoaded", () => {
 	} else {
 		document.getElementsByClassName("import")[0].addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
 		document.getElementsByClassName("sendbot")[0].addEventListener("click", () => {
-			socket.send(JSON.stringify({action: "send", content: jsonObject.content?.trim(), embeds: jsonObject.embeds?.map(cleanEmbed), components: jsonObject.components}))
+			socket.send(JSON.stringify({action: "send", data: jsonObject}))
 		})
 	}
 
@@ -1360,7 +1373,7 @@ addEventListener("DOMContentLoaded", () => {
 					body: JSON.stringify({
 						name: Math.random().toString(36).slice(5),
 						url: data,
-						date: Date.now() + 1000 * 60 * 60 * 24 * 14
+						date: Date.now() + 1000 * 60 * 60 * 24 * 30
 					})
 				})
 				const shorterjson = await shorterres.json()
@@ -1388,9 +1401,9 @@ addEventListener("DOMContentLoaded", () => {
 		}
 
 		if (e.target.closest(".item.sendwebhook")) {
-			const webhook = prompt("Enter the URL of the webhook to send the message to.")
+			const webhook = prompt("Enter the URL of the Discord or Guilded webhook to send the message to.")
 			if (webhook) {
-				const webhookres = await fetch(webhook, {
+				const webhookres = await fetch(webhook.startsWith("https://media.guilded.gg") ? "https://pterodactyl-vsc.tomatocake.workers.dev/?url=" + encodeURIComponent(webhook) : webhook, {
 					method: "POST",
 					headers: {
 						"User-Agent": "TomatoCake TomatenKuchen.com Message Editor",
@@ -1401,7 +1414,7 @@ addEventListener("DOMContentLoaded", () => {
 				})
 				if (!webhookres.ok) {
 					console.error(webhookres.status, await webhookres.json())
-					return error("Request failed with error: " + webhookres.statusText)
+					return error("Request failed with error: " + webhookres.status + " " + webhookres.statusText)
 				}
 			}
 		}
@@ -1434,47 +1447,3 @@ addEventListener("DOMContentLoaded", () => {
 
 	buildEmbed()
 })
-
-const embedObjectsProps = {
-	author: ["name", "url", "icon_url"],
-	thumbnail: ["url", "proxy_url", "height", "width"],
-	image: ["url", "proxy_url", "height", "width"],
-	fields: { items: ["name", "value", "inline"] },
-	footer: ["text", "icon_url"]
-}
-
-const cleanEmbed = (obj, recursive = false) => {
-	if (!recursive)
-		// Remove all invalid properties from embed object.
-		for (const key in obj) {
-			if (!embedKeys.includes(key)) delete obj[key]
-			else if (obj[key].constructor === Object)
-				// Remove items that are not in the props of the current key.
-				for (const item in obj[key]) if (!embedObjectsProps[key].includes(item)) delete obj[key][item]
-			else if (obj[key].constructor === Array)
-				// Remove items that are not in the props of the current key.
-				for (const field of obj[key])
-					for (const i in field) if (!embedObjectsProps[key].items.includes(i)) delete field[i]
-		}
-
-	// Remove empty properties from embed object.
-	for (const [key, val] of Object.entries(obj)) {
-		if (val === void 0 || val.trim?.() == "")
-			// Remove the key if value is empty
-			delete obj[key]
-		else if (val.constructor === Object) {
-			// Remove object (val) if it has no keys or recursively remove empty keys from objects.
-			if (Object.keys(val).length) obj[key] = cleanEmbed(val, true)
-			else delete obj[key]
-		} else if (val.constructor === Array) {
-			// Remove array (val) if it has no keys or recursively remove empty keys from objects in array.
-			if (val.length) obj[key] = val.map(k => cleanEmbed(k, true))
-			else delete obj[key]
-		} else
-			// If object isn't a string, boolean, number, array or object, convert it to string.
-			if (!["string", "boolean", "number"].includes(typeof val))
-				obj[key] = val.toString()
-	}
-
-	return obj
-}

@@ -21,7 +21,9 @@
 		<script src="./assets/emojis.js" defer async></script>
 		<script src="./assets/script.js" defer></script>
 
-		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.1/highlight.min.js" integrity="sha384-fmD6rU+qhsT08Lw9NFBeNPYifigBcHbH7pi/tI1tbmOmUufuj8YGYK28X198h9o0" crossorigin="anonymous"></script>
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<script defer src="./assets/twemoji.js"></script>
+
 		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.3/codemirror.min.js" integrity="sha384-uks0nMoRkT8WwpywIUcNKlO16uFTU4UPpGB2zospGKtJMaiI+KP8702KeC1kn8rp" crossorigin="anonymous"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.3/codemirror.min.css" crossorigin="anonymous">
 		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.3/mode/javascript/javascript.min.js" integrity="sha384-LIrl5HgYLixDV3Yc0YBiX5TpIKGDq0VABp8s8DDQcIyP3VqD6bGXPTn8oSSOlGUP" crossorigin="anonymous"></script>
@@ -37,8 +39,6 @@
 		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jsonlint/1.6.0/jsonlint.min.js" integrity="sha512-6qbnCNQe7wVcBDvhNJT6lZsbDKHCQQBk7yOBQg4s/9GG812CknK0EEIqG2IS10XuNxIQNWjMJd6VLwwezICz6w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.3/addon/lint/lint.min.css" crossorigin="anonymous">
 		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.3/addon/lint/lint.min.js" integrity="sha384-wo5H988ieIOKRPXWW3pAWx59ZJtEofMhKb13k+tPAyNXTQuCumdlZo01dinzLNMU" crossorigin="anonymous"></script>
-
-		<script defer src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" integrity="sha384-32KMvAMS4DUBcQtHG6fzADguo/tpN1Nh6BAJa2QqZc6/i0K+YPQE+bWiqBRAWuFs" crossorigin="anonymous"></script>
 	</head>
 	<body class="gui emptyEmbed">
 		<div class="main">
@@ -101,7 +101,7 @@
 										</g>
 									</svg>
 								</div>
-								<p>Share/Export message as URL</p>
+								<p>Share message as URL</p>
 							</div>
 							<div class="item normal sendwebhook">
 								<p>Send message using Webhook</p>
@@ -136,14 +136,14 @@
 							<div class="item" id="more-container">
 								<div>
 									<p class="title">About</p>
-									<a class="source" href="https://github.com/Glitchii/embedbuilder" target="_blank" rel="noopener">Original source code</a>
+									<a href="https://github.com/Glitchii/embedbuilder" target="_blank" rel="noopener">Original source code</a>
 
 									<br>
 									<br>
 									<p>
-										Modified by <a class="source" href="https://discord.gg/ZqzFUC8qe9" target="_blank" rel="noopener">TomatoCake</a>
+										Modified by <a href="https://discord.gg/ZqzFUC8qe9" target="_blank" rel="noopener">TomatoCake</a>
 										<br>
-										for <a class="source" href="https://tomatenkuchen.com" target="_blank" rel="noopener">TomatenKuchen Discord bot</a>.
+										for <a href="https://tomatenkuchen.com" target="_blank" rel="noopener">TomatenKuchen Discord bot</a>.
 									</p>
 								</div>
 							</div>
@@ -533,6 +533,7 @@
 						</h2>
 					</div>
 					<div class="markup messageContent"></div>
+					<div id="stickerItems"></div>
 					<div class="container">
 						<div class="embed markup">
 							<div class="embedGrid">
