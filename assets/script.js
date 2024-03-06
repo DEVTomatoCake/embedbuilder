@@ -74,9 +74,7 @@ let jsonObject = {
 const params = new URLSearchParams(location.search)
 if (params.has("mb") || params.has("dgh")) jsonObject.embeds = []
 
-const dataSpecified = params.get("data")
 const guiTabs = params.get("guitabs") || ["description"]
-const useJsonEditor = params.get("editor") == "json"
 let reverseColumns = params.get("reverse") !== null
 let autoUpdateURL = localStorage.getItem("autoUpdateURL"),
 	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, buildGui, buildEmbed
@@ -98,14 +96,6 @@ const guiComponentIndex = guiRo => {
 	const gui = guiComponent?.closest(".guiActionRow")
 
 	return gui ? Array.from(gui.querySelectorAll(".guiComponent")).indexOf(guiComponent) : -1
-}
-
-const toggleStored = item => {
-	const found = localStorage.getItem(item)
-	if (!found) return localStorage.setItem(item, true)
-
-	localStorage.removeItem(item)
-	return found
 }
 
 const createElement = object => {
@@ -141,16 +131,8 @@ const encodeJson = (withURL = false) => {
 	return data
 }
 
-const decodeJson = data => {
-	if (!data && dataSpecified) data = dataSpecified
-	const jsonData = decodeURIComponent(atob(data.replace(/ /g, "+")))
-	return typeof jsonData == "string" ? JSON.parse(jsonData) : jsonData
-}
-
-if (dataSpecified) jsonObject = decodeJson()
-
+if (params.has("data")) jsonObject = JSON.parse(decodeURIComponent(atob(params.get("data").replace(/ /g, "+"))))
 if (!jsonObject.embeds?.length) jsonObject.embeds = []
-if (!jsonObject.components?.length) jsonObject.components = []
 
 const reverse = reversed => {
 	const side = document.querySelector(reversed ? ".side2" : ".side1")
@@ -158,9 +140,9 @@ const reverse = reversed => {
 	else side.parentElement.insertBefore(side, side.parentElement.firstElementChild)
 }
 
-const urlOptions = ({ set }) => {
+const urlOptions = (target, value) => {
 	const url = new URL(location.href)
-	url.searchParams.set(set[0], set[1])
+	url.searchParams.set(target, value)
 
 	try {
 		history.replaceState(null, null, url.href.replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x == "=" ? "" : "&"))
@@ -221,11 +203,13 @@ const changeLastActiveGuiEmbed = index => {
 	lastActiveGuiEmbedIndex = index
 }
 
-// Called after building embed for extra work.
-const afterBuilding = () => autoUpdateURL && urlOptions({ set: ["data", encodeJson()] })
+const afterBuilding = () => {
+	if (autoUpdateURL) urlOptions("data", encodeJson())
+}
+
 // Parses emojis to images and adds code highlighting.
 const externalParsing = ({ noEmojis, element } = {}) => {
-	if (!noEmojis) twemoji.parse(element || document.querySelector(".msgEmbed"), { base: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.0.3/", size: "72x72" })
+	if (!noEmojis) twemoji.parseNode(element || document.querySelector(".msgEmbed"))
 	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightElement(block)
 
 	const embed = element?.closest(".embed")
@@ -235,7 +219,7 @@ const externalParsing = ({ noEmojis, element } = {}) => {
 }
 
 const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
-const imgProxy = str => "https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)
+const imgProxy = str => str.length > 3 ? ("https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)) : ""
 const hide = el => el.style.removeProperty("display")
 const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
 const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
@@ -390,7 +374,7 @@ addEventListener("DOMContentLoaded", () => {
 	}
 
 	document.querySelector(".side1.noDisplay")?.classList.remove("noDisplay")
-	if (useJsonEditor) document.body.classList.remove("gui")
+	if (params.get("editor") == "json") document.body.classList.remove("gui")
 
 	document.getElementsByClassName("username")[0].textContent = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
 	document.getElementsByClassName("avatar")[0].src = "./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
@@ -809,9 +793,8 @@ addEventListener("DOMContentLoaded", () => {
 					})
 
 					const guiEmbed = gui.appendChild(createElement({ div: { className: "guiEmbed" } }))
-					const guiEmbedTemplate = child.nextElementSibling
 
-					for (const child2 of Array.from(guiEmbedTemplate.children)) {
+					for (const child2 of Array.from(child.nextElementSibling.children)) {
 						if (!child2?.classList.contains("edit")) {
 							const row = guiEmbed.appendChild(child2.cloneNode(true))
 							const edit = child2.nextElementSibling?.cloneNode(true)
@@ -851,8 +834,7 @@ addEventListener("DOMContentLoaded", () => {
 									break
 								case "fields":
 									for (const f of embed?.fields || []) {
-										const fields = edit.querySelector(".fields")
-										const field = fields.appendChild(createElement({ div: { className: "field" } }))
+										const field = edit.querySelector(".fields").appendChild(createElement({ div: { className: "field" } }))
 
 										for (const child3 of Array.from(fieldFragment.firstChild.children)) {
 											const newChild = field.appendChild(child3.cloneNode(true))
@@ -890,8 +872,7 @@ addEventListener("DOMContentLoaded", () => {
 								const edit = child2.cloneNode(true)
 								guiActionRow.appendChild(edit)
 
-								const editRow = edit.querySelector(".componentInner")
-								const componentElem = editRow.appendChild(createElement({ div: { className: "button" } }))
+								const componentElem = edit.querySelector(".componentInner").appendChild(createElement({ div: { className: "button" } }))
 
 								for (const child3 of Array.from(componentFragment.querySelector(".edit .componentInnerTemplate").children)) {
 									const newChild = componentElem.appendChild(child3.cloneNode(true))
@@ -996,8 +977,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
 					if (!jsonObject.components) jsonObject.components = []
-					const guiComponentObj = jsonObject.components[indexOfGuiActionRow] || {}
-					const componentsObj = guiComponentObj.components || []
+					const componentsObj = (jsonObject.components[indexOfGuiActionRow] || {}).components || []
 					if (componentsObj.length >= 5) return error("An action row cannot have more than 5 components!")
 					componentsObj.push({custom_id: "custom_", label: "Button", type: 1, style: 1, disabled: false})
 					if (!jsonObject.components) jsonObject.components = [{components: componentsObj}]
@@ -1062,12 +1042,10 @@ addEventListener("DOMContentLoaded", () => {
 						const jsonField = embedObj.fields?.[fieldIndex]
 
 						if (jsonField) {
-							const embedFields = document.querySelectorAll(".container>.embed")[index]?.querySelector(".embedFields")
-
 							if (el.target.type == "text") jsonField.name = value
 							else if (el.target.type == "textarea") jsonField.value = value
 							else jsonField.inline = el.target.checked
-							createEmbedFields(embedObj.fields, embedFields)
+							createEmbedFields(embedObj.fields, document.querySelectorAll(".container>.embed")[index]?.querySelector(".embedFields"))
 						}
 					} else {
 						switch (el.target.classList?.[0]) {
@@ -1255,7 +1233,7 @@ addEventListener("DOMContentLoaded", () => {
 			// Autoscroll GUI to the bottom if necessary.
 			if (!tabs.some(item => topKeys.has(item)) && tabs.some(item => bottomKeys.has(item))) {
 				const gui2 = document.querySelector(".top .gui")
-				gui2.scrollTo({ top: gui2.scrollHeight })
+				gui2.scrollTo({top: gui2.scrollHeight})
 			}
 		} else for (const clss of document.querySelectorAll(".item.author, .item.description"))
 			clss.classList.add("active")
@@ -1279,8 +1257,6 @@ addEventListener("DOMContentLoaded", () => {
 			}
 
 			jsonObject = JSON.parse(edi.getValue())
-			const dataKeys = Object.keys(jsonObject)
-
 			buildEmbed()
 		} catch {
 			if (edi.getValue()) return
@@ -1371,7 +1347,7 @@ addEventListener("DOMContentLoaded", () => {
 						Accept: "application/json"
 					},
 					body: JSON.stringify({
-						name: Math.random().toString(36).slice(5),
+						name: Math.random().toString(36).slice(6),
 						url: data,
 						date: Date.now() + 1000 * 60 * 60 * 24 * 30
 					})
@@ -1420,7 +1396,7 @@ addEventListener("DOMContentLoaded", () => {
 		}
 
 		if (e.target.closest(".item.download"))
-			createElement({ a: { download: "tk_embed_" + new Date().toLocaleTimeString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonObject, null, "\t")) } }).click()
+			createElement({ a: { download: "tkmessage_" + new Date().toISOString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonObject, null, "\t")) } }).click()
 		else if (e.target.closest(".item.auto")) {
 			const input = e.target.closest(".item")?.querySelector("input")
 			if (input) input.checked = !input.checked
@@ -1429,11 +1405,13 @@ addEventListener("DOMContentLoaded", () => {
 			autoUpdateURL = document.body.classList.toggle("autoUpdateURL")
 			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", true)
 			else localStorage.removeItem("autoUpdateURL")
-			urlOptions({ set: ["data", encodeJson()] })
+			urlOptions("data", encodeJson())
 		} else if (e.target.closest(".item.reverse")) {
 			reverse(reverseColumns)
 			reverseColumns = !reverseColumns
-			toggleStored("reverseColumns")
+
+			if (reverseColumns) localStorage.setItem("reverseColumns", true)
+			else localStorage.removeItem("reverseColumns")
 		} else e.target.closest(".top-btn")?.classList.toggle("active")
 	})
 

@@ -39,6 +39,7 @@
 	--menu-a: #b4b4b4;
 	--chooser-bg: #41444a;
 	--field-bg: #2d2e33;
+	--anchor-color: #00b0f4;
 
 	--black: #000;
 	--white: #FFF;
@@ -59,6 +60,7 @@
 	--menu-a: #5b5b5b;
 	--chooser-bg: #838689;
 	--field-bg: #c7c7cf;
+	--anchor-color: #236bd6;
 
 	--black: #FFF;
 	--white: #000;
@@ -722,7 +724,7 @@ u, .markup a:hover {
 }
 
 .anchor {
-	color: #00b0f4;
+	color: var(--anchor-color);
 }
 
 .markup code {
