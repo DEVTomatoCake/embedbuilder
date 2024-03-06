@@ -228,7 +228,7 @@ module.exports = [
 			globals: global
 		},
 		files: ["**/*.js"],
-		ignores: ["eslint.config.js", "minify.js", "assets/twemoji.js"],
+		ignores: ["eslint.config.js", "minify.js"],
 		plugins: {
 			unicorn,
 			sonarjs,

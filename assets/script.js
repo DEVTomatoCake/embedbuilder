@@ -164,12 +164,11 @@ const buttonStyles = {
 const animateGuiEmbedNameAt = (i, text) => {
 	const guiEmbedName = document.querySelectorAll(".gui .guiEmbedName")?.[i]
 	// Shake animation
-	guiEmbedName?.animate(
-		[{ transform: "translate(0, 0)" },
+	guiEmbedName?.animate([
+		{ transform: "translate(0, 0)" },
 		{ transform: "translate(10px, 0)" },
-		{ transform: "translate(0, 0)" }],
-		{ duration: 100, iterations: 3 }
-	)
+		{ transform: "translate(0, 0)" }
+	], { duration: 100, iterations: 3 })
 
 	if (text) guiEmbedName?.style.setProperty("--text", "\"" + text + "\"")
 
@@ -873,17 +872,18 @@ addEventListener("DOMContentLoaded", () => {
 								guiActionRow.appendChild(edit)
 
 								const componentElem = edit.querySelector(".componentInner").appendChild(createElement({ div: { className: "button" } }))
+								const templateChildren = Array.from(componentFragment.querySelector(".edit .component" + (f.type == 2 ? "Button" : "Select") + "Template").children)
 
-								for (const child3 of Array.from(componentFragment.querySelector(".edit .componentInnerTemplate").children)) {
+								for (const child3 of templateChildren) {
 									const newChild = componentElem.appendChild(child3.cloneNode(true))
 
 									if (newChild.classList.contains("disableCheck")) newChild.querySelector("input").checked = Boolean(f.disabled)
-									else if (newChild.classList?.contains("custom_id")) newChild.querySelector(".custom_id input").value = f?.custom_id || ""
-									else if (newChild.classList?.contains("label")) newChild.querySelector(".label input").value = f?.label || ""
-									else if (newChild.classList?.contains("placeholder")) newChild.querySelector(".placeholder input").value = f?.placeholder || ""
-									else if (newChild.classList?.contains("editComponentStyle")) newChild.value = f?.style || 1
-									else if (newChild.classList?.contains("url")) newChild.querySelector(".url input").value = f?.url || ""
-									else if (newChild.classList?.contains("emoji")) newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
+									else if (newChild.classList.contains("custom_id")) newChild.querySelector(".custom_id input").value = f?.custom_id || ""
+									else if (newChild.classList.contains("label")) newChild.querySelector(".label input").value = f?.label || ""
+									else if (newChild.classList.contains("placeholder")) newChild.querySelector(".placeholder input").value = f?.placeholder || ""
+									else if (newChild.classList.contains("editComponentStyle")) newChild.value = f?.style || 1
+									else if (newChild.classList.contains("url")) newChild.querySelector(".url input").value = f?.url || ""
+									else if (newChild.classList.contains("emoji")) newChild.querySelector(".emoji input").value = f?.emoji?.id || f?.emoji?.name || ""
 								}
 							}
 						}
@@ -979,11 +979,12 @@ addEventListener("DOMContentLoaded", () => {
 					if (!jsonObject.components) jsonObject.components = []
 					const componentsObj = (jsonObject.components[indexOfGuiActionRow] || {}).components || []
 					if (componentsObj.length >= 5) return error("An action row cannot have more than 5 components!")
+
 					componentsObj.push({custom_id: "custom_", label: "Button", type: 1, style: 1, disabled: false})
 					if (!jsonObject.components) jsonObject.components = [{components: componentsObj}]
 
 					const newComponent = guiActionRow.insertBefore(componentFragment.firstChild.cloneNode(true), guiActionRow.querySelector(".addComponent"))
-					newComponent.querySelector(".edit .componentInnerTemplate").removeAttribute("hidden")
+					newComponent.querySelector(".edit .componentButtonTemplate").removeAttribute("hidden")
 
 					buildEmbed()
 					addGuiEventListeners()
