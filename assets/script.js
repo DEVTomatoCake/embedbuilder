@@ -354,6 +354,8 @@ const uploadError = (message, browse, sleepTime = 7000) => {
 	}, sleepTime)
 }
 
+let serverData = {}
+
 addEventListener("DOMContentLoaded", () => {
 	if (reverseColumns || localStorage.getItem("reverseColumns")) reverse()
 
@@ -362,8 +364,11 @@ addEventListener("DOMContentLoaded", () => {
 		document.getElementsByClassName("sendwebhook")[0].remove()
 
 		window.onmessage = e => {
-			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269") && e.data == "requestMessage")
-				window.top.postMessage("respondMessage_" + encodeJson(), "*")
+			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269")) {
+				console.log("Received message from parent window:", e.data)
+				if (e.data == "requestMessage") window.top.postMessage("respondMessage_" + encodeJson(), "*")
+				else if (e.data.startsWith("serverData_")) serverData = JSON.parse(e.data.replace("serverData_", ""))
+			}
 		}
 	}
 
@@ -379,19 +384,18 @@ addEventListener("DOMContentLoaded", () => {
 	document.getElementsByClassName("avatar")[0].src = "./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
 	document.getElementsByClassName("avatar")[0].srcset =
 		"./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp") + " 1x, " +
-		"./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp") + " 2x"
+		"./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_60") + ".webp") + " 2x"
 
-	if (params.has("light")) document.body.classList.add("light")
+	if ((params.has("light") && localStorage.getItem("theme") != "dark") || localStorage.getItem("theme") == "light") document.body.classList.add("light")
 
 	for (const e of document.querySelectorAll(".clickable > img"))
 		e.parentElement.addEventListener("mouseup", el => window.open(el.target.src))
 
 	const editorHolder = document.querySelector(".editorHolder"),
-		guiParent = document.querySelector(".top"),
 		embedContent = document.querySelector(".messageContent"),
 		embedCont = document.querySelector(".msgEmbed>.container"),
 		actionRowCont = document.querySelector(".components"),
-		gui = guiParent.querySelector(".gui:first-of-type")
+		gui = document.querySelector(".top .gui:first-of-type")
 
 	const editor = CodeMirror(elt => editorHolder.parentNode.replaceChild(elt, editorHolder), {
 		value: JSON.stringify(jsonObject, null, "\t"),
@@ -1404,14 +1408,17 @@ addEventListener("DOMContentLoaded", () => {
 
 			e.target.checked = !e.target.checked
 			autoUpdateURL = document.body.classList.toggle("autoUpdateURL")
-			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", true)
+			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", 1)
 			else localStorage.removeItem("autoUpdateURL")
 			urlOptions("data", encodeJson())
+		} else if (e.target.closest(".item.theme")) {
+			if (document.body.classList.toggle("light")) localStorage.setItem("theme", "light")
+			else localStorage.setItem("theme", "dark")
 		} else if (e.target.closest(".item.reverse")) {
 			reverse(reverseColumns)
 			reverseColumns = !reverseColumns
 
-			if (reverseColumns) localStorage.setItem("reverseColumns", true)
+			if (reverseColumns) localStorage.setItem("reverseColumns", 1)
 			else localStorage.removeItem("reverseColumns")
 		} else e.target.closest(".top-btn")?.classList.toggle("active")
 	})

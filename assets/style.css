@@ -26,9 +26,8 @@
 
 :root {
 	--embedTextColor: #dcddde;
-	--embedBackground: #2B2D31;
 	--fullEmbedBackground: #313338;
-	--side1Background: #2B2D31;
+	--side1Background: #2b2d31;
 	--background-tertiary: #202225;
 	--interactive-muted: #4f545c;
 	--gui-bg: #292b2f;
@@ -41,13 +40,16 @@
 	--field-bg: #2d2e33;
 	--anchor-color: #00b0f4;
 
+	--select-color: #9a9bb4;
+	--select-bg: #1e1f22;
+	--select-border: #1e1f22;
+
 	--black: #000;
-	--white: #FFF;
+	--white: #fff;
 }
 
 .light {
 	--embedTextColor: #000;
-	--embedBackground: #fff;
 	--fullEmbedBackground: #f2f3f5;
 	--side1Background: #fff;
 	--background-tertiary: #f2f3f5;
@@ -62,7 +64,11 @@
 	--field-bg: #c7c7cf;
 	--anchor-color: #236bd6;
 
-	--black: #FFF;
+	--select-color: #5c5e66;
+	--select-bg: #ebebeb;
+	--select-border: #00000014;
+
+	--black: #fff;
 	--white: #000;
 }
 
@@ -463,14 +469,14 @@ ol, ul {
 }
 
 .botTag svg {
-	color: #FFF;
+	color: #fff;
 }
 .botTag span {
 	position: relative;
 	font-size: 10px;
 	line-height: 15px;
 	text-indent: 0;
-	color: #FFF;
+	color: #fff;
 }
 
 .username {
@@ -504,7 +510,7 @@ ol, ul {
 	box-sizing: border-box;
 	border-radius: 4px;
 	border-left: 4px solid var(--fullEmbedBackground);
-	background-color: var(--embedBackground);
+	background-color: var(--side1Background);
 	border-color: #1e2327;
 }
 
@@ -1060,7 +1066,7 @@ u, .markup a:hover {
 	left: 40px;
 	cursor: pointer;
 	opacity: .5;
-	transition: 1s ease;
+	transition: .8s ease;
 }
 
 .CodeMirror:hover .col.cm-string.cm-property::before {
@@ -1534,7 +1540,7 @@ body {
 @keyframes fieldNumberFadeInAn {
 	from {
 		opacity: 0;
-		transition: opacity 1s ease;
+		transition: opacity .7s ease;
 	}
 }
 
@@ -1742,10 +1748,10 @@ span.h3 {
 	border-radius: 5px;
 	margin-bottom: 5px;
 	font-size: 13px;
-	transition: .5s ease;
+	transition: .2s ease;
 	display: flex;
 	gap: 10px;
-	max-width: none;
+	align-items: center;
 }
 
 .top-btn.menu > .box .item.normal:hover {
@@ -1763,9 +1769,8 @@ span.h3 {
 	transform: translateX(-50%);
 }
 
-.top-btn.menu > .box .item.normal> :is(*, * > svg) {
+.top-btn.menu > .box .item.normal > :is(*, * > svg) {
 	display: flex;
-	align-self: flex-end;
 	margin: 0;
 }
 
@@ -2175,16 +2180,16 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	max-height: 32px;
 }
 .actionrow button.b-primary {
-	background-color: #5865F2;
+	background-color: #5865f2;
 }
 .actionrow button.b-secondary, .actionrow button.b-url {
-	background-color: #4E5058;
+	background-color: #4e5058;
 }
 .actionrow button.b-success {
 	background-color: #248045;
 }
 .actionrow button.b-danger {
-	background-color: #DA373C;
+	background-color: #da373c;
 }
 
 .actionrow button, .actionrow button span {
@@ -2213,8 +2218,9 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	justify-content: space-between;
 	padding: 8px;
 	margin: 0 16px 0 0;
-	background-color: #1E1F22;
-	color: #9A9BB4;
+	background-color: var(--select-bg);
+	color: var(--select-color);
+	border: 1px solid var(--select-border);
 	width: 400px;
 }
 
