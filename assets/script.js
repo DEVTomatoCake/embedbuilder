@@ -365,7 +365,7 @@ addEventListener("DOMContentLoaded", () => {
 
 		window.onmessage = e => {
 			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269")) {
-				console.log("Received message from parent window:", e.data)
+				console.log("Received message from parent window:", encode(e.data.replace(/\n|\r/g, "")))
 				if (e.data == "requestMessage") window.top.postMessage("respondMessage_" + encodeJson(), "*")
 				else if (e.data.startsWith("serverData_")) serverData = JSON.parse(e.data.replace("serverData_", ""))
 			}
@@ -1384,7 +1384,7 @@ addEventListener("DOMContentLoaded", () => {
 		if (e.target.closest(".item.sendwebhook")) {
 			const webhook = prompt("Enter the URL of the Discord or Guilded webhook to send the message to.")
 			if (webhook) {
-				const webhookres = await fetch(webhook.startsWith("https://media.guilded.gg") ? "https://pterodactyl-vsc.tomatocake.workers.dev/?url=" + encodeURIComponent(webhook) : webhook, {
+				const webhookres = await fetch(webhook.startsWith("https://media.guilded.gg/") ? "https://pterodactyl-vsc.tomatocake.workers.dev/?url=" + encodeURIComponent(webhook) : webhook, {
 					method: "POST",
 					headers: {
 						"User-Agent": "TomatoCake TomatenKuchen.com Message Editor",
