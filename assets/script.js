@@ -220,7 +220,7 @@ const externalParsing = ({ noEmojis, element } = {}) => {
 const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
 const imgProxy = str => str.length > 3 ? ("https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)) : ""
 const hide = el => el.style.removeProperty("display")
-const imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty("content") : elm.style.content = "url(" + src + ")"
+const imgSrc = (elm, src) => elm.style.content = "url(" + imgProxy(src) + ")"
 const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
 
 const timestamp = stringISO => {
