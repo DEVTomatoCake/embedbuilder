@@ -1,4 +1,11 @@
-# data: für Codemirror, Suche nach "data:" in codemirror.(min.)js
+# Hash values of:
+# 1: Codemirror.(min.)js for a "data:"... image
+# 2-5: "data:" images loaded from /assets/style.css (one duplicate)
+#
+# https://discord.com/ and https://media.guilded.gg for webhooks
+
 /
-	Content-Security-Policy: default-src 'none' 'report-sample'; img-src https: 'self' 'sha512-047106fc23c0eef760bed7bf0608c7b8a2d8f9d040bf588c01c7c93708c1e5516bb8c9621a55c0ac631a8b86fad371e3d9354272b93b4ada0cbc749b2ce4c683'; font-src 'self'; script-src-elem 'self' https://cdnjs.cloudflare.com/ https://static.cloudflareinsights.com https://cdn.jsdelivr.net/gh/DEVTomatoCake/dashboard@7ef1d995c01a8745eb38e4d5487b7ba4df16eb10/assets/js/sockette.js; style-src-elem 'self' https://cdnjs.cloudflare.com/; connect-src https://cloudflareinsights.com/cdn-cgi/rum https://embed.tomatenkuchen.com/cdn-cgi/rum https://sus.tomatenkuchen.com/ https://api.tomatenkuchen.com/ wss://api.tomatenkuchen.com/embedbuilder; report-to tk-csp; report-uri https://api.tomatenkuchen.com/csp-violation
-	Report-To: {"group":"tk-csp","max_age":5184000,"endpoints":[{"url":"https://api.tomatenkuchen.com/csp-violation"}]}
+	Content-Security-Policy: default-src 'none' 'report-sample'; img-src https: 'self' 'sha512-047106fc23c0eef760bed7bf0608c7b8a2d8f9d040bf588c01c7c93708c1e5516bb8c9621a55c0ac631a8b86fad371e3d9354272b93b4ada0cbc749b2ce4c683' 'sha512-e7a726fb5e58a313681bee932e821f2aa9fa5c7bc7634017a474cb76f08a1dce1205635bfd6bb7e47b2c1f8a252c7e0ccfb37c141b90aa0d3dfd88638f84f2ea' 'sha512-f3058a14b4cf60d8f0a087934e099be26518a6fa3f573f4cfc8a171fdbb6061630a9426c5d0df9d3b1aa2a885db64ba1a9e694b5e7b018f4cea570c732224ff5' 'sha512-44aff4e75d424b0636394f6d76fac0dfc78092eff050835e24b7b69e07977960c56921e2ba87aeff3bfa339d4e6039c43c5780b13d250c749b71beaf8710d5e3' 'sha512-4f1d2d34841b3bf7b20f4eb93e72db811d85a87eee4c0ad95b9d889b0c94cb49f5afb77f6007bf552b45b4ebb584694f2b8d1a0cfa8cc809fb31478e3ca7a654' 'sha512-446b0375ba4c2fb47cb4ee20c0df675f9fbb3a579d4344dda8da43d79cb09e05ffb4c46876869490c9db80fada1c96022e97416aecb15cc3576b447e090342df'; font-src 'self'; script-src-elem 'self' https://cdnjs.cloudflare.com/ https://static.cloudflareinsights.com https://cdn.jsdelivr.net/gh/DEVTomatoCake/dashboard@7ef1d995c01a8745eb38e4d5487b7ba4df16eb10/assets/js/sockette.js; style-src-elem 'self' https://cdnjs.cloudflare.com/; connect-src https://cloudflareinsights.com/cdn-cgi/rum https://embed.tomatenkuchen.com/cdn-cgi/rum https://sus.tomatenkuchen.com/ https://api.tomatenkuchen.com/ https://sh0rt.zip/ https://discord.com/ https://canary.discord.com/ https://ptb.discord.com/ https://media.guilded.gg wss://api.tomatenkuchen.com/embedbuilder; report-uri https://api.tomatenkuchen.com/csp-violation
+
+#; report-to tk-csp
+#Report-To: {"group":"tk-csp","max_age":5184000,"endpoints":[{"url":"https://api.tomatenkuchen.com/csp-violation"}]}
