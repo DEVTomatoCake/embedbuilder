@@ -296,7 +296,7 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 			if (all.startsWith("@")) return "<span class='mention'>" + all + "</span>"
 			return "<span class='mention interactive'>@user: " + match1 + "</span>"
 		})
-		.replace(/\[([^[\]]+)\]\((.+?)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
+		.replace(/\[([^[\]]+)\]\((https?:\/\/.+)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
 
 		// Timestamps
 		.replace(/&lt;t:([0-9]{1,14})(:([tTdDfFR]))?&gt;/g, (all, match1, match2, match3) => {
