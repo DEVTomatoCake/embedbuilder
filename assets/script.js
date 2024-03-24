@@ -370,9 +370,7 @@ addEventListener("DOMContentLoaded", () => {
 				else if (e.data.startsWith("serverData_")) serverData = JSON.parse(e.data.replace("serverData_", ""))
 			}
 		}
-	}
-
-	if (autoUpdateURL) {
+	} else if (autoUpdateURL) {
 		document.body.classList.add("autoUpdateURL")
 		document.querySelector(".item.auto > input").checked = true
 	}
