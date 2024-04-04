@@ -2164,7 +2164,6 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	padding: 8px 16px;
 	font-size: 14px;
 	border: none;
-	color: var(--white);
 	transition: .2s;
 	max-height: 32px;
 }
