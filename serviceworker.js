@@ -16,6 +16,7 @@ self.addEventListener("install", event => {
 			"/assets/fonts/ggsans-Normal.ttf",
 			"/assets/fonts/ggsans-Semibold.ttf",
 
+			"/assets/manifest.json",
 			"/assets/emojis.js",
 			"/assets/sockette.js",
 			"/assets/twemoji.js"
@@ -25,7 +26,6 @@ self.addEventListener("install", event => {
 		fallbackCache.addAll([
 			"/assets/style.css",
 			"/assets/script.js",
-			"/assets/manifest.json",
 			"/"
 		])
 	})())
