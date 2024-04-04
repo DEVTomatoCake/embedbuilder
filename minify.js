@@ -123,7 +123,7 @@ async function main() {
 		}
 	})
 
-	//await minifyFile("./assets/style.css")
+	await minifyFile("./assets/style.css")
 	await minifyFile("./assets/manifest.json")
 
 	results.push({
@@ -134,4 +134,4 @@ async function main() {
 	})
 	console.table(results.sort((a, b) => a["% reduction"] - b["% reduction"]))
 }
-//main()
+main()
