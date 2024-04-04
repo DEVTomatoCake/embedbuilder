@@ -119,12 +119,10 @@ body:not(.no-preview):not(.no-editor) .main {
 }
 
 .top pre>code .hltChars {
-	color: #b96a97;
 	color: #b36391;
 }
 
 .top pre>code .hltInt {
-	color: #a474e8;
 	color: #7658c8;
 }
 
@@ -137,7 +135,6 @@ body:not(.no-preview):not(.no-editor) .main {
 }
 
 .top pre>code .hltStr2 {
-	color: #b58900;
 	color: #aab060;
 }
 
@@ -543,7 +540,6 @@ ol, ul {
 	max-width: 520px;
 	padding: .5rem 1rem 1rem .75rem;
 	display: inline-grid;
-	grid-template-columns: auto;
 	grid-template-rows: auto;
 	grid-template-columns: auto min-content;
 }
@@ -593,7 +589,6 @@ ol, ul {
 
 .embedImage {
 	margin-top: 16px;
-	grid-column: 1 / 1;
 	border-radius: 4px;
 	contain: paint;
 	grid-column: 1 / 3;
@@ -621,9 +616,6 @@ ol, ul {
 	display: flex;
 	align-items: center;
 	grid-area: auto / 1 / auto / 1;
-}
-
-.embedFooter {
 	grid-column: 1 / 3;
 }
 
@@ -1003,7 +995,6 @@ u, .markup a:hover {
 }
 
 .notification {
-	position: relative;
 	bottom: 0;
 	left: 50%;
 	transform: translateX(-50%);
@@ -1024,7 +1015,6 @@ u, .markup a:hover {
 .notification .inline {
 	width: auto;
 	height: auto;
-	border-radius: 3px;
 	font-size: 85%;
 	font-family: Consolas, Andale Mono WT, Andale Mono, Lucida Console, Lucida Sans Typewriter, DejaVu Sans Mono, Bitstream Vera Sans Mono, Liberation Mono, Nimbus Mono L, Monaco, Courier New, Courier, monospace;
 	text-indent: 0;
@@ -1454,7 +1444,6 @@ button[type="submit"] {
 
 .largeImg.image + .edit .editIcon .imgParent {
 	width: 130px;
-	object-fit: contain;
 	border-radius: 4px;
 	object-fit: cover;
 }
@@ -1504,7 +1493,6 @@ button[type="submit"] {
 .field .fieldInner, .guiComponent .componentInner {
 	width: 95%;
 	height: 100%;
-	border-radius: 4px;
 	border-radius: 5px;
 	margin-bottom: 2px;
 	transition: .3s ease;
@@ -1735,7 +1723,7 @@ span.h3 {
 	padding: 10px;
 	min-width: 180px;
 	background-color: var(--bgc);
-	margin: 15px 0 0 0;
+	margin: 15px 0 0;
 	border-radius: 10px;
 	position: absolute;
 	right: 0;

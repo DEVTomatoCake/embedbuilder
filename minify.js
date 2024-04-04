@@ -56,7 +56,7 @@ const minifyFile = async (path, options = {}) => {
 			},
 			level: {
 				2: {
-					mergeSemantically: true,
+					mergeSemantically: false, // true sorgt für eine fehlerhafte Reihenfolge, welche für die wandering-cubes jedoch wichtig ist
 					removeUnusedAtRules: false // true sorgt für Fehler bei Variablen: "animation: notifAn var(--time, 10s) ease forwards;"
 				}
 			},
@@ -123,7 +123,7 @@ async function main() {
 		}
 	})
 
-	//await minifyFile("./assets/style.css")
+	await minifyFile("./assets/style.css")
 	await minifyFile("./assets/manifest.json")
 
 	results.push({
