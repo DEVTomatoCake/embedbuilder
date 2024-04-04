@@ -134,4 +134,4 @@ async function main() {
 	})
 	console.table(results.sort((a, b) => a["% reduction"] - b["% reduction"]))
 }
-main()
+//main()
