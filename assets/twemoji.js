@@ -247,7 +247,7 @@ var twemoji = (function(
 			if (p) {
 				r.push((0x10000 + ((p - 0xD800) << 10) + (c - 0xDC00)).toString(16))
 				p = 0
-			} else if (0xD800 <= c && c <= 0xDBFF) {
+			} else if (c >= 0xD800 && c <= 0xDBFF) {
 				p = c
 			} else {
 				r.push(c.toString(16))

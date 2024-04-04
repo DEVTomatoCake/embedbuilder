@@ -8,21 +8,25 @@
 		<meta property="og:title" content="Embed & Component builder">
 		<meta property="og:description" content="Build and preview Discord embeds outside Discord.">
 		<meta property="og:url" content="https://embed.tomatenkuchen.com">
-		<meta property="og:image" content="/assets/gui.png">
-		<meta name="twitter:card" content="/assets/gui.png">
+		<meta property="og:image" content="https://embed.tomatenkuchen.com/assets/images/screen1.webp">
+		<meta name="twitter:card" content="https://embed.tomatenkuchen.com/assets/images/screen1.webp">
 
 		<title>TomatenKuchen Embed & Component builder</title>
 		<link href="./assets/images/favicon.ico" rel="shortcut icon" type="image/x-icon">
 		<link href="./assets/images/apple-icon-120.png" rel="apple-touch-icon" sizes="120x120">
 		<link href="./assets/images/apple-icon-152.png" rel="apple-touch-icon" sizes="152x152">
 
-		<script src="https://cdn.jsdelivr.net/gh/DEVTomatoCake/dashboard@7ef1d995c01a8745eb38e4d5487b7ba4df16eb10/assets/js/sockette.js" integrity="sha384-hMWg+VuKGvIF8tmmxt+GH1lAFhltyM6DDmQSd4xjXOkXUxgtzTtwGLp0gE6usVCQ" crossorigin="anonymous"></script>
+		<link rel="manifest" href="./assets/manifest.json">
+
 		<link rel="stylesheet" href="./assets/style.css">
-		<script src="./assets/emojis.js" defer async></script>
+
 		<script src="./assets/script.js" defer></script>
+		<script src="./assets/sockette.js" defer></script>
+
+		<script src="./assets/emojis.js" defer async></script>
+		<script src="./assets/twemoji.js" defer async></script>
 
 		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-		<script defer src="./assets/twemoji.js"></script>
 
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -191,10 +195,13 @@
 								<div class="linkName">
 									<div class="editIcon">
 										<span class="imgParent"></span>
-										<input class="editAuthorLink" type="text" placeholder="Icon URL" autocomplete="off">
+										<input class="editAuthorIcon" type="text" maxlength="2048" placeholder="Icon URL" autocomplete="off">
 									</div>
 									<div class="editName">
 										<input class="editAuthorName" type="text" maxlength="256" placeholder="Author name" autocomplete="off">
+									</div>
+									<div class="editUrl">
+										<input class="editAuthorUrl" type="text" maxlength="2048" placeholder="Author URL" autocomplete="off">
 									</div>
 								</div>
 								<div class="browse">
@@ -220,7 +227,11 @@
 							</div>
 							<div class="item title inlineField">
 								<p class="ttle">Title</p>
-								<input class="editTitle" type="text" placeholder="Title" autocomplete="off" maxlength="256">
+								<input class="editTitle" type="text" maxlength="256" placeholder="Title" autocomplete="off">
+							</div>
+							<div class="item url inlineField">
+								<p class="ttle">URL</p>
+								<input class="editUrl" type="text" maxlength="2048" placeholder="URL" autocomplete="off">
 							</div>
 							<div class="item color inlineField">
 								<p class="ttle">Color</p>
@@ -241,10 +252,10 @@
 										<div class="fieldNumber"></div>
 										<div class="fieldInner">
 											<div class="designerFieldName">
-												<input type="text" placeholder="Field name" value="Field name" autocomplete="off" maxlength="256">
+												<input type="text" placeholder="Field name" maxlength="256" value="Field name" autocomplete="off">
 											</div>
 											<div class="designerFieldValue">
-												<textarea placeholder="Field value" autocomplete="off" maxlength="1024">Field value</textarea>
+												<textarea maxlength="1024" placeholder="Field value" autocomplete="off">Field value</textarea>
 											</div>
 										</div>
 										<div class="inlineCheck">
@@ -304,7 +315,7 @@
 									<div class="editIcon">
 										<span class="imgParent"></span>
 										<div class="txtCol">
-											<input class="editThumbnailLink" type="text" placeholder="Thumbnail URL" autocomplete="off">
+											<input class="editThumbnailLink" type="text" maxlength="2048" placeholder="Thumbnail URL" autocomplete="off">
 											<div class="browse">
 												<svg version="1.1" width="512" height="512" x="0" y="0" viewBox="0 0 64 64">
 													<g>
@@ -337,7 +348,7 @@
 									<div class="editIcon">
 										<span class="imgParent"></span>
 										<div class="txtCol">
-											<input class="editImageLink" type="text" placeholder="Image URL" autocomplete="off">
+											<input class="editImageLink" type="text" maxlength="2048" placeholder="Image URL" autocomplete="off">
 											<div class="browse">
 												<svg version="1.1" width="512" height="512" x="0" y="0" viewBox="0 0 64 64">
 													<g>
@@ -369,7 +380,7 @@
 								<div class="linkName">
 									<div class="editIcon">
 										<span class="imgParent"></span>
-										<input class="editFooterLink" type="text" placeholder="Icon URL" autocomplete="off">
+										<input class="editFooterIcon" type="text" maxlength="2048" placeholder="Icon URL" autocomplete="off">
 									</div>
 									<div class="editName">
 										<input class="editFooterText" type="text" maxlength="2048" value="Footer text" placeholder="Footer text" autocomplete="off">
@@ -450,7 +461,7 @@
 										</div>
 										<div class="item url inlineField">
 											<p class="ttle">URL</p>
-											<input class="editComponentURL" type="text" placeholder="URL" autocomplete="off" maxlength="512">
+											<input class="editComponentUrl" type="text" placeholder="URL" autocomplete="off" maxlength="512">
 										</div>
 									</div>
 									<div class="componentSelectTemplate" hidden>

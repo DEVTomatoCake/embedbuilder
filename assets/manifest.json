@@ -1,0 +1,29 @@
+{
+	"short_name": "TK Message Editor",
+	"name": "TomatenKuchen Discord Message Editor",
+	"icons": [
+		{
+			"src": "/assets/images/favicon.ico",
+			"type": "image/x-icon",
+			"sizes": "128x128",
+			"purpose": "maskable"
+		},{
+			"src": "/assets/images/apple-icon-152.png",
+			"type": "image/png",
+			"sizes": "152x152"
+		}
+	],
+	"id": "/",
+	"start_url": "/",
+	"background_color": "#ED8721",
+	"display_override": ["window-control-overlay", "minimal-ui"],
+	"display": "standalone",
+	"scope": "/",
+	"theme_color": "#ED8721",
+	"description": "A message editor for Discord, allowing you to live preview messages while editing them, and finally exporting or directly sending them to a channel.",
+	"screenshots": [{
+		"src": "/assets/images/screen1.webp",
+		"type": "image/webp",
+		"sizes": "1265x1005"
+	}]
+}

@@ -10,6 +10,7 @@ let jsonObject = {
 	embeds: [
 		{
 			title: "Next steps",
+			url: "https://docs.tomatenkuchen.com/messageeditor",
 			description: "1. [Invite TomatenKuchen](https://tomatenkuchen.com/invite)\n2. Use the bot to import a message\n3. Send it using TomatenKuchen or a webhook!"
 		}
 	],
@@ -76,7 +77,7 @@ if (params.has("mb") || params.has("dgh")) jsonObject.embeds = []
 
 const guiTabs = params.get("guitabs") || ["description"]
 let reverseColumns = params.get("reverse") !== null
-let autoUpdateURL = localStorage.getItem("autoUpdateURL"),
+let autoUpdateUrl = localStorage.getItem("autoUpdateUrl"),
 	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, buildGui, buildEmbed
 
 const guiEmbedIndex = guiEl => {
@@ -112,14 +113,14 @@ const createElement = object => {
 	return element
 }
 
-const encodeJson = (withURL = false) => {
+const encodeJson = (withUrl = false) => {
 	let data = btoa(encodeURIComponent(JSON.stringify({
 		...jsonObject,
 		embeds: jsonObject.embeds && jsonObject.embeds.length > 0 ? jsonObject.embeds : void 0,
 		components: jsonObject.components && jsonObject.components.length > 0 ? jsonObject.components : void 0
 	})))
 
-	if (withURL) {
+	if (withUrl) {
 		const url = new URL(location.href)
 		url.searchParams.set("data", data)
 
@@ -178,7 +179,7 @@ const animateGuiEmbedNameAt = (i, text) => {
 }
 
 const indexOfEmptyGuiEmbed = text => {
-	for (const [i, element] of document.querySelectorAll(".msgEmbed>.container .embed").entries())
+	for (const [i, element] of document.querySelectorAll(".msgEmbed > .container .embed").entries())
 		if (element.classList.contains("emptyEmbed")) {
 			if (text !== false) animateGuiEmbedNameAt(i, text)
 			return i
@@ -203,7 +204,7 @@ const changeLastActiveGuiEmbed = index => {
 }
 
 const afterBuilding = () => {
-	if (autoUpdateURL) urlOptions("data", encodeJson())
+	if (autoUpdateUrl) urlOptions("data", encodeJson())
 }
 
 // Parses emojis to images and adds code highlighting.
@@ -236,13 +237,13 @@ const timestamp = stringISO => {
 	return new Date().toLocaleDateString() + " " + dateArray
 }
 
-const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
+const markup = (txt, { replaceEmojis, replaceHeaders = false, inlineBlock }) => {
 	if (replaceEmojis) txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
 	txt = txt
 		.trim()
-		.replace(/&lt;:\w+:(\d{17,21})&gt;/g, "<img class='emoji' src='https://cdn.discordapp.com/emojis/$1.webp'>")
-		.replace(/&lt;a:\w+:(\d{17,21})&gt;/g, "<img class='emoji' src='https://cdn.discordapp.com/emojis/$1.gif'>")
+		.replace(/&lt;:\w+:(\d{17,21})&gt;/g, "<img class='emoji' src='https://cdn.discordapp.com/emojis/$1.webp' crossorigin='anonymous'>")
+		.replace(/&lt;a:\w+:(\d{17,21})&gt;/g, "<img class='emoji' src='https://cdn.discordapp.com/emojis/$1.gif' crossorigin='anonymous'>")
 		.replace(/~~(.+?)~~/g, "<s>$1</s>")
 		.replace(/\*\*\*(.+?)\*\*\*/g, "<em><strong>$1</strong></em>")
 		.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
@@ -251,12 +252,12 @@ const markup = (txt, { replaceEmojis, replaceHeaders, inlineBlock }) => {
 		.replace(/_(.+?)_/g, "<em>$1</em>")
 		.replace(/\|\|(.+?)\|\|/g, "<span class='spoiler'>$1</span>")
 		// Replace non-markdown links
-		.replace(/(^| )(https?:\/\/[-a-z0-9/.äöü]+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
+		.replace(/(^| )(https?:\/\/\S+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
 
 	if (replaceHeaders) txt = txt
-		.replace(/^### ([\S 	]+)/gm, "<span class='h3'>$1</span>")
-		.replace(/^## ([\S 	]+)/gm, "<span class='h2'>$1</span>")
-		.replace(/^# ([\S 	]+)/gm, "<span class='h1'>$1</span>")
+		.replace(/^###[\t ]([\S\t ]+)/gm, "<span class='h3'>$1</span>")
+		.replace(/^##[\t ]([\S\t ]+)/gm, "<span class='h2'>$1</span>")
+		.replace(/^#[\t ]([\S\t ]+)/gm, "<span class='h1'>$1</span>")
 
 	let listType
 	txt = txt
@@ -345,7 +346,7 @@ const uploadError = (message, browse, sleepTime = 7000) => {
 	browse.classList.remove("loading")
 	browse.classList.add("error")
 
-	const p = browse.parentElement.querySelector(".browse.error>p")
+	const p = browse.parentElement.querySelector(".browse.error > p")
 	p.dataset.error = encode(message)
 
 	setTimeout(() => {
@@ -370,8 +371,8 @@ addEventListener("DOMContentLoaded", () => {
 				else if (e.data.startsWith("serverData_")) serverData = JSON.parse(e.data.replace("serverData_", ""))
 			}
 		}
-	} else if (autoUpdateURL) {
-		document.body.classList.add("autoUpdateURL")
+	} else if (autoUpdateUrl) {
+		document.body.classList.add("autoUpdateUrl")
 		document.querySelector(".item.auto > input").checked = true
 	}
 
@@ -391,7 +392,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	const editorHolder = document.querySelector(".editorHolder"),
 		embedContent = document.querySelector(".messageContent"),
-		embedCont = document.querySelector(".msgEmbed>.container"),
+		embedCont = document.querySelector(".msgEmbed > .container"),
 		actionRowCont = document.querySelector(".components"),
 		gui = document.querySelector(".top .gui:first-of-type")
 
@@ -513,15 +514,15 @@ addEventListener("DOMContentLoaded", () => {
 	}
 
 	const [guiFragment, fieldFragment, componentFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 7 }, () => document.createDocumentFragment())
-	fieldFragment.appendChild(document.querySelector(".edit>.fields>.field").cloneNode(true))
-	componentFragment.appendChild(document.querySelector(".guiActionRow>.guiComponent").cloneNode(true))
+	fieldFragment.appendChild(document.querySelector(".edit > .fields > .field").cloneNode(true))
+	componentFragment.appendChild(document.querySelector(".guiActionRow > .guiComponent").cloneNode(true))
 	embedFragment.appendChild(document.querySelector(".embed.markup").cloneNode(true))
 	actionRowFragment.appendChild(document.querySelector(".actionrow.markup").cloneNode(true))
 	guiEmbedAddFragment.appendChild(document.querySelector(".guiEmbedAdd").cloneNode(true))
 	guiActionRowAddFragment.appendChild(document.querySelector(".guiActionRowAdd").cloneNode(true))
 
 	document.querySelector(".embed.markup").remove()
-	gui.querySelector(".edit>.fields>.field").remove()
+	gui.querySelector(".edit > .fields > .field").remove()
 
 	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
 
@@ -536,7 +537,7 @@ addEventListener("DOMContentLoaded", () => {
 				document.body.classList.remove("emptyContent")
 			} else document.body.classList.add("emptyContent")
 
-			const embed = document.querySelectorAll(".container>.embed")[index]
+			const embed = document.querySelectorAll(".container > .embed")[index]
 			const embedObj = jsonObject.embeds?.[index] || {}
 
 			if (only && (!embed || !embedObj)) return buildEmbed()
@@ -548,19 +549,29 @@ addEventListener("DOMContentLoaded", () => {
 					const embedTitle = embed?.querySelector(".embedTitle")
 					if (!embedTitle) return buildEmbed()
 
-					if (embedObj.title) display(embedTitle, markup(embedObj.url ? "<a class='anchor' target='_blank' href='" + encode(url(embedObj.url)) + "'>" + encode(embedObj.title) + "</a>" :
+					if (embedObj.title) display(embedTitle, markup(embedObj.url ? "<a class='anchor' href='" + encode(url(embedObj.url)) + "' target='_blank' rel='noopener'>" + encode(embedObj.title) + "</a>" :
 						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
 					else hide(embedTitle)
 
 					return externalParsing({ element: embedTitle })
+				case "embedUrl":
+					const embedUrl = embed?.querySelector(".embedUrl")
+					if (!embedUrl) return buildEmbed()
+
+					if (embedObj.title) display(embedUrl, markup(embedObj.url ? "<a class='anchor' href='" + encode(url(embedObj.url)) + "' target='_blank' rel='noopener'>" + encode(embedObj.title) + "</a>" :
+						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
+					else hide(embedUrl)
+
+					return externalParsing({ element: embedUrl })
 				case "embedAuthorName":
-				case "embedAuthorLink":
+				case "embedAuthorIcon":
+				case "embedAuthorUrl":
 					const embedAuthor = embed?.querySelector(".embedAuthor")
 					if (!embedAuthor) return buildEmbed()
 
 					if (embedObj.author?.name) display(embedAuthor,
-						(embedObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + imgProxy(embedObj.author.icon_url) + "'>" : "") +
-						(embedObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(embedObj.author.url)) + "' target='_blank'>" +
+						(embedObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorIcon' src='" + imgProxy(embedObj.author.icon_url) + "'>" : "") +
+						(embedObj.author.url ? "<a class='embedAuthorUrl embedLink embedAuthorName' href='" + encode(url(embedObj.author.url)) + "' target='_blank' rel='noopener'>" +
 							encode(embedObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(embedObj.author.name) + "</span>"), "flex")
 					else hide(embedAuthor)
 
@@ -607,13 +618,13 @@ addEventListener("DOMContentLoaded", () => {
 
 					return afterBuilding()
 				case "embedFooterText":
-				case "embedFooterLink":
+				case "embedFooterIcon":
 				case "embedFooterTimestamp":
 					const embedFooter = embed?.querySelector(".embedFooter")
 					if (!embedFooter) return buildEmbed()
 
 					if (embedObj.footer?.text || embedObj.timestamp) display(embedFooter,
-						(embedObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='" + imgProxy(embedObj.footer.icon_url) + "'>" : "") + "<span class='embedFooterText'>" +
+						(embedObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterIcon' src='" + imgProxy(embedObj.footer.icon_url) + "'>" : "") + "<span class='embedFooterText'>" +
 						encode(embedObj.footer.text) + (embedObj.timestamp ? "<span class='embedFooterSeparator'>•</span>" + encode(timestamp(embedObj.timestamp)) : "") + "</span></div>", "flex")
 					else hide(embedFooter)
 
@@ -645,7 +656,7 @@ addEventListener("DOMContentLoaded", () => {
 				else embedGrid.closest(".embed").style.removeProperty("border-color")
 
 				if (currentObj.author?.name) display(embedAuthor,
-					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorLink' src='" + imgProxy(currentObj.author.icon_url) + "'>" : "") +
+					(currentObj.author.icon_url ? "<img class='embedAuthorIcon embedAuthorIcon' src='" + imgProxy(currentObj.author.icon_url) + "'>" : "") +
 					(currentObj.author.url ? "<a class='embedAuthorNameLink embedLink embedAuthorName' href='" + encode(url(currentObj.author.url)) + "' target='_blank' rel='noopener'>" +
 					encode(currentObj.author.name) + "</a>" : "<span class='embedAuthorName'>" + encode(currentObj.author.name) + "</span>"), "flex")
 				else hide(embedAuthor)
@@ -666,7 +677,7 @@ addEventListener("DOMContentLoaded", () => {
 				} else hide(embedImage.parentElement)
 
 				if (currentObj.footer?.text) display(embedFooter,
-					(currentObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterLink' src='" + imgProxy(currentObj.footer.icon_url) + "'>" : "") +
+					(currentObj.footer.icon_url ? "<img class='embedFooterIcon embedFooterIcon' src='" + imgProxy(currentObj.footer.icon_url) + "'>" : "") +
 					"<span class='embedFooterText'>" + encode(currentObj.footer.text) +
 					(currentObj.timestamp ? "<span class='embedFooterSeparator'>•</span>" + encode(timestamp(currentObj.timestamp)) : "") + "</span></div>", "flex")
 				else if (currentObj.timestamp) display(embedFooter, "<span class='embedFooterText'>" + encode(timestamp(currentObj.timestamp)) + "</span></div>", "flex")
@@ -733,8 +744,8 @@ addEventListener("DOMContentLoaded", () => {
 
 						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) {
 							buttonElement.classList.add("select")
-							buttonElement.innerHTML = encode(component.placeholder) + "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M16.59 " +
-								"8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z'></path></svg>"
+							buttonElement.innerHTML = encode(component.placeholder) + "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'>" +
+								"<path fill='currentColor' d='M16.59 8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z'></path></svg>"
 						}
 
 						actionRowElement.appendChild(buttonElement)
@@ -803,10 +814,11 @@ addEventListener("DOMContentLoaded", () => {
 
 							switch (child2.classList[1]) {
 								case "author":
-									const authorURL = embed?.author?.icon_url || ""
-									if (authorURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(authorURL) + ")"
-									edit.querySelector(".editAuthorLink").value = authorURL
+									const authorUrl = embed?.author?.icon_url || ""
+									if (authorUrl) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(authorUrl) + ")"
 									edit.querySelector(".editAuthorName").value = embed?.author?.name || ""
+									edit.querySelector(".editAuthorIcon").value = authorUrl
+									edit.querySelector(".editAuthorUrl").value = embed?.author?.url || ""
 									break
 								case "title":
 									row.querySelector(".editTitle").value = embed?.title || ""
@@ -818,20 +830,20 @@ addEventListener("DOMContentLoaded", () => {
 									edit.querySelector(".editDescription").value = embed?.description || ""
 									break
 								case "thumbnail":
-									const thumbnailURL = embed?.thumbnail?.url || ""
-									if (thumbnailURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(thumbnailURL) + ")"
-									edit.querySelector(".editThumbnailLink").value = thumbnailURL
+									const thumbnailUrl = embed?.thumbnail?.url || ""
+									if (thumbnailUrl) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(thumbnailUrl) + ")"
+									edit.querySelector(".editThumbnailLink").value = thumbnailUrl
 									break
 								case "image":
-									const imageURL = embed?.image?.url || ""
-									if (imageURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(imageURL) + ")"
-									edit.querySelector(".editImageLink").value = imageURL
+									const imageUrl = embed?.image?.url || ""
+									if (imageUrl) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(imageUrl) + ")"
+									edit.querySelector(".editImageLink").value = imageUrl
 									break
 								case "footer":
-									const footerURL = embed?.footer?.icon_url || ""
-									if (footerURL) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(footerURL) + ")"
-									edit.querySelector(".editFooterLink").value = footerURL
+									const footerUrl = embed?.footer?.icon_url || ""
+									if (footerUrl) edit.querySelector(".imgParent").style.content = "url(" + imgProxy(footerUrl) + ")"
 									edit.querySelector(".editFooterText").value = embed?.footer?.text || ""
+									edit.querySelector(".editFooterIcon").value = footerUrl
 									break
 								case "fields":
 									for (const f of embed?.fields || []) {
@@ -929,7 +941,7 @@ addEventListener("DOMContentLoaded", () => {
 				}
 			})
 		}
-		for (const e of document.querySelectorAll(".top>.gui .item")) addComponentClickListener(e)
+		for (const e of document.querySelectorAll(".top > .gui .item")) addComponentClickListener(e)
 
 		// Scroll into view when tabs are opened in the GUI.
 		const lastTabs = new Set(Array.from(document.querySelectorAll(".footer.rows2, .image.largeImg")))
@@ -957,7 +969,7 @@ addEventListener("DOMContentLoaded", () => {
 					if (guiEmbedObj.fields) guiEmbedObj.fields.push({ name: "Field name", value: "Field value", inline: false })
 					else guiEmbedObj.fields = [{ name: "Field name", value: "Field value", inline: false }]
 
-					const newField = guiEmbed?.querySelector(".item.fields+.edit>.fields")?.appendChild(fieldFragment.firstChild.cloneNode(true))
+					const newField = guiEmbed?.querySelector(".item.fields + .edit > .fields")?.appendChild(fieldFragment.firstChild.cloneNode(true))
 
 					buildEmbed()
 					addGuiEventListeners()
@@ -990,7 +1002,7 @@ addEventListener("DOMContentLoaded", () => {
 
 					buildEmbed()
 					addGuiEventListeners()
-					for (const item of newComponent.querySelectorAll(".top>.gui .item")) addComponentClickListener(item)
+					for (const item of newComponent.querySelectorAll(".top > .gui .item")) addComponentClickListener(item)
 
 					newComponent.scrollIntoView({ behavior: "smooth", block: "center" })
 					if (!smallerScreen.matches) {
@@ -1048,7 +1060,7 @@ addEventListener("DOMContentLoaded", () => {
 							if (el.target.type == "text") jsonField.name = value
 							else if (el.target.type == "textarea") jsonField.value = value
 							else jsonField.inline = el.target.checked
-							createEmbedFields(embedObj.fields, document.querySelectorAll(".container>.embed")[index]?.querySelector(".embedFields"))
+							createEmbedFields(embedObj.fields, document.querySelectorAll(".container > .embed")[index]?.querySelector(".embedFields"))
 						}
 					} else {
 						switch (el.target.classList?.[0]) {
@@ -1057,6 +1069,22 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "content" })
 								break
 
+							case "editAuthorName":
+								if (!embedObj.author) embedObj.author = {}
+								embedObj.author.name = value
+								buildEmbed({ only: "embedAuthorName", index: guiEmbedIndex(el.target) })
+								break
+							case "editAuthorUrl":
+								if (!embedObj.author) embedObj.author = {}
+								embedObj.author.url = value
+								buildEmbed({ only: "editAuthorUrl", index: guiEmbedIndex(el.target) })
+								break
+							case "editAuthorIcon":
+								if (!embedObj.author) embedObj.author = {}
+								embedObj.author.icon_url = value
+								imgSrc(el.target.previousElementSibling, value)
+								buildEmbed({ only: "editAuthorIcon", index: guiEmbedIndex(el.target) })
+								break
 							case "editTitle":
 								embedObj.title = value
 								const guiEmbedName = el.target.closest(".guiEmbed")?.previousElementSibling
@@ -1064,16 +1092,9 @@ addEventListener("DOMContentLoaded", () => {
 									guiEmbedName.querySelector(".text").innerHTML = guiEmbedName.textContent.split(":")[0] + (value ? ": <span>" + value + "</span>" : "")
 								buildEmbed({ only: "embedTitle", index: guiEmbedIndex(el.target) })
 								break
-							case "editAuthorName":
-								if (!embedObj.author) embedObj.author = {}
-								embedObj.author.name = value
-								buildEmbed({ only: "embedAuthorName", index: guiEmbedIndex(el.target) })
-								break
-							case "editAuthorLink":
-								if (!embedObj.author) embedObj.author = {}
-								embedObj.author.icon_url = value
-								imgSrc(el.target.previousElementSibling, value)
-								buildEmbed({ only: "embedAuthorLink", index: guiEmbedIndex(el.target) })
+							case "editUrl":
+								embedObj.url = value
+								buildEmbed({ only: "embedUrl", index: guiEmbedIndex(el.target) })
 								break
 							case "editColor":
 								embedObj.color = parseInt(value.replace("#", ""), 16) || 0
@@ -1100,11 +1121,11 @@ addEventListener("DOMContentLoaded", () => {
 								embedObj.footer.text = value
 								buildEmbed({ only: "embedFooterText", index: guiEmbedIndex(el.target) })
 								break
-							case "editFooterLink":
+							case "editFooterIcon":
 								if (!embedObj.footer) embedObj.footer = {}
 								embedObj.footer.icon_url = value
 								imgSrc(el.target.previousElementSibling, value)
-								buildEmbed({ only: "embedFooterLink", index: guiEmbedIndex(el.target) })
+								buildEmbed({ only: "embedFooterIcon", index: guiEmbedIndex(el.target) })
 								break
 							case "embedFooterTimestamp":
 								const date = new Date(value)
@@ -1131,9 +1152,9 @@ addEventListener("DOMContentLoaded", () => {
 								componentObj.emoji = value
 								buildEmbed({ only: "componentEmoji", index: guiComponentIndex(el.target) })
 								break
-							case "editComponentURL":
+							case "editComponentUrl":
 								componentObj.url = value
-								buildEmbed({ only: "componentURL", index: guiComponentIndex(el.target) })
+								buildEmbed({ only: "componentUrl", index: guiComponentIndex(el.target) })
 								break
 							case "disableCheck":
 								componentObj.disabled = el.target.checked
@@ -1148,8 +1169,8 @@ addEventListener("DOMContentLoaded", () => {
 						if (nonEmptyComponentObjects?.length) jsonObject.components = nonEmptyComponentObjects
 					}
 
-					// Display embed elements hidden due to not having content. '.msgEmbed>.container' is embed container.
-					document.querySelectorAll(".msgEmbed>.container")[guiEmbedIndex(el.target)]?.querySelector(".emptyEmbed")?.classList.remove("emptyEmbed")
+					// Display embed elements hidden due to not having content. '.msgEmbed > .container' is embed container.
+					document.querySelectorAll(".msgEmbed > .container")[guiEmbedIndex(el.target)]?.querySelector(".emptyEmbed")?.classList.remove("emptyEmbed")
 				}
 
 			for (const browse of document.querySelectorAll(".browse"))
@@ -1301,7 +1322,7 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelector(".clear").addEventListener("click", () => {
 		jsonObject = {}
 
-		document.querySelector(".msgEmbed .container>.embed")?.remove()
+		document.querySelector(".msgEmbed .container > .embed")?.remove()
 
 		buildEmbed()
 		buildGui()
@@ -1405,9 +1426,9 @@ addEventListener("DOMContentLoaded", () => {
 			if (input) input.checked = !input.checked
 
 			e.target.checked = !e.target.checked
-			autoUpdateURL = document.body.classList.toggle("autoUpdateURL")
-			if (autoUpdateURL) localStorage.setItem("autoUpdateURL", 1)
-			else localStorage.removeItem("autoUpdateURL")
+			autoUpdateUrl = document.body.classList.toggle("autoUpdateUrl")
+			if (autoUpdateUrl) localStorage.setItem("autoUpdateUrl", 1)
+			else localStorage.removeItem("autoUpdateUrl")
 			urlOptions("data", encodeJson())
 		} else if (e.target.closest(".item.theme")) {
 			if (document.body.classList.toggle("light")) localStorage.setItem("theme", "light")
@@ -1430,4 +1451,6 @@ addEventListener("DOMContentLoaded", () => {
 	})
 
 	buildEmbed()
+
+	if (location.protocol != "file:" && "serviceWorker" in navigator) navigator.serviceWorker.register("/serviceworker.js")
 })
