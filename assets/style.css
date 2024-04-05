@@ -2198,7 +2198,7 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	background-color: #da373c;
 }
 
-.actionrow button, .actionrow button span {
+.actionrow button, .actionrow button a, .actionrow button:not(.select) span {
 	color: #fff;
 }
 
@@ -2210,7 +2210,6 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 }
 
 .actionrow button.b-url a {
-	color: var(--black);
 	text-decoration: none;
 }
 .actionrow button.b-url:disabled a {
