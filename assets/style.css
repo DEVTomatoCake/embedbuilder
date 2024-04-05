@@ -98,7 +98,6 @@ body {
 	display: none;
 }
 
-.pointer,
 .clickable,
 .inlineCheck input + span,
 .disableCheck input + span,
@@ -120,23 +119,23 @@ body:not(.no-preview):not(.no-editor) main {
 	grid-template-columns: 45% 55%;
 }
 
-.top pre>code .hltChars {
+.top pre > code .hltChars {
 	color: #b36391;
 }
 
-.top pre>code .hltInt {
+.top pre > code .hltInt {
 	color: #7658c8;
 }
 
-.top pre>code .hltBool {
+.top pre > code .hltBool {
 	color: #d679c6;
 }
 
-.top pre>code .hltStr1 {
+.top pre > code .hltStr1 {
 	color: #68b7c8;
 }
 
-.top pre>code .hltStr2 {
+.top pre > code .hltStr2 {
 	color: #aab060;
 }
 
@@ -687,13 +686,10 @@ ol, ul {
 	display: none;
 }
 
-.messageContent {
+#messageContent {
 	user-select: text;
 	margin-left: -72px;
 	padding-left: 72px;
-}
-
-.messageContent.markup {
 	font-size: 1rem;
 	line-height: 1.375rem;
 	white-space: break-spaces;
@@ -1891,10 +1887,8 @@ body.reversed .top-btn.menu > .box .item.reverse > .icon::after {
 	transform-origin: top right;
 }
 
-body.emptyContent .messageContent,
-body.emptyEmbed .messageContent + .container,
-body.emptyEmbed .messageContent + .container,
-body.emptyContent .messageContent,
+body.emptyEmbed #messageContent + .container,
+body.emptyContent #messageContent,
 .emptyTxt {
 	display: none;
 }
@@ -2162,22 +2156,19 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	position: relative;
 }
 
-.guiEmbedAdd, .guiActionRowAdd {
-	font-size: .8rem;
-	display: inline-flex;
-	position: absolute;
-	bottom: 5px;
-	left: 30%;
-	transform: translateX(-50%);
-	align-items: center;
-	z-index: 2;
-}
-.guiActionRowAdd {
-	left: 70%;
+#addContainer {
+	display: flex;
+	flex-wrap: wrap;
+	align-content: center;
+	justify-content: space-evenly;
 }
 
-.guiEmbedAdd .icon, .guiActionRowAdd .icon {
-	margin-right: 7px;
+#addContainer > div {
+	cursor: pointer;
+	font-size: 14px;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
 }
 
 .actionrow {
@@ -2218,11 +2209,19 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	margin-left: 5px;
 }
 
+.actionrow button.b-url a {
+	color: var(--black);
+	text-decoration: none;
+}
+.actionrow button.b-url:disabled a {
+	pointer-events: none;
+}
+
 .actionrow button:hover {
 	opacity: .8;
 }
 
-.actionrow button.disabled {
+.actionrow button:disabled {
 	opacity: .5;
 	cursor: not-allowed;
 }

@@ -219,10 +219,10 @@ const externalParsing = ({ noEmojis, element } = {}) => {
 	afterBuilding()
 }
 
-const url = str => /^(https?:)?\/\//g.test(str) ? str : "//" + str
-const imgProxy = str => str.length > 3 ? ("https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)) : ""
+const url = str => /^(https?:)?\/\//.test(str) ? str : "https://" + str
+const imgProxy = str => str.length > 3 && str.includes(".") ? ("https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)) : ""
+const imgSrc = (elem, src) => elem.style.content = "url(" + imgProxy(src) + ")"
 const hide = el => el.style.removeProperty("display")
-const imgSrc = (elm, src) => elm.style.content = "url(" + imgProxy(src) + ")"
 const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
 
 const timestamp = stringISO => {
@@ -238,7 +238,7 @@ const timestamp = stringISO => {
 	return new Date().toLocaleDateString() + " " + dateArray
 }
 
-const markup = (txt, { replaceEmojis = false, replaceHeaders = false, inlineBlock = false }) => {
+const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlineBlock = false } = {}) => {
 	if (replaceEmojis) txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
 	txt = txt
@@ -390,10 +390,10 @@ addEventListener("DOMContentLoaded", () => {
 	for (const e of document.querySelectorAll(".clickable > img"))
 		e.parentElement.addEventListener("mouseup", el => window.open(el.target.src))
 
-	const editorHolder = document.querySelector(".editorHolder"),
-		embedContent = document.querySelector(".messageContent"),
+	const editorHolder = document.getElementById("editorHolder"),
+		messageContent = document.getElementById("messageContent"),
+		actionRowCont = document.getElementById("components"),
 		embedCont = document.querySelector(".msgEmbed > .container"),
-		actionRowCont = document.querySelector(".components"),
 		gui = document.querySelector(".top .gui:first-of-type")
 
 	const editor = CodeMirror(elt => editorHolder.parentNode.replaceChild(elt, editorHolder), {
@@ -493,13 +493,11 @@ addEventListener("DOMContentLoaded", () => {
 		display(embedFields, void 0, "grid")
 	}
 
-	const [guiFragment, fieldFragment, componentFragment, embedFragment, guiEmbedAddFragment, guiActionRowAddFragment, actionRowFragment] = Array.from({ length: 7 }, () => document.createDocumentFragment())
+	const [guiFragment, fieldFragment, componentFragment, embedFragment, actionRowFragment] = Array.from({ length: 5 }, () => document.createDocumentFragment())
 	fieldFragment.appendChild(document.querySelector(".edit > .fields > .field").cloneNode(true))
 	componentFragment.appendChild(document.querySelector(".guiActionRow > .guiComponent").cloneNode(true))
 	embedFragment.appendChild(document.querySelector(".embed.markup").cloneNode(true))
 	actionRowFragment.appendChild(document.querySelector(".actionrow.markup").cloneNode(true))
-	guiEmbedAddFragment.appendChild(document.querySelector(".guiEmbedAdd").cloneNode(true))
-	guiActionRowAddFragment.appendChild(document.querySelector(".guiActionRowAdd").cloneNode(true))
 
 	document.querySelector(".embed.markup").remove()
 	gui.querySelector(".edit > .fields > .field").remove()
@@ -507,24 +505,27 @@ addEventListener("DOMContentLoaded", () => {
 	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
 
 	// Renders embed and message content.
-	const buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
+	const buildEmbed = ({ jsonData, only, index = 0, componentIndex = 0 } = {}) => {
 		if (jsonData) jsonObject = jsonData
 		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed")
 
 		try {
 			if (jsonObject.content) {
-				embedContent.innerHTML = markup(encode(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
+				messageContent.innerHTML = markup(encode(jsonObject.content), { replaceEmojis: true, replaceHeaders: true })
 				document.body.classList.remove("emptyContent")
 			} else document.body.classList.add("emptyContent")
 
 			const embed = document.querySelectorAll(".container > .embed")[index]
 			const embedObj = jsonObject.embeds?.[index] || {}
+			if (only && only.startsWith("embed") && (!embed || !embedObj)) return buildEmbed()
 
-			if (only && (!embed || !embedObj)) return buildEmbed()
+			const componentElem = document.querySelectorAll(".actionrow")?.[index]?.children[componentIndex]
+			const componentObj = jsonObject.components?.[index]?.components?.[componentIndex] || {}
+			if (only && only.startsWith("component") && (!componentElem || !componentObj)) return buildEmbed()
 
 			switch (only) {
 				// If only updating the message content and nothing else, return here.
-				case "content": return externalParsing({ element: embedContent })
+				case "content": return externalParsing({ element: messageContent })
 				case "embedTitle":
 					const embedTitle = embed?.querySelector(".embedTitle")
 					if (!embedTitle) return buildEmbed()
@@ -609,6 +610,66 @@ addEventListener("DOMContentLoaded", () => {
 					else hide(embedFooter)
 
 					return externalParsing({ element: embedFooter })
+
+				case "componentLabel":
+					(componentElem.getElementsByTagName("span")[0] || componentElem.getElementsByTagName("a")[0]).textContent = componentObj.label
+
+					return afterBuilding()
+				case "componentPlaceholder":
+					componentElem.getElementsByTagName("span")[0].textContent = componentObj.placeholder
+
+					return afterBuilding()
+				case "componentStyle":
+					componentElem.classList.remove("b-" + buttonStyles[componentElem.dataset.style])
+					componentElem.classList.add("b-" + buttonStyles[componentObj.style])
+					componentElem.dataset.style = componentObj.style
+
+					return afterBuilding()
+				case "componentEmoji":
+					if (/^[0-9]{17,21}$/.test(componentObj.emoji.id || componentObj.emoji)) {
+						const emojiElement = document.createElement("img")
+						emojiElement.classList.add("button-emoji")
+						emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(componentObj.emoji.id || componentObj.emoji) + ".webp?size=16"
+						emojiElement.crossOrigin = "anonymous"
+
+						const existingElem = componentElem.getElementsByClassName("button-emoji")[0]
+						if (existingElem) componentElem.replaceChild(emojiElement, existingElem)
+						else componentElem.insertBefore(emojiElement, componentElem.firstChild)
+					} else if (componentObj.emoji.name) {
+						const emojiElement = document.createElement("span")
+						emojiElement.classList.add("button-emoji")
+						emojiElement.textContent = componentObj.emoji.name
+
+						const existingElem = componentElem.getElementsByClassName("button-emoji")[0]
+						if (existingElem) componentElem.replaceChild(emojiElement, existingElem)
+						else componentElem.insertBefore(emojiElement, componentElem.firstChild)
+					} else componentElem.getElementsByClassName("button-emoji")[0]?.remove()
+
+					return afterBuilding()
+				case "componentUrl":
+					if (componentObj.disabled) {
+						componentElem.removeAttribute("title")
+						componentElem.getElementsByTagName("a")[0].removeAttribute("href")
+					} else {
+						componentElem.title = encode(url(componentObj.url))
+						componentElem.getElementsByTagName("a")[0].href = encode(url(componentObj.url))
+					}
+
+					return afterBuilding()
+				case "componentDisabled":
+					componentElem.disabled = componentObj.disabled
+
+					if (componentElem.getElementsByTagName("a")[0]) {
+						if (componentObj.disabled) {
+							componentElem.removeAttribute("title")
+							componentElem.getElementsByTagName("a")[0].removeAttribute("href")
+						} else {
+							componentElem.title = encode(url(componentObj.url))
+							componentElem.getElementsByTagName("a")[0].href = encode(url(componentObj.url))
+						}
+					}
+
+					return afterBuilding()
 			}
 
 			embedCont.innerHTML = ""
@@ -679,16 +740,17 @@ addEventListener("DOMContentLoaded", () => {
 				const actionRowElement = actionRowCont.appendChild(actionRowFragment.firstChild.cloneNode(true))
 
 				if (actionRow.components) for (const component of actionRow.components) {
-					if (component.style == 5) {
+					if (component.type == 2 && component.style == 5) {
 						const buttonElement = document.createElement("button")
 						buttonElement.classList.add("b-" + buttonStyles[component.style])
 						buttonElement.dataset.style = component.style
 						buttonElement.title = encode(url(component.url))
 
-						if (component.disabled) buttonElement.classList.add("disabled")
-						else buttonElement.onclick = () => window.open(url(component.url), "_blank", "noopener")
+						if (component.disabled) buttonElement.disabled = true
 
-						buttonElement.innerHTML = encode(component.label) +
+						buttonElement.innerHTML =
+							"<a href='" + (component.disabled ? "" : encode(url(component.url))) + "' target='_blank' rel='noopener'>" +
+							encode(component.label) + "</a>" +
 							// From Discord's client source code
 							"<svg aria-hidden='true' role='img' width='16' height='16' viewBox='0 0 24 24'>" +
 							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
@@ -703,15 +765,18 @@ addEventListener("DOMContentLoaded", () => {
 							buttonElement.dataset.style = component.style
 						}
 
-						if (component.disabled) buttonElement.classList.add("disabled")
+						if (component.disabled) buttonElement.disabled = true
 						if (component.custom_id) buttonElement.dataset.custom_id = component.custom_id
 						if (component.emoji && component.type != 3 && !(component.type >= 5 && component.type <= 8)) {
 							let emojiElement
 							if (/^[0-9]{17,21}$/.test(component.emoji.id || component.emoji)) {
 								emojiElement = document.createElement("img")
+								emojiElement.classList.add("button-emoji")
 								emojiElement.src = "https://cdn.discordapp.com/emojis/" + encode(component.emoji.id || component.emoji) + ".webp?size=16"
+								emojiElement.crossOrigin = "anonymous"
 							} else if (component.emoji.name) {
 								emojiElement = document.createElement("span")
+								emojiElement.classList.add("button-emoji")
 								emojiElement.textContent = component.emoji.name
 							}
 							if (emojiElement) buttonElement.appendChild(emojiElement)
@@ -724,7 +789,8 @@ addEventListener("DOMContentLoaded", () => {
 
 						if (component.type == 3 || (component.type >= 5 && component.type <= 8)) {
 							buttonElement.classList.add("select")
-							buttonElement.innerHTML = encode(component.placeholder) + "<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'>" +
+							buttonElement.innerHTML = "<span>" + encode(component.placeholder) + "</span>" +
+								"<svg aria-hidden='true' role='img' width='24' height='24' viewBox='0 0 24 24'>" +
 								"<path fill='currentColor' d='M16.59 8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z'></path></svg>"
 						}
 
@@ -754,21 +820,6 @@ addEventListener("DOMContentLoaded", () => {
 	// Renders the GUI editor with json data from 'jsonObject'.
 	const buildGui = (object = jsonObject) => {
 		gui.innerHTML = ""
-		gui.appendChild(guiEmbedAddFragment.firstChild.cloneNode(true))
-			.addEventListener("click", () => {
-				if (!jsonObject.embeds) jsonObject.embeds = []
-				if (jsonObject.embeds.length >= 10) return error("You can only have up to 10 embeds!")
-				if (indexOfEmptyGuiEmbed("(empty embed)") != -1) return
-				jsonObject.embeds.push({})
-				buildGui()
-			})
-		gui.appendChild(guiActionRowAddFragment.firstChild.cloneNode(true))
-			.addEventListener("click", () => {
-				if (!jsonObject.components) jsonObject.components = []
-				if (jsonObject.components.length >= 5) return error("You can only have up to 5 action rows!")
-				jsonObject.components.push({})
-				buildGui()
-			})
 
 		for (const child of Array.from(guiFragment.childNodes)) {
 			if (child.classList?.[1] == "content")
@@ -803,6 +854,9 @@ addEventListener("DOMContentLoaded", () => {
 									break
 								case "title":
 									row.querySelector(".editTitle").value = embed?.title || ""
+									break
+								case "url":
+									row.querySelector(".editUrl").value = embed?.url || ""
 									break
 								case "color":
 									row.querySelector(".editColor").value = embed && embed.color ? (typeof embed.color == "number" ? "#" + embed.color.toString(16).padStart(6, "0") : embed.color) : ""
@@ -980,8 +1034,8 @@ addEventListener("DOMContentLoaded", () => {
 						type: 1,
 						components: [{
 							type: 1,
-							custom_id: "custom_",
-							label: "Button",
+							custom_id: "",
+							label: "",
 							style: 1,
 							disabled: false
 						}]
@@ -1129,29 +1183,29 @@ addEventListener("DOMContentLoaded", () => {
 
 							case "editComponentLabel":
 								componentObj.label = value
-								buildEmbed({ only: "componentLabel", index: guiComponentIndex(el.target) })
+								buildEmbed({ only: "componentLabel", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 							case "editComponentPlaceholder":
 								componentObj.placeholder = value
-								buildEmbed({ only: "componentPlaceholder", index: guiComponentIndex(el.target) })
+								buildEmbed({ only: "componentPlaceholder", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 							case "editComponentStyle":
 								componentObj.style = parseInt(value)
-								buildEmbed({ only: "componentStyle", index: guiComponentIndex(el.target) })
+								buildEmbed({ only: "componentStyle", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 							case "editComponentEmoji":
 								componentObj.emoji = value
-								buildEmbed({ only: "componentEmoji", index: guiComponentIndex(el.target) })
+								buildEmbed({ only: "componentEmoji", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 							case "editComponentUrl":
 								if (!value.startsWith("http://") && !value.startsWith("https://")) return error("Invalid URI protocol, Discord only supports HTTP and HTTPS.", "3s")
 
 								componentObj.url = value
-								buildEmbed({ only: "componentUrl", index: guiComponentIndex(el.target) })
+								buildEmbed({ only: "componentUrl", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 							case "disableCheck":
 								componentObj.disabled = el.target.checked
-								buildEmbed({ only: "componentDisabled", index: guiComponentIndex(el.target) })
+								buildEmbed({ only: "componentDisabled", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 						}
 
@@ -1275,7 +1329,7 @@ addEventListener("DOMContentLoaded", () => {
 		} catch {
 			if (edi.getValue()) return
 			document.body.classList.add("emptyEmbed")
-			embedContent.innerHTML = ""
+			messageContent.innerHTML = ""
 		}
 	})
 
@@ -1286,6 +1340,20 @@ addEventListener("DOMContentLoaded", () => {
 	}, 60000 - Date.now() % 60000)
 
 	for (const block of document.querySelectorAll(".markup pre > code")) hljs.highlightElement(block)
+
+	document.getElementById("guiEmbedAdd").addEventListener("click", () => {
+			if (!jsonObject.embeds) jsonObject.embeds = []
+			if (jsonObject.embeds.length >= 10) return error("You can only have up to 10 embeds!")
+			if (indexOfEmptyGuiEmbed("(empty embed)") != -1) return
+			jsonObject.embeds.push({})
+			buildGui()
+		})
+	document.getElementById("guiActionRowAdd").addEventListener("click", () => {
+			if (!jsonObject.components) jsonObject.components = []
+			if (jsonObject.components.length >= 5) return error("You can only have up to 5 action rows!")
+			jsonObject.components.push({})
+			buildGui()
+		})
 
 	document.querySelector(".opt.gui").addEventListener("click", () => {
 		if (lastGuiJson && lastGuiJson != JSON.stringify(jsonObject, null, "\t")) buildGui()
