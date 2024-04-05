@@ -13,7 +13,6 @@ self.addEventListener("install", event => {
 			"/assets/fonts/ggsans-Bold.ttf",
 			"/assets/fonts/ggsans-ExtraBold.ttf",
 			"/assets/fonts/ggsans-Medium.ttf",
-			"/assets/fonts/ggsans-Normal.ttf",
 			"/assets/fonts/ggsans-Semibold.ttf",
 
 			"/assets/manifest.json",

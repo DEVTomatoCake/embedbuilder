@@ -46,8 +46,8 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/lint/lint.min.js" integrity="sha512-fzIkwQa9H8rjoDzpZ9sMOYhgaYwh9nKALWbE1m+7wpiry9PN5OyNcZ9LySotjEysolveRyv2C9pVJ+DbEuKtmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	</head>
 	<body class="gui emptyEmbed">
-		<div class="main">
-			<section class="side1 noDisplay">
+		<main>
+			<section class="side1">
 				<div class="chooser needed">
 					<div class="back"></div>
 					<div class="gui opt">
@@ -56,7 +56,7 @@
 					<div class="json opt">
 						<p>JSON</p>
 					</div>
-					<div class="top-btn clear" title="Clear everything">
+					<div id="clear-button" class="top-btn" title="Clear everything">
 						<svg version="1.1" x="0px" y="0px" viewBox="0 0 1000 1000">
 							<g>
 								<path d="M740.4,401.4c-46-25.4-92.5-49.9-139.1-74.2c-36.3-18.9-73.3-19.2-110-0.9c-22,11-38.8,27.5-50.4,49.9c116.5,62,232.2,123.6,348.7,185.6c2.2-5.1,4.4-9.3,6-13.7C816.7,491.3,794.5,431.2,740.4,401.4z"></path>
@@ -68,7 +68,7 @@
 							</g>
 						</svg>
 					</div>
-					<div class="top-btn copy" title="Copy as JSON">
+					<div id="copy-button" class="top-btn" title="Copy as JSON">
 						<svg version="1.1" width="16" height="16" x="0px" y="0px" viewBox="0 0 512 512">
 							<g>
 								<path fill="currentColor"
@@ -81,12 +81,12 @@
 							</g>
 						</svg>
 					</div>
-					<div class="top-btn import" title="Import message using TomatenKuchen">
+					<div id="import-button" class="top-btn" title="Import message using TomatenKuchen">
 						<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
 							<path d="m807.186 686.592 272.864 272.864H0v112.94h1080.05l-272.864 272.978 79.736 79.849 409.296-409.183-409.296-409.184-79.736 79.736ZM1870.419 434.69l-329.221-329.11C1509.688 74.07 1465.979 56 1421.48 56H451.773v730.612h112.94V168.941h790.584v451.762h451.762v1129.405H564.714v-508.233h-112.94v621.173H1920V554.52c0-45.176-17.619-87.754-49.58-119.83Zm-402.181-242.37 315.443 315.442h-315.443V192.319Z" fill-rule="evenodd"></path>
 						</svg>
 					</div>
-					<div class="top-btn sendbot" title="Send message using TomatenKuchen">
+					<div id="sendbot-button" class="top-btn" title="Send message using TomatenKuchen">
 						<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
 							<path d="m0 1016.081 409.186 409.073 79.85-79.736-272.867-272.979h1136.415V959.611H216.169l272.866-272.866-79.85-79.85L0 1016.082ZM1465.592 305.32l315.445 315.445h-315.445V305.32Zm402.184 242.372-329.224-329.11C1507.042 187.07 1463.334 169 1418.835 169h-743.83v677.647h112.94V281.941h564.706v451.765h451.765v903.53H787.946V1185.47H675.003v564.705h1242.353V667.522c0-44.498-18.07-88.207-49.581-119.83Z" fill-rule="evenodd"></path>
 						</svg>
@@ -108,12 +108,12 @@
 								</div>
 								<p>Share message as URL</p>
 							</div>
-							<div class="item normal sendwebhook">
+							<div id="send-webhook" class="item normal">
 								<p>Send message using Webhook</p>
 							</div>
 							<div class="vs"></div>
 							<div class="item normal auto">
-								<input type="checkbox" id="auto" class="hidden">
+								<input type="checkbox" id="auto">
 								<p>Auto-update data link in URL</p>
 							</div>
 							<div class="item normal download">
@@ -173,7 +173,7 @@
 						<div class="edit">
 							<textarea class="editContent" placeholder="Message content" maxlength="2000" autocomplete="off"></textarea>
 						</div>
-						<div class="item guiEmbedName">
+						<div class="item guiEmbedName" hidden>
 							<span class="text">Embed 1</span>
 							<span class="icon">
 								<svg version="1.1" x="0" y="0" viewBox="0 0 24 24" width="16" height="16">
@@ -417,7 +417,7 @@
 							</div>
 						</div>
 
-						<div class="item guiActionRowName">
+						<div class="item guiActionRowName" hidden>
 							<span class="text">Action Row 1</span>
 							<span class="icon">
 								<svg version="1.1" x="0" y="0" viewBox="0 0 24 24" width="16" height="16">
@@ -603,10 +603,47 @@
 					<div class="emptyTxt">Nothing here</div>
 				</div>
 				<div class="bottomSide">
-					<div class="notification">There is an error</div>
+					<div id="notification">There is an error</div>
 				</div>
 			</section>
-		</div>
+
+			<dialog id="webhook-dialog">
+				<span class="close" tabindex="0">&times;</span>
+				<h1>Send the current message using a webhook</h1>
+
+				<label for="webhook-url">
+					A Discord or Guilded webhook URL<span class="required">*</span>
+				</label>
+				<br>
+				<input id="webhook-url" type="text" placeholder="https://discord.com/api/webhooks/..." minlength="100" required autofocus>
+
+				<br>
+				<br>
+				<br>
+				<fieldset>
+					<legend>Optional, Discord-only webhook settings</legend>
+
+					<label for="webhook-thread-id">A thread or forum/media post channel ID to send the message to</label>
+					<br>
+					<input id="webhook-thread-id" type="text" placeholder="1209160092021293166" minlength="17" maxlength="21">
+					<br>
+					<br>
+
+					<p>
+						<i>or</i>
+					</p>
+
+					<br>
+					<label for="webhook-thread-name">A thread name to create a new thread in the channel</label>
+					<br>
+					<input id="webhook-thread-name" type="text" placeholder="New server rules proposal" maxlength="100">
+				</fieldset>
+
+				<br>
+				<button type="button" id="webhook-submit">Send</button>
+				<button type="button" id="webhook-clear" class="red">Clear</button>
+			</dialog>
+		</main>
 
 		<script data-collect-dnt="true" async defer src="https://sus.tomatenkuchen.com/latest.js"></script>
 		<noscript>

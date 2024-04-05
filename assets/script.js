@@ -77,8 +77,9 @@ if (params.has("mb") || params.has("dgh")) jsonObject.embeds = []
 
 const guiTabs = params.get("guitabs") || ["description"]
 let reverseColumns = params.get("reverse") !== null
-let autoUpdateUrl = localStorage.getItem("autoUpdateUrl"),
-	lastActiveGuiEmbedIndex = -1, lastGuiJson, colNum = 1, buildGui, buildEmbed
+let autoUpdateUrl = localStorage.getItem("autoUpdateUrl")
+let lastActiveGuiEmbedIndex = -1
+let lastGuiJson
 
 const guiEmbedIndex = guiEl => {
 	const guiEmbed = guiEl?.closest(".guiEmbed")
@@ -226,7 +227,7 @@ const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g,
 
 const timestamp = stringISO => {
 	const date = stringISO ? new Date(stringISO) : new Date()
-	const dateArray = date.toLocaleString(void 0, { hour: "numeric", hour12: false, minute: "numeric" })
+	const dateArray = date.toLocaleString(void 0, { hour: "numeric", minute: "numeric" })
 	const today = new Date()
 	const yesterday = new Date(new Date().setDate(today.getDate() - 1))
 	const tomorrow = new Date(new Date().setDate(today.getDate() + 1))
@@ -237,7 +238,7 @@ const timestamp = stringISO => {
 	return new Date().toLocaleDateString() + " " + dateArray
 }
 
-const markup = (txt, { replaceEmojis, replaceHeaders = false, inlineBlock }) => {
+const markup = (txt, { replaceEmojis = false, replaceHeaders = false, inlineBlock = false }) => {
 	if (replaceEmojis) txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
 	txt = txt
@@ -261,7 +262,7 @@ const markup = (txt, { replaceEmojis, replaceHeaders = false, inlineBlock }) => 
 
 	let listType
 	txt = txt
-		.replace(/^(-|\*|\d\.) ([\S \t]+)/gm, (match, p1, p2) => {
+		.replace(/^(-|\*|\d\.)[\t ]([\S \t]+)/gm, (match, p1, p2) => {
 			let prefix = ""
 			if (!listType) {
 				if (p1 == "-" || p1 == "*") listType = "ul"
@@ -362,7 +363,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	if (top != self) {
 		document.getElementById("auto").parentElement.remove()
-		document.getElementsByClassName("sendwebhook")[0].remove()
+		document.getElementById("send-webhook").remove()
 
 		window.onmessage = e => {
 			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269")) {
@@ -376,7 +377,6 @@ addEventListener("DOMContentLoaded", () => {
 		document.querySelector(".item.auto > input").checked = true
 	}
 
-	document.querySelector(".side1.noDisplay")?.classList.remove("noDisplay")
 	if (params.get("editor") == "json") document.body.classList.remove("gui")
 
 	document.getElementsByClassName("username")[0].textContent = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
@@ -423,7 +423,7 @@ addEventListener("DOMContentLoaded", () => {
 	})
 	editor.focus()
 
-	const notif = document.querySelector(".notification")
+	const notif = document.getElementById("notification")
 	const error = (msg, time = "5s") => {
 		notif.textContent = msg
 		notif.style.removeProperty("--startY")
@@ -443,29 +443,11 @@ addEventListener("DOMContentLoaded", () => {
 		return false
 	}
 
-	const socket = sockette("wss://api.tomatenkuchen.com/embedbuilder", {
-		onClose: event => {
-			console.log("Disconnected!", event)
-			error("The connection to the bot has been lost, reload the page to reconnect.", "8s")
-		},
-		onOpen: event => console.log("Connected!", event),
-		onMessage: wsjson => {
-			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
-			else if (wsjson.action == "result_importcode") alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel!")
-			else if (wsjson.action == "result_sendcode") alert("Send the code " + wsjson.code + " in the channel you want to send the message in! (Manage Messages)" +
-				"\nYou can optionally reply to a message to make the bot edit it. (Manage Guild)")
-			else if (wsjson.action == "result_import") {
-				jsonObject = wsjson.data
-				buildEmbed()
-				buildGui()
-			} else if (wsjson.action == "result_send") error(wsjson.success ? "The message was sent successfully!" : "The message couldn't be sent: " + wsjson.error)
-		}
-	})
-
 	const createEmbedFields = (fields, embedFields) => {
 		embedFields.innerHTML = ""
 		let index, gridCol
 
+		let colNum = 1
 		for (const [i, f] of fields.entries()) {
 			if (f.name && f.value) {
 				const fieldElement = embedFields.insertBefore(document.createElement("div"), null)
@@ -505,10 +487,8 @@ addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-
 		for (const e of document.querySelectorAll(".embedField[style='grid-column: 1 / 5;']"))
 			if (!e.nextElementSibling || e.nextElementSibling.style.gridColumn == "1 / 13") e.style.gridColumn = "1 / 13"
-		colNum = 1
 
 		display(embedFields, void 0, "grid")
 	}
@@ -527,7 +507,7 @@ addEventListener("DOMContentLoaded", () => {
 	for (const child of gui.childNodes) guiFragment.appendChild(child.cloneNode(true))
 
 	// Renders embed and message content.
-	buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
+	const buildEmbed = ({ jsonData, only, index = 0 } = {}) => {
 		if (jsonData) jsonObject = jsonData
 		if (!jsonObject.embeds?.length) document.body.classList.add("emptyEmbed")
 
@@ -772,7 +752,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	const smallerScreen = matchMedia("(max-width: 1015px)")
 	// Renders the GUI editor with json data from 'jsonObject'.
-	buildGui = (object = jsonObject) => {
+	const buildGui = (object = jsonObject) => {
 		gui.innerHTML = ""
 		gui.appendChild(guiEmbedAddFragment.firstChild.cloneNode(true))
 			.addEventListener("click", () => {
@@ -794,8 +774,9 @@ addEventListener("DOMContentLoaded", () => {
 			if (child.classList?.[1] == "content")
 				gui.insertBefore(gui.appendChild(child.cloneNode(true)), gui.appendChild(child.nextElementSibling.cloneNode(true))).nextElementSibling.firstElementChild.value = object.content || ""
 			else if (child.classList?.[1] == "guiEmbedName") {
-				for (const [i, embed] of (object.embeds || [{}]).entries()) {
+				for (const [i, embed] of (object.embeds || []).entries()) {
 					const guiEmbedName = gui.appendChild(child.cloneNode(true))
+					guiEmbedName.removeAttribute("hidden")
 
 					guiEmbedName.querySelector(".text").innerHTML = "Embed " + (i + 1) + (embed.title ? ": <span>" + embed.title + "</span>" : "")
 					guiEmbedName.querySelector(".icon").addEventListener("click", () => {
@@ -866,8 +847,9 @@ addEventListener("DOMContentLoaded", () => {
 					}
 				}
 			} else if (child.classList?.[1] == "guiActionRowName") {
-				for (const [i, component] of (object.components && object.components.length ? object.components : [{}]).entries()) {
+				for (const [i, component] of (object.components || []).entries()) {
 					const guiActionRowName = gui.appendChild(child.cloneNode(true))
+					guiActionRowName.removeAttribute("hidden")
 
 					guiActionRowName.querySelector(".text").innerHTML = "Action Row " + (i + 1) + (component.custom_id ? ": <span>" + component.custom_id + "</span>" : "")
 					guiActionRowName.querySelector(".icon").addEventListener("click", () => {
@@ -991,11 +973,19 @@ addEventListener("DOMContentLoaded", () => {
 					if (indexOfGuiActionRow == -1) return error("Could not find the row to add the field to.")
 
 					if (!jsonObject.components) jsonObject.components = []
-					const componentsObj = (jsonObject.components[indexOfGuiActionRow] || {}).components || []
-					if (componentsObj.length >= 5) return error("An action row cannot have more than 5 components!")
+					const actionRow = jsonObject.components[indexOfGuiActionRow] || {}
+					if (actionRow.components && actionRow.components.length >= 5) return error("An action row cannot have more than 5 components!")
 
-					componentsObj.push({custom_id: "custom_", label: "Button", type: 1, style: 1, disabled: false})
-					if (!jsonObject.components) jsonObject.components = [{components: componentsObj}]
+					jsonObject.components.push({
+						type: 1,
+						components: [{
+							type: 1,
+							custom_id: "custom_",
+							label: "Button",
+							style: 1,
+							disabled: false
+						}]
+					})
 
 					const newComponent = guiActionRow.insertBefore(componentFragment.firstChild.cloneNode(true), guiActionRow.querySelector(".addComponent"))
 					newComponent.querySelector(".edit .componentButtonTemplate").removeAttribute("hidden")
@@ -1045,12 +1035,8 @@ addEventListener("DOMContentLoaded", () => {
 					const value = el.target.value
 					const index = guiEmbedIndex(el.target)
 					const field = el.target.closest(".field")
-					const embedObj = jsonObject.embeds?.[index] || {}
 
-					const rowindex = guiActionRowIndex(el.target)
-					const componentindex = guiComponentIndex(el.target)
-					const actionRowObj = jsonObject.components && rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {}
-					const componentObj = actionRowObj.components && actionRowObj.components[componentindex] ? actionRowObj.components[componentindex] : {}
+					const embedObj = jsonObject.embeds?.[index] || {}
 
 					if (field) {
 						const fieldIndex = Array.from(field.closest(".fields").children).indexOf(field)
@@ -1063,6 +1049,11 @@ addEventListener("DOMContentLoaded", () => {
 							createEmbedFields(embedObj.fields, document.querySelectorAll(".container > .embed")[index]?.querySelector(".embedFields"))
 						}
 					} else {
+						const rowindex = guiActionRowIndex(el.target)
+						const componentindex = guiComponentIndex(el.target)
+						const actionRowObj = jsonObject.components && rowindex >= 0 ? jsonObject.components[rowindex] ??= {} : {}
+						const componentObj = actionRowObj.components && actionRowObj.components[componentindex] ? actionRowObj.components[componentindex] : {}
+
 						switch (el.target.classList?.[0]) {
 							case "editContent":
 								jsonObject.content = value
@@ -1132,7 +1123,7 @@ addEventListener("DOMContentLoaded", () => {
 								if (isNaN(date.getTime())) return error("Invalid date")
 
 								embedObj.timestamp = date.getTime()
-								el.target.parentElement.querySelector("svg>text").textContent = (date.getDate() + "").padStart(2, 0)
+								el.target.parentElement.querySelector("svg > text").textContent = (date.getDate() + "").padStart(2, 0)
 								buildEmbed({ only: "embedFooterTimestamp", index: guiEmbedIndex(el.target) })
 								break
 
@@ -1153,6 +1144,8 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "componentEmoji", index: guiComponentIndex(el.target) })
 								break
 							case "editComponentUrl":
+								if (!value.startsWith("http://") && !value.startsWith("https://")) return error("Invalid URI protocol, Discord only supports HTTP and HTTPS.", "3s")
+
 								componentObj.url = value
 								buildEmbed({ only: "componentUrl", index: guiComponentIndex(el.target) })
 								break
@@ -1162,11 +1155,8 @@ addEventListener("DOMContentLoaded", () => {
 								break
 						}
 
-						const nonEmptyEmbedObjects = jsonObject.embeds?.filter(o => 0 in Object.keys(o))
-						if (nonEmptyEmbedObjects?.length) jsonObject.embeds = nonEmptyEmbedObjects
-
-						const nonEmptyComponentObjects = jsonObject.components?.filter(o => 0 in Object.keys(o))
-						if (nonEmptyComponentObjects?.length) jsonObject.components = nonEmptyComponentObjects
+						if (jsonObject.embeds) jsonObject.embeds = jsonObject.embeds.filter(o => Object.keys(o).length > 0)
+						if (jsonObject.components) jsonObject.components = jsonObject.components.filter(o => Object.keys(o).length > 0)
 					}
 
 					// Display embed elements hidden due to not having content. '.msgEmbed > .container' is embed container.
@@ -1299,7 +1289,7 @@ addEventListener("DOMContentLoaded", () => {
 
 	document.querySelector(".opt.gui").addEventListener("click", () => {
 		if (lastGuiJson && lastGuiJson != JSON.stringify(jsonObject, null, "\t")) buildGui()
-		lastGuiJson = false
+		lastGuiJson = void 0
 
 		document.body.classList.add("gui")
 	})
@@ -1319,10 +1309,8 @@ addEventListener("DOMContentLoaded", () => {
 		editor.focus()
 	})
 
-	document.querySelector(".clear").addEventListener("click", () => {
+	document.getElementById("clear-button").addEventListener("click", () => {
 		jsonObject = {}
-
-		document.querySelector(".msgEmbed .container > .embed")?.remove()
 
 		buildEmbed()
 		buildGui()
@@ -1335,17 +1323,74 @@ addEventListener("DOMContentLoaded", () => {
 		if (!smallerScreen.matches) document.getElementsByClassName("editContent")[0].focus()
 	})
 
+	document.getElementById("webhook-submit").addEventListener("click", async () => {
+		const sendParams = []
+		if (document.getElementById("webhook-thread-id").value.trim()) sendParams.push("thread_id=" + encodeURIComponent(document.getElementById("webhook-thread-id").value.trim()))
+		if (document.getElementById("webhook-thread-name").value.trim()) sendParams.push("thread_name=" + encodeURIComponent(document.getElementById("webhook-thread-name").value.trim()))
+
+		const webhook = document.getElementById("webhook-url").value + (sendParams.length > 0 ? "?" + sendParams.join("&") : "")
+		if (webhook.trim().length > 100) {
+			const webhookres = await fetch(webhook.startsWith("https://media.guilded.gg/") ? "https://pterodactyl-vsc.tomatocake.workers.dev/?url=" + encodeURIComponent(webhook) : webhook, {
+				method: "POST",
+				headers: {
+					"User-Agent": "TomatoCake TomatenKuchen.com Message Editor",
+					"Content-Type": "application/json",
+					Accept: "application/json"
+				},
+				body: JSON.stringify(jsonObject)
+			})
+			if (!webhookres.ok) {
+				console.error(webhookres.status, await webhookres.json())
+				return error("Request failed with error: " + webhookres.status + " " + webhookres.statusText)
+			}
+
+			error("The message was sent successfully!", "3s")
+			document.getElementById("webhook-dialog").close()
+		} else error("Invalid or missing webhook URL!")
+	})
+	document.getElementById("webhook-clear").addEventListener("click", () => {
+		document.getElementById("webhook-url").value = ""
+		document.getElementById("webhook-thread-id").value = ""
+		document.getElementById("webhook-thread-name").value = ""
+	})
+
+	for (const elem of document.querySelectorAll("dialog .close")) {
+		elem.addEventListener("click", () => elem.closest("dialog").close())
+		elem.addEventListener("keydown", e => {
+			if (e.key == "Enter") elem.closest("dialog").close()
+		})
+	}
+
+	const socket = sockette("wss://api.tomatenkuchen.com/embedbuilder", {
+		onClose: event => {
+			console.log("Disconnected!", event)
+			error("The connection to the bot has been lost, reload the page to reconnect.", "8s")
+		},
+		onOpen: event => console.log("Connected!", event),
+		onMessage: wsjson => {
+			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
+			else if (wsjson.action == "result_importcode") alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel!")
+			else if (wsjson.action == "result_sendcode") alert("Send the code " + wsjson.code + " in the channel you want to send the message in! (Manage Messages)" +
+				"\nYou can optionally reply to a message to make the bot edit it. (Manage Guild)\n\nIf you're using the bot embed commands, just paste the code into the popup.")
+			else if (wsjson.action == "result_import") {
+				jsonObject = wsjson.data
+				buildEmbed()
+				buildGui()
+			} else if (wsjson.action == "result_send") error(wsjson.success ? "The message was sent successfully!" : "The message couldn't be sent: " + wsjson.error)
+		}
+	})
+
 	if (params.has("dgh") || params.has("mb")) {
-		document.getElementsByClassName("import")[0].remove()
-		document.getElementsByClassName("sendbot")[0].remove()
+		document.getElementById("import-button").remove()
+		document.getElementById("sendbot-button").remove()
 	} else {
-		document.getElementsByClassName("import")[0].addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
-		document.getElementsByClassName("sendbot")[0].addEventListener("click", () => {
+		document.getElementById("import-button").addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
+		document.getElementById("sendbot-button").addEventListener("click", () => {
 			socket.send(JSON.stringify({action: "send", data: jsonObject}))
 		})
 	}
 
-	document.querySelector(".copy").addEventListener("click", () => {
+	document.getElementById("copy-button").addEventListener("click", () => {
 		const jsonData = JSON.stringify(jsonObject, null, "\t")
 
 		if (!navigator.clipboard?.writeText(jsonData).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
@@ -1400,24 +1445,7 @@ addEventListener("DOMContentLoaded", () => {
 			return
 		}
 
-		if (e.target.closest(".item.sendwebhook")) {
-			const webhook = prompt("Enter the URL of the Discord or Guilded webhook to send the message to.")
-			if (webhook) {
-				const webhookres = await fetch(webhook.startsWith("https://media.guilded.gg/") ? "https://pterodactyl-vsc.tomatocake.workers.dev/?url=" + encodeURIComponent(webhook) : webhook, {
-					method: "POST",
-					headers: {
-						"User-Agent": "TomatoCake TomatenKuchen.com Message Editor",
-						"Content-Type": "application/json",
-						Accept: "application/json"
-					},
-					body: JSON.stringify(jsonObject)
-				})
-				if (!webhookres.ok) {
-					console.error(webhookres.status, await webhookres.json())
-					return error("Request failed with error: " + webhookres.status + " " + webhookres.statusText)
-				}
-			}
-		}
+		if (e.target.closest("#send-webhook")) document.getElementById("webhook-dialog").showModal()
 
 		if (e.target.closest(".item.download"))
 			createElement({ a: { download: "tkmessage_" + new Date().toISOString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonObject, null, "\t")) } }).click()
