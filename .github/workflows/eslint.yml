@@ -2,6 +2,7 @@ name: ESLint
 
 on:
   push:
+    paths: ["**/*.html", "**/*.js", ".github/workflows/eslint.yml", "eslint.config.js", "package.json"]
 
 jobs:
   lint:

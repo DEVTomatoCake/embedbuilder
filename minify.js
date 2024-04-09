@@ -16,14 +16,14 @@ const defaultOptions = {
 }
 
 const results = []
-const minifyFile = async (path, options = {}) => {
-	const filename = path.split("/").pop()
-	const content = await fsPromises.readFile(path, "utf8")
+const minifyFile = async (inputPath, options = {}) => {
+	const filename = inputPath.split("/").pop()
+	const content = await fsPromises.readFile(inputPath, "utf8")
 
 	let result = {}
 	if (filename.endsWith(".js")) {
 		result = UglifyJS.minify({
-			[path]: content
+			[inputPath]: content
 		}, {
 			sourceMap: {
 				root: "https://embed.tomatenkuchen.com/assets/",
@@ -42,7 +42,7 @@ const minifyFile = async (path, options = {}) => {
 		})
 
 		if (result.error) throw result.error
-		if (result.warnings && result.warnings.length > defaultOptions.compress.passes) console.log(path, result.warnings)
+		if (result.warnings && result.warnings.length > defaultOptions.compress.passes) console.log(inputPath, result.warnings)
 	} else if (filename.endsWith(".css")) {
 		const clean = new CleanCSS({
 			compatibility: {
@@ -71,22 +71,22 @@ const minifyFile = async (path, options = {}) => {
 			map: output.sourceMap.toString().replace("$stdin", filename)
 		}
 
-		if (output.warnings.length > 0 || output.errors.length > 0) console.log(path, output.warnings, output.errors)
+		if (output.warnings.length > 0 || output.errors.length > 0) console.log(inputPath, output.warnings, output.errors)
 	} else if (filename.endsWith(".json")) {
 		result = {
 			code: JSON.stringify(JSON.parse(content))
 		}
-	} else return console.error("Unknown minify file type: " + path)
+	} else return console.error("Unknown minify file type: " + inputPath)
 
-	if (result.code.length >= content.length) return console.log("No reduction for " + path + " (" + content.length + " -> " + result.code.length + ")")
+	if (result.code.length >= content.length) return console.log("No reduction for " + inputPath + " (" + content.length + " -> " + result.code.length + ")")
 
 	if (process.env.MINIFY_ENABLED) {
-		await fsPromises.writeFile(path, result.code)
-		if (result.map) await fsPromises.writeFile(path + ".map", result.map)
+		await fsPromises.writeFile(inputPath, result.code)
+		if (result.map) await fsPromises.writeFile(inputPath + ".map", result.map)
 	}
 
 	results.push({
-		path: path.slice(2),
+		path: inputPath.slice(2),
 		size: content.length,
 		compressed: result.code.length,
 		"% reduction": parseFloat((100 - (result.code.length / content.length * 100)).toFixed(1))

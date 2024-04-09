@@ -17,6 +17,7 @@ const expectEqual = async (t, name = "", inputs = [], expected = "") => {
 const fs = require("node:fs").promises
 const main = async () => {
 	const scriptFile = await fs.readFile("./assets/script.js", "utf8")
+	const emojisFile = await fs.readFile("./assets/twemoji.js", "utf8")
 
 	test("Markdown", async t => {
 		const funcStart = scriptFile.indexOf("const markup = ")
@@ -41,10 +42,20 @@ const main = async () => {
 		await expectEqual(t, "Spoiler", markdown("text|| hello there|| ||"), "text<span class='spoiler'> hello there</span> ||")
 
 		await expectEqual(t, "Headers level 1 with parsing disabled", markdown("# Text! yay "), "# Text! yay")
-		await expectEqual(t, "Headers level 1 with spaces and tabs",
-			[markdown("# Text! yay ", { replaceHeaders: true }), markdown("#\tText! yay ", { replaceHeaders: true })], "<span class='h1'>Text! yay</span>")
+		await expectEqual(t, "Headers level 1 with allowed whitespaces", [
+			markdown("# Text! yay ", { replaceHeaders: true }), markdown("#\tText! yay ", { replaceHeaders: true }),
+			markdown("# Text! yay ", { replaceHeaders: true }), markdown("# Text! yay ", { replaceHeaders: true }),
+			markdown("# Text! yay ", { replaceHeaders: true }), markdown("# Text! yay ", { replaceHeaders: true }),
+			markdown("# Text! yay ", { replaceHeaders: true }), markdown("# Text! yay ", { replaceHeaders: true }),
+			markdown("# Text! yay ", { replaceHeaders: true }), markdown("# Text! yay ", { replaceHeaders: true }),
+			markdown("# Text! yay ", { replaceHeaders: true })
+		], "<span class='h1'>Text! yay</span>")
 		await expectEqual(t, "Headers level 3", markdown("### Text! yay ", { replaceHeaders: true }), "<span class='h3'>Text! yay</span>")
-		await expectEqual(t, "Headers ignoring invalid", markdown("##Text! yay ", { replaceHeaders: true }), "##Text! yay")
+		await expectEqual(t, "Headers ignoring invalid without any whitespace", markdown("##Text! yay ", { replaceHeaders: true }), "##Text! yay")
+		await expectEqual(t, "Headers ignoring invalid with a zero-width space", markdown("##​Text! yay ", { replaceHeaders: true }), "##​Text! yay")
+		await expectEqual(t, "Headers ignoring invalid with a braille-blank character", markdown("##⠀Text! yay ", { replaceHeaders: true }), "##⠀Text! yay")
+
+		await expectEqual(t, "Emojis", markdown(":tomato:", { replaceEmojis: true }), "🍅")
 	})
 }
 main()

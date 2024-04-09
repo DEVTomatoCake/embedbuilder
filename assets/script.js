@@ -256,9 +256,9 @@ const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlin
 		.replace(/(^| )(https?:\/\/\S+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
 
 	if (replaceHeaders) txt = txt
-		.replace(/^###[\t ]([\S\t ]+)/gm, "<span class='h3'>$1</span>")
-		.replace(/^##[\t ]([\S\t ]+)/gm, "<span class='h2'>$1</span>")
-		.replace(/^#[\t ]([\S\t ]+)/gm, "<span class='h1'>$1</span>")
+		.replace(/^###[\t          ⠀]([\S\t ]+)/gm, "<span class='h3'>$1</span>")
+		.replace(/^##[\t          ⠀]([\S\t ]+)/gm, "<span class='h2'>$1</span>")
+		.replace(/^#[\t          ⠀]([\S\t ]+)/gm, "<span class='h1'>$1</span>")
 
 	let listType
 	txt = txt
