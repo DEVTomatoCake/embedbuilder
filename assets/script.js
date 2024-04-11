@@ -239,7 +239,7 @@ const timestamp = stringISO => {
 }
 
 const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlineBlock = false } = {}) => {
-	if (replaceEmojis) txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)\w+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
+	if (replaceEmojis) txt = txt.replace(/(?<!code(?: \w+=".+")?>[^>]+)(?<!\/[^\s"]+?):((?!\/)[-+\w]+):/g, (match, p) => p && emojis[p] ? emojis[p] : match)
 
 	txt = txt
 		.trim()
@@ -256,9 +256,9 @@ const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlin
 		.replace(/(^| )(https?:\/\/\S+)/gim, "$1<a href='$2' target='_blank' rel='noopener' class='anchor'>$2</a>")
 
 	if (replaceHeaders) txt = txt
-		.replace(/^###[\t          ⠀]([\S\t ]+)/gm, "<span class='h3'>$1</span>")
-		.replace(/^##[\t          ⠀]([\S\t ]+)/gm, "<span class='h2'>$1</span>")
-		.replace(/^#[\t          ⠀]([\S\t ]+)/gm, "<span class='h1'>$1</span>")
+		.replace(/^###[\t          ]+([\S\t ]+)/gm, "<span class='h3'>$1</span>")
+		.replace(/^##[\t          ]+([\S\t ]+)/gm, "<span class='h2'>$1</span>")
+		.replace(/^#[\t          ]+([\S\t ]+)/gm, "<span class='h1'>$1</span>")
 
 	let listType
 	txt = txt
@@ -285,7 +285,7 @@ const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlin
 		})
 		// Replace >>> and > with block-quotes. &gt; is HTML code for >
 		.replace(/^(?: *&gt;&gt;&gt; ([\s\S]*))|(?:^ *&gt;(?!&gt;&gt;) +.+\n)+(?:^ *&gt;(?!&gt;&gt;) .+\n?)+|^(?: *&gt;(?!&gt;&gt;) ([^\n]*))(\n?)/gm, (all, match1, match2, newLine) =>
-			"<div class='blockquote'><div class='blockquoteDivider'></div><blockquote>" + (match1 || match2 || newLine ? match1 || match2 : all.replace(/^ *&gt; /gm, "")) + "</blockquote></div>"
+			"<div class='blockquote'><div class='blockquoteDivider'></div><blockquote>" + (match1 || match2 || newLine ? (match1 || match2) : all.replace(/^ *&gt; /gm, "")) + "</blockquote></div>"
 		)
 
 		// Mentions
@@ -298,7 +298,9 @@ const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlin
 			if (all.startsWith("@")) return "<span class='mention'>" + all + "</span>"
 			return "<span class='mention interactive'>@user: " + match1 + "</span>"
 		})
-		.replace(/\[([^[\]]+)\]\((https?:\/\/.+)\)/g, "<a title='$1' href='$2' target='_blank' rel='noopener' class='anchor'>$1</a>")
+		.replace(/\[([^[\]]+)\]\((https?:\/\/\S+)( &#039;([^\n]+?)&#039;)?\)/g, (all, match1, match2, match3, match4) =>
+			"<a href='" + match2 + "' target='_blank' rel='noopener' class='anchor'" + (match4 ? " title='" + match4 + "'" : "") + ">" + match1 + "</a>"
+		)
 
 		// Timestamps
 		.replace(/&lt;t:([0-9]{1,14})(:([tTdDfFR]))?&gt;/g, (all, match1, match2, match3) => {

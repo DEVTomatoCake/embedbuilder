@@ -1,4 +1,10 @@
 const emojis = {
+	"skin-tone-1": "\u{1F3FB}",
+	"skin-tone-2": "\u{1F3FC}",
+	"skin-tone-3": "\u{1F3FD}",
+	"skin-tone-4": "\u{1F3FE}",
+	"skin-tone-5": "\u{1F3FF}",
+
 	open_hands: "👐",
 	open_hands_tone1: "👐🏻",
 	open_hands_tone2: "👐🏼",
