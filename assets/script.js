@@ -1441,7 +1441,7 @@ addEventListener("DOMContentLoaded", () => {
 			if (wsjson.action == "error") error(wsjson.message, wsjson.time)
 			else if (wsjson.action == "result_importcode") alert("Send the code " + wsjson.code + " while replying to the message you want to import. The bot must be able to see the channel!")
 			else if (wsjson.action == "result_sendcode") alert("Send the code " + wsjson.code + " in the channel you want to send the message in! (Manage Messages)" +
-				"\nYou can optionally reply to a message to make the bot edit it. (Manage Guild)\n\nIf you're using the bot embed commands, just paste the code into the popup.")
+				"\nYou can optionally reply to a message to make TomatenKuchen edit it. (Manage Guild)\n\nIf you're using the bot embed commands, just paste the code into the popup.")
 			else if (wsjson.action == "result_import") {
 				jsonObject = wsjson.data
 				buildEmbed()
