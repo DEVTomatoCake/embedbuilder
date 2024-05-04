@@ -366,6 +366,8 @@ addEventListener("DOMContentLoaded", () => {
 	if (top != self) {
 		document.getElementById("auto").parentElement.remove()
 		document.getElementById("send-webhook").remove()
+		document.getElementById("import-button").remove()
+		document.getElementById("sendbot-button").remove()
 
 		window.onmessage = e => {
 			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269")) {
@@ -1461,8 +1463,7 @@ addEventListener("DOMContentLoaded", () => {
 	}
 
 	document.getElementById("copy-button").addEventListener("click", () => {
-		const jsonData = JSON.stringify(jsonObject, null, "\t")
-
+		const jsonData = JSON.stringify(jsonObject)
 		if (!navigator.clipboard?.writeText(jsonData).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
 			const textarea = document.body.appendChild(document.createElement("textarea"))
 
@@ -1510,14 +1511,16 @@ addEventListener("DOMContentLoaded", () => {
 
 				setTimeout(() => alert("Copied to clipboard." +
 					(data.length > 2000 ? " The URL was shortened to work on Discord and can now be used for example with the TomatenKuchen \"embed\" command." : "")), 1)
-			} else alert("URL: " + data)
+			} else {
+				document.getElementById("share-dialog").showModal()
+				document.getElementById("share-content").innerHTML = "<a href='" + data + "'>" + data + "</a>" + (data.length > 2000 ? "<br>URL was shortened to work on Discord." : "")
+			}
 
 			return
 		}
 
 		if (e.target.closest("#send-webhook")) document.getElementById("webhook-dialog").showModal()
-
-		if (e.target.closest(".item.download"))
+		else if (e.target.closest(".item.download"))
 			createElement({ a: { download: "tkmessage_" + new Date().toISOString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonObject, null, "\t")) } }).click()
 		else if (e.target.closest(".item.auto")) {
 			const input = e.target.closest(".item")?.querySelector("input")
@@ -1540,13 +1543,13 @@ addEventListener("DOMContentLoaded", () => {
 		} else e.target.closest(".top-btn")?.classList.toggle("active")
 	})
 
-	document.querySelectorAll(".img").forEach(e => {
+	for (const e of document.getElementsByClassName("img")) {
 		if (e.nextElementSibling?.classList.contains("spinner-container"))
 			e.addEventListener("error", el => {
 				el.target.style.display = "none"
 				el.target.nextElementSibling.style.display = "block"
 			})
-	})
+	}
 
 	buildEmbed()
 
