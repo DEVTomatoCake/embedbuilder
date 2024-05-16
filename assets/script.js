@@ -1462,9 +1462,9 @@ addEventListener("DOMContentLoaded", () => {
 		})
 	}
 
-	document.getElementById("copy-button").addEventListener("click", () => {
+	document.getElementById("copy-button").addEventListener("click", async () => {
 		const jsonData = JSON.stringify(jsonObject)
-		if (!navigator.clipboard?.writeText(jsonData).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
+		if (!await navigator.clipboard?.writeText(jsonData).catch(err => console.log("Could not copy to clipboard: " + err.message))) {
 			const textarea = document.body.appendChild(document.createElement("textarea"))
 
 			textarea.value = jsonData
