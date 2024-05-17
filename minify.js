@@ -124,6 +124,7 @@ async function main() {
 	})
 
 	await minifyFile("./assets/style.css")
+	await minifyFile("./assets/CodeMirror-material-darker.css")
 	await minifyFile("./assets/manifest.json")
 
 	results.push({

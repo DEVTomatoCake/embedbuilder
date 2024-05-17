@@ -365,7 +365,7 @@ textarea {
 
 .mention {
 	background-color: hsla(235, calc(85.6%), 64.7%, .3);
-	transition: background-color .5s ease-out, color .5s ease-out;
+	transition: background-color .3s ease-out, color .3s ease-out;
 	border-radius: 3px;
 	padding: 0 2px;
 	font-weight: 500;
@@ -980,17 +980,6 @@ u, .markup a:hover {
 	background-color: var(--menu-a) !important;
 }
 
-.cm-s-material-darker .cm-comment {
-	color: #5d616b !important;
-}
-
-.cm-s-material-darker .CodeMirror-matchingbracket {
-	text-decoration: none !important;
-	background-color: rgb(173 192 212 / 3%) !important;
-	color: #b9c3d6 !important;
-	border-bottom: 1px solid #c2d6ff !important;
-}
-
 #notification {
 	bottom: 0;
 	left: 50%;
@@ -1066,7 +1055,7 @@ body.gui .side1 .item.top {
 	scrollbar-width: 7px;
 	padding-top: 10px;
 	padding-bottom: 20px;
-	transition: .5s ease;
+	transition: .4s ease;
 }
 
 @media screen and (min-height: 850px) {
@@ -1558,7 +1547,7 @@ button[type="submit"] {
 @keyframes fieldNumberFadeInAn {
 	from {
 		opacity: 0;
-		transition: opacity .7s ease;
+		transition: opacity .6s ease;
 	}
 }
 
@@ -1572,7 +1561,7 @@ button[type="submit"] {
 	top: 22px;
 	z-index: -2;
 	opacity: .15;
-	transition: .5s ease;
+	transition: .4s ease;
 }
 
 @media screen and (max-width: 1600px) {
@@ -1610,7 +1599,7 @@ button[type="submit"] {
 .removeBtn > svg {
 	width: 10px;
 	height: 10px;
-	transition: .5s ease;
+	transition: .3s ease;
 	fill: var(--white);
 }
 
@@ -1622,7 +1611,7 @@ button[type="submit"] {
 	margin-left: 3px;
 	position: relative;
 	top: -1px;
-	transition: .5s ease;
+	transition: .3s ease;
 }
 
 .removeBtn:hover > span,
@@ -1710,7 +1699,7 @@ span.h3 {
 	background-color: var(--bgc);
 	width: 35px;
 	height: 35px;
-	transition: .5s ease;
+	transition: .3s ease;
 }
 
 #copy-button {
@@ -1810,7 +1799,7 @@ span.h3 {
 	cursor: pointer;
 	color: var(--menu-a);
 	text-decoration: none;
-	transition: .3s;
+	transition: .2s;
 }
 #more-container a:hover {
 	color: #8c99bd;
@@ -1924,16 +1913,14 @@ body.no-editor .side1 .chooser :is(.back, .opt) {
 	pointer-events: none;
 }
 
-body.no-editor .side1 .chooser.needed> :not(.menu) {
+body.no-editor .side1 .chooser.needed> :not(.menu),
+body.no-preview .side2,
+.hidden-imp {
 	display: none !important;
 }
 
 body.no-editor .side1 {
 	position: absolute;
-}
-
-body.no-preview .side2 {
-	display: none !important;
 }
 
 body.no-editor main .side1 {
@@ -1978,23 +1965,8 @@ h5.title {
 }
 
 @media screen and (max-width: 1015px) {
-	section.low .top > .gui {
-		opacity: .6;
-		filter: blur(2px) brightness(.99);
-		pointer-events: none !important;
-	}
-
-	section.low {
-		height: 50% !important;
-		transition: .4s ease;
-	}
-
 	section {
-		transition: .5s ease;
-	}
-
-	body.emptyEmbed.emptyContent section.side1:not(.low) {
-		height: 300%;
+		transition: .3s ease;
 	}
 
 	.top-btn {
@@ -2136,7 +2108,7 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	position: absolute;
 	right: 19px;
 	top: 7px;
-	transition: .5s ease;
+	transition: .4s ease;
 	opacity: .1;
 }
 
@@ -2169,6 +2141,10 @@ body .top > .gui .item.guiActionRowName:not(.active) + .guiActionRow {
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
+}
+
+#addContainer .text {
+	user-select: none;
 }
 
 .actionrow {

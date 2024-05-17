@@ -219,8 +219,9 @@ const externalParsing = ({ noEmojis, element } = {}) => {
 	afterBuilding()
 }
 
-const url = str => /^(https?:)?\/\//.test(str) ? str : "https://" + str
-const imgProxy = str => str.length > 3 && str.includes(".") ? ("https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)) : ""
+const url = str => /^(https?:|attachment:)?\/\//.test(str) ? str : "https://" + str
+const imgProxy = str => str.length > 3 && str.includes(".") && !str.startsWith("attachment:") ?
+	("https://api.tomatenkuchen.com/image-proxy?url=" + encodeURIComponent(url(str)) + "&origin=" + encodeURIComponent(location.origin)) : ""
 const imgSrc = (elem, src) => elem.style.content = "url(" + imgProxy(src) + ")"
 const hide = el => el.style.removeProperty("display")
 const encode = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
@@ -381,7 +382,10 @@ addEventListener("DOMContentLoaded", () => {
 		document.querySelector(".item.auto > input").checked = true
 	}
 
-	if (params.get("editor") == "json") document.body.classList.remove("gui")
+	if (params.get("editor") == "json") {
+		document.body.classList.remove("gui")
+		document.getElementById("addContainer").classList.add("hidden-imp")
+	}
 
 	document.getElementsByClassName("username")[0].textContent = params.has("dgh") ? "DisGitHook" : (params.has("mb") ? "Manage Bot" : "TomatenKuchen")
 	document.getElementsByClassName("avatar")[0].src = "./assets/images/" + (params.has("dgh") ? "gitdishook.png" : (params.has("mb") ? "managebot_40" : "background_40") + ".webp")
@@ -1364,6 +1368,7 @@ addEventListener("DOMContentLoaded", () => {
 		lastGuiJson = void 0
 
 		document.body.classList.add("gui")
+		document.getElementById("addContainer").classList.remove("hidden-imp")
 	})
 
 	document.querySelector(".opt.json").addEventListener("click", () => {
@@ -1376,6 +1381,8 @@ addEventListener("DOMContentLoaded", () => {
 		lastGuiJson = jsonStr
 
 		document.body.classList.remove("gui")
+		document.getElementById("addContainer").classList.add("hidden-imp")
+
 		editor.setValue(jsonStr == "{}" ? "{\n\t\n}" : jsonStr)
 		editor.refresh()
 		editor.focus()
@@ -1478,6 +1485,7 @@ addEventListener("DOMContentLoaded", () => {
 	document.querySelector(".top-btn.menu")?.addEventListener("click", async e => {
 		if (e.target.closest(".item.dataLink")) {
 			let data = encodeJson(true).replace(/(?<!data=[^=]+|=)=(&|$)/g, x => x == "=" ? "" : "&")
+			let shortened = false
 			if (data.length > 2000) {
 				const shorterres = await fetch("https://sh0rt.zip", {
 					method: "POST",
@@ -1494,12 +1502,15 @@ addEventListener("DOMContentLoaded", () => {
 				})
 				const shorterjson = await shorterres.json()
 				console.log("Response from https://sh0rt.zip:", shorterjson)
-				data = "https://sh0rt.zip/" + shorterjson.name
+				if (shorterres.ok) {
+					shortened = true
+					data = "https://sh0rt.zip/" + shorterjson.name
+				}
 			}
 
 			if (top == self) {
 				try {
-					navigator.clipboard.writeText(data)
+					await navigator.clipboard.writeText(data)
 				} catch {
 					const input = document.body.appendChild(document.createElement("input"))
 					input.value = data
@@ -1510,7 +1521,7 @@ addEventListener("DOMContentLoaded", () => {
 				}
 
 				setTimeout(() => alert("Copied to clipboard." +
-					(data.length > 2000 ? " The URL was shortened to work on Discord and can now be used for example with the TomatenKuchen \"embed\" command." : "")), 1)
+					(shortened > 2000 ? " The URL was shortened to work on Discord and can now be used for example with the TomatenKuchen \"embed\" command." : "")), 1)
 			} else {
 				document.getElementById("share-dialog").showModal()
 				document.getElementById("share-content").innerHTML = "<a href='" + data + "'>" + data + "</a>" + (data.length > 2000 ? "<br>URL was shortened to work on Discord." : "")
