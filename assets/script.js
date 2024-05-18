@@ -1521,7 +1521,7 @@ addEventListener("DOMContentLoaded", () => {
 				}
 
 				setTimeout(() => alert("Copied to clipboard." +
-					(shortened > 2000 ? " The URL was shortened to work on Discord and can now be used for example with the TomatenKuchen \"embed\" command." : "")), 1)
+					(shortened ? " The URL was shortened to work on Discord and can now be used for example with the TomatenKuchen \"embed\" command." : "")), 1)
 			} else {
 				document.getElementById("share-dialog").showModal()
 				document.getElementById("share-content").innerHTML = "<a href='" + data + "'>" + data + "</a>" + (data.length > 2000 ? "<br>URL was shortened to work on Discord." : "")
