@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 const emojis = {
 	"skin-tone-1": "\u{1F3FB}",
 	"skin-tone-2": "\u{1F3FC}",

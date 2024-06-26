@@ -1,6 +1,8 @@
 // Modified by TomatoCake from https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.js (sha384-5dkqiYjtbrPIyBss355UPgg+T0Emyjo1spvB9D1wWc52z2s66PB668fOVSLvuF/R)
 
-// eslint-disable-next-line no-var
+/* eslint-disable func-style */
+
+// eslint-disable-next-line no-var, no-unused-vars
 var twemoji = (function(
 	/*! Copyright Twitter Inc. and other contributors. Licensed under MIT *//*
 			https://github.com/twitter/twemoji/blob/81040856868a62d378e9afdb56aa6e8ae2418435/LICENSE

@@ -4,6 +4,7 @@
 // Original source: https://raw.githubusercontent.com/lukeed/sockette/66bf604bd51f914680a69600099ba7060bc10c09/src/index.js
 // Modified by booky10 and TomatoCake
 
+// eslint-disable-next-line no-unused-vars
 const sockette = (url, opts = {}) => {
 	let reconnectAttempts = 0
 	let reconnectTimer = 1

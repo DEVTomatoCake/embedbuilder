@@ -305,7 +305,7 @@ const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlin
 
 		// Timestamps
 		.replace(/&lt;t:([0-9]{1,14})(:([tTdDfFR]))?&gt;/g, (all, match1, match2, match3) => {
-			const dateInput = new Date(parseInt(match1) * 1000)
+			const dateInput = new Date(Number.parseInt(match1) * 1000)
 			let time = ""
 			if (match3 == "d") time = dateInput.toLocaleString(void 0, {day: "2-digit", month: "2-digit", year: "numeric"})
 			else if (match3 == "D") time = dateInput.toLocaleString(void 0, {day: "numeric", month: "long", year: "numeric"})
@@ -315,7 +315,7 @@ const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlin
 				dateInput.toLocaleString(void 0, {hour: "2-digit", minute: "2-digit"})
 			else if (match3 == "t") time = dateInput.toLocaleString(void 0, {hour: "2-digit", minute: "2-digit"})
 			else if (match3 == "T") time = dateInput.toLocaleString(void 0, {hour: "2-digit", minute: "2-digit", second: "2-digit"})
-			else if (match3 == "R") time = Math.round((Date.now() - (parseInt(match1) * 1000)) / 1000 / 60) + " minutes ago"
+			else if (match3 == "R") time = Math.round((Date.now() - (Number.parseInt(match1) * 1000)) / 1000 / 60) + " minutes ago"
 
 			return "<span class='spoiler'>" + time + "</span>"
 		})
@@ -359,9 +359,8 @@ const uploadError = (message, browse, sleepTime = 7000) => {
 	}, sleepTime)
 }
 
-let serverData = {}
-
-addEventListener("DOMContentLoaded", () => {
+//let serverData = {}
+document.addEventListener("DOMContentLoaded", () => {
 	if (reverseColumns || localStorage.getItem("reverseColumns")) reverse()
 
 	if (top != self) {
@@ -374,7 +373,7 @@ addEventListener("DOMContentLoaded", () => {
 			if ((e.origin == "https://tomatenkuchen.com" || e.origin == "https://beta.tomatenkuchen.com" || e.origin == "http://localhost:4269")) {
 				console.log("Received message from parent window:", encode(e.data.replace(/\n|\r/g, "")))
 				if (e.data == "requestMessage") window.top.postMessage("respondMessage_" + encodeJson(), "*")
-				else if (e.data.startsWith("serverData_")) serverData = JSON.parse(e.data.replace("serverData_", ""))
+				//else if (e.data.startsWith("serverData_")) serverData = JSON.parse(e.data.replace("serverData_", ""))
 			}
 		}
 	} else if (autoUpdateUrl) {
@@ -538,8 +537,9 @@ addEventListener("DOMContentLoaded", () => {
 					const embedTitle = embed?.querySelector(".embedTitle")
 					if (!embedTitle) return buildEmbed()
 
-					if (embedObj.title) display(embedTitle, markup(embedObj.url ? "<a class='anchor' href='" + encode(url(embedObj.url)) + "' target='_blank' rel='noopener'>" + encode(embedObj.title) + "</a>" :
-						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
+					if (embedObj.title) display(embedTitle, markup(embedObj.url
+						? "<a class='anchor' href='" + encode(url(embedObj.url)) + "' target='_blank' rel='noopener'>" + encode(embedObj.title) + "</a>"
+						: encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
 					else hide(embedTitle)
 
 					return externalParsing({ element: embedTitle })
@@ -547,8 +547,9 @@ addEventListener("DOMContentLoaded", () => {
 					const embedUrl = embed?.querySelector(".embedUrl")
 					if (!embedUrl) return buildEmbed()
 
-					if (embedObj.title) display(embedUrl, markup(embedObj.url ? "<a class='anchor' href='" + encode(url(embedObj.url)) + "' target='_blank' rel='noopener'>" + encode(embedObj.title) + "</a>" :
-						encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
+					if (embedObj.title) display(embedUrl, markup(embedObj.url
+						? "<a class='anchor' href='" + encode(url(embedObj.url)) + "' target='_blank' rel='noopener'>" + encode(embedObj.title) + "</a>"
+						: encode(embedObj.title), { replaceEmojis: true, inlineBlock: true }))
 					else hide(embedUrl)
 
 					return externalParsing({ element: embedUrl })
@@ -761,7 +762,8 @@ addEventListener("DOMContentLoaded", () => {
 							encode(component.label) + "</a>" +
 							// From Discord's client source code
 							"<svg aria-hidden='true' role='img' width='16' height='16' viewBox='0 0 24 24'>" +
-							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
+							"<path fill='currentColor' d='M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 " +
+							"19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z'></path>" +
 							"<path fill='currentColor' d='M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z'></path></svg>"
 
 						actionRowElement.appendChild(buttonElement)
@@ -1150,7 +1152,7 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "embedUrl", index: guiEmbedIndex(el.target) })
 								break
 							case "editColor":
-								embedObj.color = parseInt(value.replace("#", ""), 16) || 0
+								embedObj.color = Number.parseInt(value.replace("#", ""), 16) || 0
 								buildEmbed({ only: "embedColor", index: guiEmbedIndex(el.target) })
 								break
 							case "editDescription":
@@ -1182,7 +1184,7 @@ addEventListener("DOMContentLoaded", () => {
 								break
 							case "embedFooterTimestamp":
 								const date = new Date(value)
-								if (isNaN(date.getTime())) return error("Invalid date")
+								if (Number.isNaN(date.getTime())) return error("Invalid date")
 
 								embedObj.timestamp = date.getTime()
 								el.target.parentElement.querySelector("svg > text").textContent = (date.getDate() + "").padStart(2, 0)
@@ -1198,7 +1200,7 @@ addEventListener("DOMContentLoaded", () => {
 								buildEmbed({ only: "componentPlaceholder", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 							case "editComponentStyle":
-								componentObj.style = parseInt(value)
+								componentObj.style = Number.parseInt(value)
 								buildEmbed({ only: "componentStyle", index: guiActionRowIndex(el.target), componentIndex: guiComponentIndex(el.target) })
 								break
 							case "editComponentEmoji":
@@ -1532,7 +1534,11 @@ addEventListener("DOMContentLoaded", () => {
 
 		if (e.target.closest("#send-webhook")) document.getElementById("webhook-dialog").showModal()
 		else if (e.target.closest(".item.download"))
-			createElement({ a: { download: "tkmessage_" + new Date().toISOString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonObject, null, "\t")) } }).click()
+			createElement({
+				a: {
+					download: "tkmessage_" + new Date().toISOString() + ".json", href: "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonObject, null, "\t"))
+				}
+			}).click()
 		else if (e.target.closest(".item.auto")) {
 			const input = e.target.closest(".item")?.querySelector("input")
 			if (input) input.checked = !input.checked
