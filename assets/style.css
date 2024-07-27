@@ -1689,6 +1689,10 @@ span.h3 {
 	margin: 16px 0 8px;
 }
 
+small.subtext {
+	font-size: 13px;
+}
+
 .top-btn {
 	left: 140px;
 	position: absolute;

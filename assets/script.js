@@ -6,7 +6,7 @@
  */
 
 let jsonObject = {
-	content: "Hello ~~world~~ *Discord* user :D\n\n# Markdown is working!\n\n## So, what are you waiting for?\n\n### Go ahead and edit this message!",
+	content: "A feature-rich message editor for TomatenKuchen & Manage Bot, made by TomatoCake.\n\n-# It supports all Discord Markdown features!",
 	embeds: [
 		{
 			title: "Next steps",
@@ -260,6 +260,7 @@ const markup = (txt = "", { replaceEmojis = false, replaceHeaders = false, inlin
 		.replace(/^###[\t          ]+([\S\t ]+)/gm, "<span class='h3'>$1</span>")
 		.replace(/^##[\t          ]+([\S\t ]+)/gm, "<span class='h2'>$1</span>")
 		.replace(/^#[\t          ]+([\S\t ]+)/gm, "<span class='h1'>$1</span>")
+		.replace(/^-#[\t          ]+([\S\t ]+)/gm, "<small class='subtext'>$1</small>")
 
 	let listType
 	txt = txt
@@ -1461,14 +1462,16 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	})
 
-	if (params.has("dgh") || params.has("mb")) {
-		document.getElementById("import-button").remove()
-		document.getElementById("sendbot-button").remove()
-	} else {
-		document.getElementById("import-button").addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
-		document.getElementById("sendbot-button").addEventListener("click", () => {
-			socket.send(JSON.stringify({action: "send", data: jsonObject}))
-		})
+	if (top == self) {
+		if (params.has("dgh") || params.has("mb")) {
+			document.getElementById("import-button").remove()
+			document.getElementById("sendbot-button").remove()
+		} else {
+			document.getElementById("import-button").addEventListener("click", () => socket.send(JSON.stringify({action: "import"})))
+			document.getElementById("sendbot-button").addEventListener("click", () => {
+				socket.send(JSON.stringify({action: "send", data: jsonObject}))
+			})
+		}
 	}
 
 	document.getElementById("copy-button").addEventListener("click", async () => {
